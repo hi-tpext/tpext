@@ -1,0 +1,24 @@
+{
+    "name": "ichynul/tpext",
+    "description": "thinkphp extension",
+    "type": "project",
+    "keywords": [
+        "thinkphp"
+    ],
+    "homepage": "http://www.ynyysc.com/",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "ichynul",
+            "email": "ichynul@outlook.com"
+        }
+    ],
+    "require": {
+        "topthink/framework": "5.1.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "tpext\\": "/"
+        }
+    }
+}
