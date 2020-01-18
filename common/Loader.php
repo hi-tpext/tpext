@@ -1,6 +1,8 @@
 <?php
 
-namespace tpsc\common;
+namespace tpext\common;
+
+use think\facade\Hook;
 
 class Loader
 {
@@ -11,6 +13,8 @@ class Loader
     private static $plugins = [];
 
     private static $bindMods = [];
+
+    private static $hooks = [];
 
     // 注册classmap
     public static function addClassMap($class)
@@ -67,5 +71,20 @@ class Loader
     public static function getBindModules()
     {
         return self::$bindMods;
+    }
+
+    public static function addHook($name, $class, $desc = '', $first = false)
+    {
+        if (!isset(self::$hooks[$class])) {
+
+            self::$hooks[$class] = [$class, $desc, $first];
+
+            Hook::add($name, $class, $first);
+        }
+    }
+
+    public static function getHooks()
+    {
+        return self::$hooks;
     }
 }

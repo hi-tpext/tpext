@@ -6,8 +6,8 @@ use think\facade\Env;
 use think\facade\Hook;
 use tpext\behavior;
 use tpext\common\Loader;
-use tpext\common\Module;
-use tpext\common\Plugin;
+use tpext\common\Module as TpexModule;
+use tpext\common\Plugin as TpexPlugin;
 
 class AppInit
 {
@@ -20,8 +20,6 @@ class AppInit
     public function run()
     {
         Hook::add('app_dispatch', behavior\AppDispatch::class);
-        Hook::add('module_init', behavior\ModuleInit::class);
-        Hook::add('action_begin', behavior\ActionBegin::class);
 
         $this->bindExtensions();
     }
@@ -35,6 +33,7 @@ class AppInit
         $composerPath = Env::get('root_path') . 'vendor' . DIRECTORY_SEPARATOR . 'composer' . DIRECTORY_SEPARATOR;
 
         if (is_file($composerPath . 'autoload_classmap.php')) {
+
             $classMap = require $composerPath . 'autoload_classmap.php';
 
             if ($classMap && is_array($classMap)) {
@@ -42,27 +41,55 @@ class AppInit
                 $classMap = array_keys($classMap);
 
                 $this->findExtensions($classMap);
+
             }
         }
 
         Loader::addModules($this->modules);
 
-        Loader::addModules($this->plugins);
+        Loader::addPlugins($this->plugins);
 
         Loader::bindModules($this->bindModules);
 
         Hook::listen('tpext_modules_loaded');
     }
 
+    private function passClasses($declare)
+    {
+        if (preg_match('/^think\\\.+/i', $declare)) {
+            return true;
+        }
+
+        if (preg_match('/^tpext\\\common\\\.+/i', $declare)) {
+            return true;
+        }
+
+        if (preg_match('/^PHPUnit\\\.+/i', $declare)) {
+            return true;
+        }
+
+        if (preg_match('/^PHP_Token_.+/i', $declare)) {
+            return true;
+        }
+
+        if (preg_match('/^PharIo\\\.+/i', $declare)) {
+            return true;
+        }
+
+        if (preg_match('/^Symfony\\\.+/i', $declare)) {
+            return true;
+        }
+
+        if (preg_match('/^phpDocumentor\\\.+/i', $declare)) {
+            return true;
+        }
+    }
+
     private function findExtensions($classMap)
     {
         foreach ($classMap as $declare) {
 
-            if (preg_match('/^think\\\.+/i', $declare)) {
-                continue;
-            }
-
-            if (preg_match('/^tpext\\\common\\\.+/i', $declare)) {
+            if ($this->passClasses($declare)) {
                 continue;
             }
 
@@ -80,19 +107,17 @@ class AppInit
 
                 $instance = $reflectionClass->newInstance();
 
-                if (!($instance instanceof Module)) {
+                if (!($instance instanceof TpexModule)) {
                     continue;
                 }
 
-                $name = $instance->getName();
+                $name = $instance::getName();
 
                 if (!$name) {
-                    $name = $declare->getNameSpace();
+                    $name = strtolower(preg_replace('/\W/', '.', $declare));
                 }
 
                 $this->modules[$declare] = $name;
-
-                $instance->moduleInit();
 
                 $mods = $instance->getModules();
 
@@ -101,31 +126,35 @@ class AppInit
                     foreach ($mods as $key => $controllers) {
 
                         foreach ($controllers as $contr) {
-                            $this->bindModules[strtolower($key)][] = ['name' => $name, 'controler' => $contr,
+                            $this->bindModules[strtolower($key)][] = ['name' => $name, 'controler' => strtolower($contr),
                                 'namespace_map' => $instance->getNameSpaceMap(), 'classname' => $declare];
                         }
                     }
                 }
+
+                continue;
             }
 
             if (!isset($this->plugins[$declare]) && $reflectionClass->hasMethod('pluginInit')) {
 
                 $instance = $reflectionClass->newInstance();
 
-                if (!($instance instanceof Plugin)) {
+                if (!($instance instanceof TpexPlugin)) {
                     continue;
                 }
 
-                $name = $instance->getName();
+                $name = $instance::getName();
 
                 if (!$name) {
-                    $name = $declare->getNameSpace();
+                    $name = strtolower(preg_replace('/\W/', '.', $declare));
                 }
 
                 $this->plugins[$declare] = $name;
 
-                $instance->pluginInit();
+                $instance::pluginInit();
             }
+
+            continue;
         }
     }
 }

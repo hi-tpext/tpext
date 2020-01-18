@@ -1,38 +1,37 @@
 <?php
 
-namespace tpsc\common;
+namespace tpext\common;
 
-abstract class Module
+class Module
 {
-    protected $name = 'tpsc.module';
+    protected static $name = null;
 
-    protected $modules = [];
+    protected static $modules = [];
 
-    protected $namespaceMap = [];
+    protected static $namespaceMap = [];
 
-    protected $hooks = [
-        //...
-    ];
-
-    public function getName()
+    public static function getName()
     {
-        return $this->name;
+        return static::$name;
     }
 
-    public function getHooks()
+    final public static function getId()
     {
-        return $this->hooks;
+        return preg_replace('/\W/', '_', get_called_class());
     }
 
-    public function getModules()
+    public static function getModules()
     {
-        return $this->modules;
+        return static::$modules;
     }
 
-    public function getNameSpaceMap()
+    public static function getNameSpaceMap()
     {
-        return $this->namespaceMap;
+        return static::$namespaceMap;
     }
 
-    abstract public function moduleInit();
+    public static function moduleInit()
+    {
+        echo 'init module : ' . get_called_class(), '<br>';
+    }
 }

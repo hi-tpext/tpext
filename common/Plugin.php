@@ -1,24 +1,23 @@
 <?php
 
-namespace tpsc\common;
+namespace tpext\common;
 
-abstract class Plugin
+class Plugin
 {
-    protected $name = 'tpsc.plugin';
+    protected static $name = null;
 
-    protected $hooks = [
-        //...
-    ];
-
-    public function getName()
+    public static function getName()
     {
-        return $this->name;
+        return static::$name;
     }
 
-    public function getHooks()
+    public final static function getId()
     {
-        return $this->hooks;
+        return preg_replace('/\W/', '_', get_called_class());
     }
 
-    abstract public function pluginInit();
+    public static function pluginInit()
+    {
+        echo 'init plugin : ' . get_called_class(), '<br>';
+    }
 }
