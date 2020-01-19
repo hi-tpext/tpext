@@ -4,7 +4,7 @@ namespace tpext\common;
 
 use think\facade\Hook;
 
-class Loader
+class ExtLoader
 {
     private static $classMap = [];
 

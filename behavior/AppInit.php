@@ -5,7 +5,7 @@ namespace tpext\behavior;
 use think\facade\Env;
 use think\facade\Hook;
 use tpext\behavior;
-use tpext\common\Loader;
+use tpext\common\ExtLoader;
 use tpext\common\Module as TpexModule;
 use tpext\common\Plugin as TpexPlugin;
 
@@ -26,7 +26,7 @@ class AppInit
 
     protected function bindExtensions()
     {
-        $initedClassMap = Loader::getClassMap();
+        $initedClassMap = ExtLoader::getClassMap();
 
         $this->findExtensions($initedClassMap);
 
@@ -45,11 +45,11 @@ class AppInit
             }
         }
 
-        Loader::addModules($this->modules);
+        ExtLoader::addModules($this->modules);
 
-        Loader::addPlugins($this->plugins);
+        ExtLoader::addPlugins($this->plugins);
 
-        Loader::bindModules($this->bindModules);
+        ExtLoader::bindModules($this->bindModules);
 
         Hook::listen('tpext_modules_loaded');
     }

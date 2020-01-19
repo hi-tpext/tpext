@@ -9,7 +9,7 @@ use think\facade\Hook;
 use think\facade\Route;
 use think\Loader as Tploader;
 use think\route\dispatch\Url;
-use tpext\common\Loader;
+use tpext\common\ExtLoader;
 
 class AppDispatch
 {
@@ -53,7 +53,7 @@ class AppDispatch
             array_shift($url);
 
         } else {
-            $modules = Loader::getModules();
+            $modules = ExtLoader::getModules();
 
             foreach ($modules as $name) {
 
@@ -104,7 +104,6 @@ class AppDispatch
 
             App::dispatch($newDispatch->init());
 
-            return;
         }
     }
 
@@ -114,7 +113,7 @@ class AppDispatch
 
         $action = $action ? $action : config('app.default_action');
 
-        $bindModules = Loader::getBindModules();
+        $bindModules = ExtLoader::getBindModules();
 
         $matchMod = null;
 
