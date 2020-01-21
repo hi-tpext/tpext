@@ -108,15 +108,15 @@ class AppInit
                 continue;
             }
 
-            if (!isset($this->modules[$declare]) && $reflectionClass->hasMethod('moduleInit')) {
+            if (!isset($this->modules[$declare]) && $reflectionClass->hasMethod('moduleInit') && $reflectionClass->hasMethod('getInstance')) {
 
-                $instance = $reflectionClass->newInstance();
+                $instance = $declare::getInstance();
 
                 if (!($instance instanceof TpexModule)) {
                     continue;
                 }
 
-                $name = $instance::getName();
+                $name = $instance->getName();
 
                 if (!$name) {
                     $name = strtolower(preg_replace('/\W/', '.', $declare));
@@ -140,15 +140,15 @@ class AppInit
                 continue;
             }
 
-            if (!isset($this->plugins[$declare]) && $reflectionClass->hasMethod('pluginInit')) {
+            if (!isset($this->plugins[$declare]) && $reflectionClass->hasMethod('pluginInit') && $reflectionClass->hasMethod('getInstance')) {
 
-                $instance = $reflectionClass->newInstance();
+                $instance = $declare::getInstance();
 
                 if (!($instance instanceof TpexPlugin)) {
                     continue;
                 }
 
-                $name = $instance::getName();
+                $name = $instance->getName();
 
                 if (!$name) {
                     $name = strtolower(preg_replace('/\W/', '.', $declare));
@@ -156,7 +156,8 @@ class AppInit
 
                 $this->plugins[$declare] = $name;
 
-                $instance::pluginInit();
+                $instance->pluginInit();
+                $instance->autoCheck();
             }
 
             continue;

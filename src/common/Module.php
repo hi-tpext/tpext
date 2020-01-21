@@ -4,105 +4,56 @@ namespace tpext\common;
 
 use think\facade\Request;
 
-class Module
+class Module extends Extension
 {
-    /**
-     * 名称标识 ，英文字母，如 hello.world
-     *
-     * @var string
-     */
-    protected static $name = null;
-
-    /**
-     * 显示名称，如 你好世界
-     *
-     * @var string
-     */
-    protected static $title = '';
+    public const VERSION = '1.0.1';
 
     /**
      * 模块定义，如 ['module1' => ['controller1','controller2']]
      *
      * @var array
      */
-    protected static $modules = [];
-
-    /**
-     * @var string
-     */
-    protected static $assets = '';
+    protected $modules = [];
 
     /**
      * @var array
      */
-    protected static $menus = [];
+    protected $menus = [];
 
     /**
      * @var array
      */
-    protected static $permissions = [];
+    protected $permissions = [];
 
-    /**
-     * 命名空间和路径，一般不用填写 如 ['namespace', 'codepath']
-     *
-     * @var array
-     */
-    protected static $namespaceMap = [];
-
-    public static function getName()
+    final public function getMenus()
     {
-        return static::$name;
+        return $this->menus;
     }
 
-    public static function getTitle()
+    final public function getPermissionss()
     {
-        return empty(static::$title) ? static::getName() : static::$title;
+        return $this->permissions;
     }
 
-    final public static function getId()
+    final public function getModules()
     {
-        return preg_replace('/\W/', '', get_called_class());
+        return $this->modules;
     }
 
-    public static function getAssets()
-    {
-        return static::$assets;
-    }
-
-    public static function getMenus()
-    {
-        return static::$menus;
-    }
-
-    public static function getPermissionss()
-    {
-        return static::$permissions;
-    }
-
-    public static function getModules()
-    {
-        return static::$modules;
-    }
-
-    public static function getNameSpaceMap()
-    {
-        return static::$namespaceMap;
-    }
-
-    public static function moduleInit($info = [])
+    public function moduleInit($info = [])
     {
         return true;
     }
 
-    final public static function autoCheck()
+    public function autoCheck()
     {
-        static::$assets = static::getAssets();
+        $this->assets = $this->getAssets();
 
-        if (!empty(static::$assets)) {
+        if (!empty($this->assets)) {
 
-            static::copyAssets(static::$assets);
+            $this->copyAssets($this->assets);
 
-            $name = static::assetsDir();
+            $name = $this->assetsDir();
 
             $base_file = Request::baseFile();
 
@@ -112,41 +63,11 @@ class Module
 
             $tpl_replace_string = [
                 '__ASSETS__' => $PUBLIC_PATH . 'assets',
-                '__MDULE__' => $name,
+                '__M_DIR__' => $name,
+                '__MODULE__' => $PUBLIC_PATH . 'assets/' . $name,
             ];
 
             config('template.tpl_replace_string', $tpl_replace_string);
         }
-    }
-
-    public static function copyAssets($src)
-    {
-        if (empty($src)) {
-            return false;
-        }
-
-        $name = static::assetsDir();
-
-        $assetsDir = Tool::checkAssetsDir($name);
-
-        if (!$assetsDir) {
-
-            return true;
-        }
-
-        return Tool::copyDir($src, $assetsDir);
-    }
-
-    public static function assetsDir()
-    {
-        $name = static::getName();
-
-        if (empty($name)) {
-            $name = get_called_class();
-        }
-
-        $name = preg_replace('/\W/', '', $name);
-
-        return $name;
     }
 }
