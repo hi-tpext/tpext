@@ -6,8 +6,6 @@ use think\facade\Request;
 
 class Module extends Extension
 {
-    public const VERSION = '1.0.1';
-
     /**
      * 模块定义，如 ['module1' => ['controller1','controller2']]
      *
@@ -47,13 +45,11 @@ class Module extends Extension
 
     public function autoCheck()
     {
-        $this->assets = $this->getAssets();
-
         if (!empty($this->assets)) {
 
-            $this->copyAssets($this->assets);
+            $this->copyAssets($this->getRoot() . $this->assets . DIRECTORY_SEPARATOR);
 
-            $name = $this->assetsDir();
+            $name = $this->assetsDirName();
 
             $base_file = Request::baseFile();
 
@@ -63,7 +59,7 @@ class Module extends Extension
 
             $tpl_replace_string = [
                 '__ASSETS__' => $PUBLIC_PATH . 'assets',
-                '__M_DIR__' => $name,
+                '__M_NAME__' => $name,
                 '__MODULE__' => $PUBLIC_PATH . 'assets/' . $name,
             ];
 

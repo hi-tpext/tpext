@@ -56,7 +56,7 @@ class AppInit
 
         ExtLoader::bindModules($this->bindModules);
 
-        Hook::listen('tpext_modules_loaded');
+        ExtLoader::trigger('tpext_modules_loaded');
     }
 
     private function passClasses($declare)

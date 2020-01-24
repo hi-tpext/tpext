@@ -83,7 +83,7 @@ class ExtLoader
         }
     }
 
-    public function trigger($name, $params = null, $once = false)
+    public static function trigger($name, $params = null, $once = false)
     {
         Hook::listen($name, $params, $once);
     }

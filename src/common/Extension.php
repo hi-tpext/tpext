@@ -14,11 +14,34 @@ abstract class Extension
     public const VERSION = '1.0.1';
 
     /**
+     * 扩展的根目录
+     * 代码放在 src 里面的 为 __DIR__ . '/../../'
+     * --/assets/
+     * --/src/common/Module.php
+     *
+     * 否则为 __DIR__ . '/../'
+     * --/assets/
+     * --/common/Module.php
+     *
+     * @var string
+     */
+    protected $__root__ = '';
+
+    protected $root = '';
+
+    /**
      * 名称标识 ，英文字母，如 hello.world
      *
      * @var string
      */
     protected $name = '';
+
+    /**
+     * 分类标记，用 , 分割 如 'template,mobile'
+     *
+     * @var string
+     */
+    protected $tags = '';
 
     /**
      * 显示名称，如 你好世界
@@ -28,7 +51,7 @@ abstract class Extension
     protected $title = '';
 
     /**
-     * css\js资源路径，绝对路径
+     * css\js资源路径
      * @var string
      */
     protected $assets = '';
@@ -57,7 +80,7 @@ abstract class Extension
      *
      * @return self
      */
-    public static function getInstance()
+    final public static function getInstance()
     {
         $class = get_called_class();
 
@@ -66,6 +89,25 @@ abstract class Extension
         }
 
         return self::$extensions[$class];
+    }
+
+    final public static function extensionsList()
+    {
+        return self::$extensions;
+    }
+
+    final public function getRoot()
+    {
+        if (!$this->root) {
+
+            if (!$this->__root__) {
+                throw new \Exception('__root__ 未设置:' . get_called_class());
+            }
+
+            $this->root = realpath($this->__root__) . DIRECTORY_SEPARATOR;
+        }
+
+        return $this->root;
     }
 
     final public function getName()
@@ -93,13 +135,13 @@ abstract class Extension
         return $this->namespaceMap;
     }
 
-    public function copyAssets($src)
+    final public function copyAssets($src)
     {
         if (empty($src)) {
             return false;
         }
 
-        $name = static::assetsDir();
+        $name = $this->assetsDirName();
 
         $assetsDir = Tool::checkAssetsDir($name);
 
@@ -111,9 +153,9 @@ abstract class Extension
         return Tool::copyDir($src, $assetsDir);
     }
 
-    public function assetsDir()
+    final public function assetsDirName()
     {
-        $name = static::getName();
+        $name = $this->getName();
 
         if (empty($name)) {
             $name = get_called_class();
@@ -124,14 +166,34 @@ abstract class Extension
         return $name;
     }
 
+    public function preInstall()
+    {
+        return true;
+    }
+
     public function install()
     {
+        return true;
+    }
 
+    public function afterInstall()
+    {
+        return true;
+    }
+
+    public function preUninstall()
+    {
+        return true;
     }
 
     public function uninstall()
     {
+        return true;
+    }
 
+    public function afterUninstall()
+    {
+        return true;
     }
 
     abstract public function autoCheck();

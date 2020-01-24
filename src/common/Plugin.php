@@ -11,12 +11,9 @@ class Plugin extends Extension
 
     public function autoCheck()
     {
-        $this->assets = $this->getAssets();
-
         if (!empty($this->assets)) {
 
-            $this->copyAssets($this->assets);
-
+            $this->copyAssets($this->getRoot() . $this->assets . DIRECTORY_SEPARATOR);
         }
     }
 }

@@ -3,7 +3,6 @@
 namespace tpext\behavior;
 
 use think\facade\App;
-use think\facade\Hook;
 use think\facade\Route;
 use think\Loader as Tploader;
 use think\route\dispatch\Url;
@@ -98,7 +97,7 @@ class AppDispatch
 
             Route::setConfig(['empty_module' => $url[0]]);
 
-            Hook::listen('tpext_match_module', [$matchMod, $url[0]]);
+            ExtLoader::trigger('tpext_match_module', [$matchMod, $url[0]]);
 
             $newDispatch = Route::check($urlDispatch, false);
 
