@@ -157,6 +157,7 @@ class AppInit
                 $this->plugins[$declare] = $name;
 
                 $instance->pluginInit();
+                $instance->loadConfig();
                 $instance->autoCheck();
             }
 

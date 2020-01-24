@@ -105,16 +105,11 @@ class AppDispatch
 
             App::init('');
 
-            $configPath = realpath($matchMod['rootPath'] . DIRECTORY_SEPARATOR . 'config.php');
-
             $instance = $matchMod['classname']::getInstance();
 
-            if (is_file($configPath)) {
-
-                config($instance->getId(), include $configPath);
-            }
-
             $instance->moduleInit($matchMod);
+
+            $instance->loadConfig();
 
             $instance->autoCheck();
 

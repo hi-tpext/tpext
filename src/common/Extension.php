@@ -75,6 +75,10 @@ abstract class Extension
      */
     protected $namespaceMap = [];
 
+    protected $config = [];
+
+    
+
     /**
      * 获取实列
      *
@@ -101,7 +105,8 @@ abstract class Extension
         if (!$this->root) {
 
             if (!$this->__root__) {
-                throw new \Exception('__root__ 未设置:' . get_called_class());
+
+                $this->__root__ = __DIR__ . '/../../';
             }
 
             $this->root = realpath($this->__root__) . DIRECTORY_SEPARATOR;
@@ -164,6 +169,37 @@ abstract class Extension
         $name = preg_replace('/\W/', '', $name);
 
         return $name;
+    }
+
+    public function configPath()
+    {
+        return realpath($this->getRoot() . 'src' . DIRECTORY_SEPARATOR . 'config.php');
+    }
+
+    public function loadConfig()
+    {
+        if(empty($this->config))
+        {
+            $configPath = $this->configPath();
+
+            if (is_file($configPath)) {
+
+                $this->config = include $configPath;
+            }
+        }
+
+        config($this->getId(), $this->config);
+
+        return $this->config;
+    }
+
+    public function setConfig($data = [])
+    {
+        $this->config = array_merge($this->config, $data);
+
+        config($this->getId(), $this->config);
+
+        return $this->config;
     }
 
     public function preInstall()
