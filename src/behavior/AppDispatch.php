@@ -97,8 +97,6 @@ class AppDispatch
 
             Route::setConfig(['empty_module' => $url[0]]);
 
-            ExtLoader::trigger('tpext_match_module', [$matchMod, $url[0]]);
-
             $newDispatch = Route::check($urlDispatch, false);
 
             App::path($matchMod['rootPath']);
@@ -112,6 +110,8 @@ class AppDispatch
             $instance->loadConfig();
 
             $instance->autoCheck();
+
+            ExtLoader::trigger('tpext_match_module', [$matchMod, $url[0]]);
 
             App::dispatch($newDispatch->init());
 

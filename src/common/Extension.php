@@ -25,9 +25,11 @@ abstract class Extension
      *
      * @var string
      */
-    protected $__root__ = '';
+    protected $__root__ = null;
 
-    protected $root = '';
+    protected $__ID__ = null;
+
+    protected $root = null;
 
     /**
      * 名称标识 ，英文字母，如 hello.world
@@ -77,8 +79,6 @@ abstract class Extension
 
     protected $config = [];
 
-    
-
     /**
      * 获取实列
      *
@@ -102,11 +102,10 @@ abstract class Extension
 
     final public function getRoot()
     {
-        if (!$this->root) {
+        if (empty($this->root)) {
 
-            if (!$this->__root__) {
-
-                $this->__root__ = __DIR__ . '/../../';
+            if (empty($this->__root__)) {
+                throw new \UnexpectedValueException('__root__未设置:' . get_called_class());
             }
 
             $this->root = realpath($this->__root__) . DIRECTORY_SEPARATOR;
@@ -127,7 +126,11 @@ abstract class Extension
 
     final public function getId()
     {
-        return preg_replace('/\W/', '', get_called_class());
+        if (empty($this->__ID__)) {
+            $this->__ID__ = preg_replace('/\W/', '', get_called_class());
+        }
+
+        return $this->__ID__;
     }
 
     final public function getAssets()
@@ -176,10 +179,9 @@ abstract class Extension
         return realpath($this->getRoot() . 'src' . DIRECTORY_SEPARATOR . 'config.php');
     }
 
-    public function loadConfig()
+    final public function loadConfig()
     {
-        if(empty($this->config))
-        {
+        if (empty($this->config)) {
             $configPath = $this->configPath();
 
             if (is_file($configPath)) {
