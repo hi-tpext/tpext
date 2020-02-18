@@ -43,6 +43,11 @@ class Module extends Extension
         return true;
     }
 
+    public function getExtType()
+    {
+        return 'module';
+    }
+
     public function autoCheck()
     {
         if (!empty($this->assets)) {

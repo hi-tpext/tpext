@@ -7,7 +7,6 @@ abstract class Extension
     /**
      * Extensions.
      *
-     * @var Extension
      */
     protected static $extensions = [];
 
@@ -50,7 +49,14 @@ abstract class Extension
      *
      * @var string
      */
-    protected $title = '';
+    protected $title = '未填写';
+
+    /**
+     * 显示介绍，如 你好世界是一个什么
+     *
+     * @var string
+     */
+    protected $description = '未填写';
 
     /**
      * css\js资源路径
@@ -122,6 +128,11 @@ abstract class Extension
     final public function getTitle()
     {
         return empty($this->title) ? $this->getName() : $this->title;
+    }
+
+    final public function getDescription()
+    {
+        return $this->description;
     }
 
     final public function getId()
@@ -204,23 +215,29 @@ abstract class Extension
         return $this->config;
     }
 
-    public function preInstall()
+    public function getExtType()
     {
-        return true;
+        return 'extension';
     }
 
     public function install()
     {
-        return true;
-    }
+        $sqlFile = realpath($this->getRoot() . 'src' . DIRECTORY_SEPARATOR . 'install.sql');
 
-    public function afterInstall()
-    {
-        return true;
-    }
+        if (file_exists($sqlFile)) {
+            if (isset($plugin->database_prefix) && $plugin->database_prefix != '') {
+                $sql_statement = Sql::getSqlFromFile($sql_file, false, [$plugin->database_prefix => config('database.prefix')]);
+            } else {
+                $sql_statement = Sql::getSqlFromFile($sql_file);
+            }
 
-    public function preUninstall()
-    {
+            if (!empty($sql_statement)) {
+                foreach ($sql_statement as $value) {
+                    Db::execute($value);
+                }
+            }
+        }
+
         return true;
     }
 
@@ -229,9 +246,46 @@ abstract class Extension
         return true;
     }
 
-    public function afterUninstall()
+    public static function writeInstall($data)
     {
-        return true;
+        $extPath = app()->getRootPath() . DIRECTORY_SEPARATOR . 'extension';
+
+        if (!is_dir($extPath)) {
+            @mkdir($extPath, 0755);
+        }
+
+        $file = $extPath . DIRECTORY_SEPARATOR . 'install.json';
+
+        return file_put_contents($file, json_encode($data));
+    }
+
+    public static function readInstall()
+    {
+        $extPath = app()->getRootPath() . DIRECTORY_SEPARATOR . 'extension';
+
+        if (!is_dir($extPath)) {
+            @mkdir($extPath, 0755);
+        }
+
+        $file = $extPath . DIRECTORY_SEPARATOR . 'install.json';
+
+        if (!is_file($file)) {
+
+            $list = [];
+            foreach (static::$extensions as $ext => $ins) {
+                $list[$ext] = [
+                    'install' => 0,
+                    'enable' => 0,
+                ];
+            }
+            static::writeInstall($list);
+
+            return $list;
+        }
+
+        $json = file_get_contents($file);
+
+        return json_decode($json, 1);
     }
 
     abstract public function autoCheck();

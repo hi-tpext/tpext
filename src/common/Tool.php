@@ -9,11 +9,6 @@ class Tool
 
     public static $autoload_psr4 = [];
 
-    public static function install($class)
-    {
-
-    }
-
     public static function copyDir($src = '', $dst = '')
     {
         if (empty($src) || empty($dst)) {
@@ -21,7 +16,7 @@ class Tool
         }
 
         if (!is_dir($src)) {
-            throw new \InvalidArgumentException('传入的不是一个目录');
+            throw new \InvalidArgumentException('传入的不是一个目录:' . $src);
             return false;
         }
 
@@ -98,5 +93,34 @@ class Tool
         }
 
         return [];
+    }
+
+    public static function executeSqlFile($file)
+    {
+        $content = file_get_contents($file);
+
+        if (!$content) {
+            return false;
+        }
+
+        $prefix = config('database.prefix');
+
+        $content = str_replace('__prefix__', $prefix, $content);
+
+        $content = str_replace(["\r\n", "\r"], "\n", $content);
+
+        $a = explode(";", $sql);
+        
+        $counts = count($sql_format);
+        for ($i = 0; $i < $counts; $i++) {
+            $sql = trim($sql_format[$i]);
+            try {
+                Db::execute($sql);
+            } catch (\Exception $e) {
+                throw new \think\Exception($e);
+            }
+
+        }
+        return true;
     }
 }

@@ -11,6 +11,11 @@ class Plugin extends Extension
         return true;
     }
 
+    public function getExtType()
+    {
+        return 'plugin';
+    }
+
     public function autoCheck()
     {
         if (!empty($this->assets)) {

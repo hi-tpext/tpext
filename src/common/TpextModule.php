@@ -8,9 +8,13 @@ class TpextModule extends baseModule
 {
     protected $name = 'tpext.core';
 
+    protected $title = 'tpext核心';
+
+    protected $description = '提供对扩展代管理';
+
     protected $__root__ = __DIR__ . '/../../';
 
-    protected $assets = 'assets';
+    protected $assets = '';
 
     protected $modules = [
         'admin' => ['tpext'],
