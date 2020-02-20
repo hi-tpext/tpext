@@ -85,6 +85,8 @@ abstract class Extension
 
     protected $config = [];
 
+    protected $errors = [];
+
     /**
      * 获取实列
      *
@@ -222,20 +224,10 @@ abstract class Extension
 
     public function install()
     {
-        $sqlFile = realpath($this->getRoot() . 'src' . DIRECTORY_SEPARATOR . 'install.sql');
+        $sqlFile = realpath($this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql');
 
-        if (file_exists($sqlFile)) {
-            if (isset($plugin->database_prefix) && $plugin->database_prefix != '') {
-                $sql_statement = Sql::getSqlFromFile($sql_file, false, [$plugin->database_prefix => config('database.prefix')]);
-            } else {
-                $sql_statement = Sql::getSqlFromFile($sql_file);
-            }
-
-            if (!empty($sql_statement)) {
-                foreach ($sql_statement as $value) {
-                    Db::execute($value);
-                }
-            }
+        if (is_file($sqlFile)) {
+            return Tool::executeSqlFile($sqlFile, $this->errors);
         }
 
         return true;
@@ -243,7 +235,18 @@ abstract class Extension
 
     public function uninstall()
     {
+        $sqlFile = realpath($this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'uninstall.sql');
+
+        if (is_file($sqlFile)) {
+            return Tool::executeSqlFile($sqlFile, $this->errors);
+        }
+
         return true;
+    }
+
+    final public function getErrors()
+    {
+        return $this->errors;
     }
 
     public static function writeInstall($data)

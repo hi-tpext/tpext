@@ -2,6 +2,7 @@
 
 namespace tpext\common;
 
+use think\db;
 use think\facade\Env;
 
 class Tool
@@ -95,7 +96,7 @@ class Tool
         return [];
     }
 
-    public static function executeSqlFile($file)
+    public static function executeSqlFile($file, &$errors = [])
     {
         $content = file_get_contents($file);
 
@@ -105,22 +106,35 @@ class Tool
 
         $prefix = config('database.prefix');
 
-        $content = str_replace('__prefix__', $prefix, $content);
+        $content = preg_replace('/\r\n|\r/', "\n", $content);
 
-        $content = str_replace(["\r\n", "\r"], "\n", $content);
+        $content = preg_replace('/__prefix__/is', $prefix, $content);
 
-        $a = explode(";", $sql);
-        
-        $counts = count($sql_format);
-        for ($i = 0; $i < $counts; $i++) {
-            $sql = trim($sql_format[$i]);
-            try {
-                Db::execute($sql);
-            } catch (\Exception $e) {
-                throw new \think\Exception($e);
+        $content = preg_replace('/\n?\s*--\s.*?\n/', "\n", $content);
+
+        $content = preg_replace('/\n?\s*#.*?\n/', "\n", $content);
+
+        $content = preg_replace('/\/\*.*?\*\//s', "\n", $content);
+
+        $content = preg_replace('/\n{2,}/s', "\n", $content);
+
+        $sqls = explode(";\n", $content);
+
+        $success = 0;
+
+        foreach ($sqls as $sql) {
+            if ($sql == '') {
+                continue;
             }
-
+            try {
+                db::execute($sql);
+                $success += 1;
+            } catch (\Exception $e) {
+                $errors[] = $e;
+                echo $e->__toString(), '<br>';
+            }
         }
-        return true;
+
+        return $success;
     }
 }
