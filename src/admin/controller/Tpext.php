@@ -2,8 +2,11 @@
 namespace tpext\admin\controller;
 
 use think\Controller;
+use tpext\admin\model\Extension as ExtensionModel;
 use tpext\builder\common\Builder;
 use tpext\common\Extension;
+use tpext\common\ExtLoader;
+use tpext\common\TpextModule;
 
 class Tpext extends Controller
 {
@@ -16,11 +19,11 @@ class Tpext extends Controller
         ksort($this->extensions);
     }
 
-    public function index($type = 'module')
+    public function index()
     {
         $builder = Builder::getInstance('扩展管理', '列表');
 
-        $pagezise = 4;
+        $pagezise = 10;
 
         $table = $builder->table();
 
@@ -28,38 +31,62 @@ class Tpext extends Controller
 
         $table->paginator(count($this->extensions), $pagezise);
 
-        $list = array_slice($this->extensions, ($page - 1) * $pagezise, $pagezise);
+        $extensions = array_slice($this->extensions, ($page - 1) * $pagezise, $pagezise);
 
         $data = [];
 
-        $install = Extension::readInstall();
+        $installed = ExtLoader::getInstalled();
 
-        foreach ($list as $key => $li) {
-            $is_install = isset($install[$key]) ? $install[$key]['install'] : 0;
-            $is_enable = isset($install[$key]) ? $install[$key]['enable'] : 0;
+        if (empty($installed)) {
+            $builder->notify('已安装扩展为空！请确保数据库连接正常，然后安装[tpext.core]', 'warning', 10000);
+        }
+
+        foreach ($extensions as $key => $instance) {
+            $is_install = 0;
+            $is_enable = 0;
+            $has_config = !empty($instance->defaultConfig());
+
+            foreach ($installed as $ins) {
+                if ($ins['key'] == $key) {
+                    $is_install = $ins['install'];
+                    $is_enable = $ins['enable'];
+                    break;
+                }
+            }
+
+            $instance->copyAssets();
+
             $data[$key] = [
                 'id' => str_replace('\\', '.', $key),
                 'install' => $is_install,
                 'enable' => $is_enable,
-                'name' => $li->getName(),
-                'title' => $li->getTitle(),
-                'description' => $li->getDescription(),
-                'exttype' => $li->getExtType(),
-                '__disable_install__' => $is_install,
-                '__disable_uninstall__' => !$is_install,
-                '__disable_disable__' => !$is_enable,
-                '__disable_enable__' => $is_enable,
+                'name' => $instance->getName(),
+                'title' => $instance->getTitle(),
+                'description' => $instance->getDescription(),
+                'version' => $instance->getVersion(),
+                'tags' => $instance->getTags(),
+                '__h_in__' => $is_install,
+                '__h_un__' => !$is_install,
+                '__h_ed__' => !$is_install || !$has_config,
+                '__h_en__' => $is_enable,
+                '__h_dis__' => !$is_install || !$is_enable,
+                '__h_cp__' => empty($instance->getAssets()),
             ];
+
+            if ($key == TpextModule::class) {
+                $data[$key]['__h_un__'] = 1;
+                $data[$key]['__h_ed__'] = 1;
+                $data[$key]['__h_en__'] = 1;
+                $data[$key]['__h_dis__'] = 1;
+                $data[$key]['__h_cp__'] = 1;
+            }
         }
 
         $table->field('name', '标识');
         $table->field('title', '标题');
-        $table->match('exttype', '类型')->options(
-            ['plugin' => '<label class="label label-success">插件</label>',
-                'module' => '<label class="label label-info">模块</label>',
-            ]);
+        $table->field('tags', '类型');
         $table->field('description', '介绍');
-
+        $table->field('version', '版本号');
         $table->match('install', '安装')->options(
             [
                 0 => '<label class="label label-secondary">未安装</label>',
@@ -80,13 +107,17 @@ class Tpext extends Controller
         $table->getActionbar()
             ->btnLink('install', url('install', ['id' => '__data.id__']), '', 'btn-primary', 'mdi-plus', 'title="安装"')
             ->btnLink('uninstall', url('uninstall', ['id' => '__data.id__']), '', 'btn-danger', 'mdi-delete', 'title="卸载"')
+            ->btnEdit(url('edit', ['id' => '__data.id__']))
             ->btnEnable()
             ->btnDisable()
+            ->btnPostRowid('copyAssets', url('copyAssets'), '', 'btn-cyan', 'mdi-refresh', true, 'title="刷新资源"')
             ->mapClass([
-                'install' => ['hidden' => '__disable_install__'],
-                'uninstall' => ['hidden' => '__disable_uninstall__'],
-                'disable' => ['hidden' => '__disable_disable__'],
-                'enable' => ['hidden' => '__disable_enable__'],
+                'install' => ['hidden' => '__h_in__'],
+                'uninstall' => ['hidden' => '__h_un__'],
+                'edit' => ['hidden' => '__h_ed__'],
+                'enable' => ['hidden' => '__h_en__'],
+                'disable' => ['hidden' => '__h_dis__'],
+                'copyAssets' => ['hidden' => '__h_cp__'],
             ]);
 
         $table->data($data);
@@ -102,13 +133,19 @@ class Tpext extends Controller
     public function install($id = '')
     {
         if (empty($id)) {
-            $this->error('参数有误！', url('index'));
+            return Builder::getInstance('扩展管理')->layer()->close(0, '参数有误！');
         }
 
         $id = str_replace('.', '\\', $id);
 
         if (!isset($this->extensions[$id])) {
-            $this->error('扩展不存在！', url('index'));
+            return Builder::getInstance('扩展管理')->layer()->close(0, '扩展不存在！');
+        }
+
+        $installed = ExtLoader::getInstalled();
+
+        if (empty($installed) && $id != TpextModule::class) {
+            return Builder::getInstance('扩展管理')->layer()->close(0, '已安装扩展为空！请确保数据库连接正常，然后安装[tpext.core]');
         }
 
         $instance = $this->extensions[$id];
@@ -119,33 +156,60 @@ class Tpext extends Controller
             $res = $instance->install();
 
             if ($res) {
+
+                $instance->copyAssets();
+
+                $config = $instance->defaultConfig();
+
+                ExtensionModel::create([
+                    'key' => $id,
+                    'name' => $instance->getName(),
+                    'title' => $instance->getTitle(),
+                    'description' => $instance->getDescription(),
+                    'tags' => $instance->getTags(),
+                    'install' => 1,
+                    'enable' => 1,
+                    'config' => json_encode($config),
+                    'create_time' => date('Y-m-d H:i:s'),
+                    'update_time' => date('Y-m-d H:i:s'),
+                ]);
+
+                ExtLoader::getInstalled(true);
+
                 return $builder->layer()->closeRefresh(1, '安装成功');
             } else {
                 $errors = $instance->getErrors();
 
-                $text = '';
+                $text = [];
                 foreach ($errors as $err) {
-                    $text .= $err->getMessage();
+                    $text[] = $err->getMessage();
                 }
 
-                return $builder->content()->display($$text);
+                $builder->content()->display('<h5>执行出错：</h5>:' . implode('<br>', $text));
+
+                return $builder->render();
             }
         } else {
 
             $form = $builder->form();
 
+            $modules = $instance->getModules();
+            $bindModules = [];
+
+            foreach ($modules as $module => $controlers) {
+                foreach ($controlers as $controler) {
+                    $bindModules[] = '/' . $module . '/' . $controler . '/*';
+                }
+            }
+
             $form->raw('name', '标识')->value($instance->getName());
             $form->raw('title', '标题')->value($instance->getTitle());
-            $form->match('type', '类型')->value($instance->getExtType())->options(
-                ['plugin' => '<label class="label label-success">插件</label>',
-                    'module' => '<label class="label label-info">模块</label>',
-                ]);
+            $form->raw('tags', '类型')->value($instance->getTags());
+            $form->raw('modules', '提供模块')->value(!empty($bindModules) ? implode('<br>', $bindModules) : '无');
             $form->raw('desc', '介绍')->value($instance->getDescription());
-
+            $form->raw('version', '版本号')->value($instance->getVersion());
             $form->html('', '', 6)->showLabel(false);
-
-            $form->btnSubmit('安装');
-
+            $form->btnSubmit('安&nbsp;&nbsp;装');
             $form->btnLayerClose();
 
             return $builder->render();
@@ -155,29 +219,179 @@ class Tpext extends Controller
 
     public function uninstall($id = '')
     {
-        $builder = Builder::getInstance('扩展管理');
-
-        return $builder->layer()->closeRefresh();
-
         if (empty($id)) {
-            $this->error('参数有误', url('index'));
+            return Builder::getInstance('扩展管理')->layer()->close(0, '参数有误！');
         }
 
         $id = str_replace('.', '\\', $id);
 
         if (!isset($this->extensions[$id])) {
-            $this->error('扩展不存在！', url('index'));
+            return Builder::getInstance('扩展管理')->layer()->close(0, '扩展不存在！');
         }
 
         $instance = $this->extensions[$id];
 
-        $res = $instance->uninstall();
+        $builder = Builder::getInstance('扩展管理', '安装-' . $instance->getTitle());
 
-        if ($res) {
-            $this->success('成功');
+        if (request()->isPost()) {
+            $res = $instance->uninstall();
+
+            if ($res) {
+
+                ExtensionModel::where(['key' => $id])->delete();
+
+                ExtLoader::getInstalled(true);
+
+                return $builder->layer()->closeRefresh(1, '卸载成功');
+            } else {
+                $errors = $instance->getErrors();
+
+                $text = [];
+                foreach ($errors as $err) {
+                    $text[] = $err->getMessage();
+                }
+
+                $builder->content()->display('<h5>执行出错：</h5>:' . implode('<br>', $text));
+
+                return $builder->render();
+            }
+        } else {
+
+            $form = $builder->form();
+
+            $modules = $instance->getModules();
+            $bindModules = [];
+
+            foreach ($modules as $module => $controlers) {
+                foreach ($controlers as $controler) {
+                    $bindModules[] = '/' . $module . '/' . $controler . '/*';
+                }
+            }
+
+            $form->raw('name', '标识')->value($instance->getName());
+            $form->raw('title', '标题')->value($instance->getTitle());
+            $form->raw('tags', '类型')->value($instance->getTags());
+            $form->raw('modules', '提供模块')->value(!empty($bindModules) ? implode('<br>', $bindModules) : '无');
+            $form->raw('desc', '介绍')->value($instance->getDescription());
+            $form->raw('version', '版本号')->value($instance->getVersion());
+            $form->html('', '', 6)->showLabel(false);
+            $form->btnSubmit('卸&nbsp;&nbsp;载', 1, 'btn-danger');
+            $form->btnLayerClose();
+
+            return $builder->render();
+        }
+    }
+
+    public function edit($id = '')
+    {
+        if (empty($id)) {
+            return Builder::getInstance('扩展管理')->layer()->close(0, '参数有误！');
         }
 
-        $this->error('失败');
+        $id = str_replace('.', '\\', $id);
+
+        if (!isset($this->extensions[$id])) {
+            return Builder::getInstance('扩展管理')->layer()->close(0, '扩展不存在！');
+        }
+
+        $instance = $this->extensions[$id];
+
+        $config = $instance->defaultConfig();
+
+        if (empty($config)) {
+            return Builder::getInstance('扩展管理')->layer()->close(0, '配置项不存在！');
+        }
+
+        $builder = Builder::getInstance('扩展管理', '配置-' . $instance->getTitle());
+
+        if (request()->isPost()) {
+            $post = request()->post();
+            $data = [];
+
+            foreach ($config as $key => $val) {
+                if ($key == '__config__') {
+                    continue;
+                }
+
+                $data[$key] = $post[$key];
+                if (is_array($val)) {
+                    $data[$key] = json_encode($post[$key]);
+                }
+            }
+
+            ExtensionModel::where(['key' => $id])->update(['config' => json_encode($data)]);
+
+            return $builder->layer()->closeRefresh(1, '修改成功');
+
+        } else {
+
+            $form = $builder->form();
+
+            $ext = ExtensionModel::where(['key' => $id])->find();
+            $saved = json_decode($ext['config'], 1);
+            $savedKeys = array_keys($saved);
+
+            $fiedTypes = [];
+
+            if (isset($config['__config__'])) {
+                $fiedTypes = $config['__config__'];
+            }
+
+            foreach ($config as $key => $val) {
+                if ($key == '__config__') {
+                    continue;
+                }
+
+                if (is_array($val)) {
+                    $val = json_encode($val);
+                }
+
+                if (isset($fiedTypes[$key])) {
+                    $type = $fiedTypes[$key];
+
+                    $fieldType = $type['type'];
+                    $label = isset($type['label']) ? $type['label'] : '';
+                    $help = isset($type['help']) ? $type['help'] : '';
+
+                    if (preg_match('/(radio|select|checkbox|multipleSelect)/i', $type['type'])) {
+
+                        $field = $form->$fieldType($key, $label)->options($type['options'])->default($val)->help($help);
+                    } else {
+                        $field = $form->$fieldType($key, $label)->default($val)->help($help);
+                    }
+                } else {
+                    $field = $form->text($key)->default($val)->help($help);
+                }
+
+                if (in_array($key, $savedKeys)) {
+                    $field->value($saved[$key]);
+                }
+            }
+
+            $form->html('', '', 6)->showLabel(false);
+            $form->btnSubmit('保&nbsp;&nbsp;存', 1, 'btn-success');
+            $form->btnLayerClose();
+
+            return $builder->render();
+        }
+    }
+
+    public function copyAssets()
+    {
+        $ids = input('ids', '');
+        $ids = str_replace('.', '\\', $ids);
+
+        $ids = explode(',', $ids);
+
+        if (empty($ids)) {
+            $this->error('参数有误');
+        }
+
+        $instance = $this->extensions[$ids[0]];
+
+        $instance->copyAssets(true);
+
+        $this->success('刷新成功');
     }
 
     public function enable()
@@ -191,17 +405,19 @@ class Tpext extends Controller
             $this->error('参数有误');
         }
 
-        $install = Extension::readInstall();
+        $installed = ExtLoader::getInstalled();
 
-        foreach ($install as $key => &$data) {
-            if (in_array($key, $ids)) {
-                $data['enable'] = 1;
-            }
+        if (empty($installed)) {
+            $this->error('已安装扩展为空！请确保数据库连接正常，然后安装[tpext.core]');
         }
 
-        Extension::writeInstall($install);
+        foreach ($ids as $id) {
+            ExtensionModel::where(['key' => $id])->update(['enable' => 1]);
+        }
 
-        $this->success('成功');
+        ExtLoader::getInstalled(true);
+
+        $this->success('启用成功');
     }
 
     public function disable()
@@ -215,16 +431,18 @@ class Tpext extends Controller
             $this->error('参数有误');
         }
 
-        $install = Extension::readInstall();
+        $installed = ExtLoader::getInstalled();
 
-        foreach ($install as $key => &$data) {
-            if (in_array($key, $ids)) {
-                $data['enable'] = 0;
-            }
+        if (empty($installed)) {
+            $this->error('已安装扩展为空！请确保数据库连接正常，然后安装[tpext.core]');
         }
 
-        Extension::writeInstall($install);
+        foreach ($ids as $id) {
+            ExtensionModel::where(['key' => $id])->update(['enable' => 0]);
+        }
 
-        $this->success('成功');
+        ExtLoader::getInstalled(true);
+
+        $this->success('禁用成功');
     }
 }

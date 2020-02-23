@@ -7,7 +7,6 @@ use think\facade\Hook;
 use tpext\behavior;
 use tpext\common\ExtLoader;
 use tpext\common\Module as TpexModule;
-use tpext\common\Plugin as TpexPlugin;
 use tpext\common\TpextModule;
 
 class AppInit
@@ -15,8 +14,6 @@ class AppInit
     private $modules = [];
 
     private $bindModules = [];
-
-    private $plugins = [];
 
     public function run()
     {
@@ -51,8 +48,6 @@ class AppInit
         }
 
         ExtLoader::addModules($this->modules);
-
-        ExtLoader::addPlugins($this->plugins);
 
         ExtLoader::bindModules($this->bindModules);
 
@@ -92,6 +87,15 @@ class AppInit
 
     private function findExtensions($classMap)
     {
+        $installed = ExtLoader::getInstalled();
+
+        $disenabled = [];
+        foreach ($installed as $ins) {
+            if ($ins['enable'] == 0) {
+                $disenabled[] = $ins['key'];
+            }
+        }
+
         foreach ($classMap as $declare) {
 
             if ($this->passClasses($declare)) {
@@ -124,6 +128,11 @@ class AppInit
 
                 $this->modules[$declare] = $name;
 
+                if ($declare != TpextModule::class
+                    && !empty($disenabled) && in_array($declare, $disenabled)) {
+                    continue;
+                }
+
                 $mods = $instance->getModules();
 
                 if (!empty($mods)) {
@@ -138,27 +147,6 @@ class AppInit
                 }
 
                 continue;
-            }
-
-            if (!isset($this->plugins[$declare]) && $reflectionClass->hasMethod('pluginInit') && $reflectionClass->hasMethod('getInstance')) {
-
-                $instance = $declare::getInstance();
-
-                if (!($instance instanceof TpexPlugin)) {
-                    continue;
-                }
-
-                $name = $instance->getName();
-
-                if (!$name) {
-                    $name = strtolower(preg_replace('/\W/', '.', $declare));
-                }
-
-                $this->plugins[$declare] = $name;
-
-                $instance->pluginInit();
-                $instance->loadConfig();
-                $instance->autoCheck();
             }
 
             continue;

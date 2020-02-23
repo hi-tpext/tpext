@@ -13,26 +13,6 @@ class Module extends Extension
      */
     protected $modules = [];
 
-    /**
-     * @var array
-     */
-    protected $menus = [];
-
-    /**
-     * @var array
-     */
-    protected $permissions = [];
-
-    final public function getMenus()
-    {
-        return $this->menus;
-    }
-
-    final public function getPermissionss()
-    {
-        return $this->permissions;
-    }
-
     final public function getModules()
     {
         return $this->modules;
@@ -43,18 +23,8 @@ class Module extends Extension
         return true;
     }
 
-    public function getExtType()
+    public function pubblish()
     {
-        return 'module';
-    }
-
-    public function autoCheck()
-    {
-        if (!empty($this->assets)) {
-
-            $this->copyAssets($this->getRoot() . $this->assets . DIRECTORY_SEPARATOR);
-        }
-
         $name = $this->assetsDirName();
 
         $base_file = Request::baseFile();
@@ -78,5 +48,10 @@ class Module extends Extension
         ]);
 
         config('template.tpl_replace_string', $tpl_replace_string);
+    }
+
+    public function editConfig()
+    {
+        return false;
     }
 }

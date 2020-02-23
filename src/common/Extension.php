@@ -10,7 +10,7 @@ abstract class Extension
      */
     protected static $extensions = [];
 
-    public const VERSION = '1.0.1';
+    protected $version = '1.0.1';
 
     /**
      * 扩展的根目录
@@ -42,7 +42,7 @@ abstract class Extension
      *
      * @var string
      */
-    protected $tags = '';
+    protected $tags = '未归类';
 
     /**
      * 显示名称，如 你好世界
@@ -83,44 +83,9 @@ abstract class Extension
      */
     protected $namespaceMap = [];
 
-    protected $config = [];
+    protected $config = null;
 
     protected $errors = [];
-
-    /**
-     * 获取实列
-     *
-     * @return self
-     */
-    final public static function getInstance()
-    {
-        $class = get_called_class();
-
-        if (!isset(self::$extensions[$class]) || !self::$extensions[$class] instanceof $class) {
-            self::$extensions[$class] = new static();
-        }
-
-        return self::$extensions[$class];
-    }
-
-    final public static function extensionsList()
-    {
-        return self::$extensions;
-    }
-
-    final public function getRoot()
-    {
-        if (empty($this->root)) {
-
-            if (empty($this->__root__)) {
-                throw new \UnexpectedValueException('__root__未设置:' . get_called_class());
-            }
-
-            $this->root = realpath($this->__root__) . DIRECTORY_SEPARATOR;
-        }
-
-        return $this->root;
-    }
 
     final public function getName()
     {
@@ -135,6 +100,16 @@ abstract class Extension
     final public function getDescription()
     {
         return $this->description;
+    }
+
+    final public function getTags()
+    {
+        return $this->tags;
+    }
+
+    final public function getVersion()
+    {
+        return $this->version;
     }
 
     final public function getId()
@@ -156,11 +131,48 @@ abstract class Extension
         return $this->namespaceMap;
     }
 
-    final public function copyAssets($src)
+    final public static function extensionsList()
     {
-        if (empty($src)) {
-            return false;
+        return self::$extensions;
+    }
+
+    /**
+     * 获取实列
+     *
+     * @return self
+     */
+    final public static function getInstance()
+    {
+        $class = get_called_class();
+
+        if (!isset(self::$extensions[$class]) || !self::$extensions[$class] instanceof $class) {
+            self::$extensions[$class] = new static();
         }
+
+        return self::$extensions[$class];
+    }
+
+    final public function getRoot()
+    {
+        if (empty($this->__root__)) {
+
+            if (empty($this->root)) {
+                throw new \UnexpectedValueException('root未设置:' . get_called_class());
+            }
+
+            $this->__root__ = realpath($this->root) . DIRECTORY_SEPARATOR;
+        }
+
+        return $this->__root__;
+    }
+
+    final public function copyAssets($force = false)
+    {
+        if (empty($this->assets)) {
+            return true;
+        }
+
+        $src = $this->getRoot() . $this->assets . DIRECTORY_SEPARATOR;
 
         $name = $this->assetsDirName();
 
@@ -168,7 +180,11 @@ abstract class Extension
 
         if (!$assetsDir) {
 
-            return true;
+            if (!$force) {
+                return true;
+            }
+
+            Tool::clearAssetsDir($name);
         }
 
         return Tool::copyDir($src, $assetsDir);
@@ -187,39 +203,55 @@ abstract class Extension
         return $name;
     }
 
-    public function configPath()
+    final public function configPath()
     {
         return realpath($this->getRoot() . 'src' . DIRECTORY_SEPARATOR . 'config.php');
     }
 
-    final public function loadConfig()
+    final public function defaultConfig()
     {
-        if (empty($this->config)) {
-            $configPath = $this->configPath();
+        $configPath = $this->configPath();
 
-            if (is_file($configPath)) {
+        if (is_file($configPath)) {
 
-                $this->config = include $configPath;
+            return include $configPath;
+        } else {
+            return [];
+        }
+    }
+
+    final public function getConfig()
+    {
+        if ($this->config === null) {
+
+            $defaultConfig = $this->defaultConfig();
+
+            $this->config = $defaultConfig;
+
+            if (!empty($defaultConfig)) {
+
+                $installed = ExtLoader::getInstalled();
+
+                foreach ($installed as $install) {
+                    if ($install['key'] == get_called_class()) {
+                        $this->config = json_decode($install['config'], 1);
+                        unset($this->config['__config__']);
+                        break;
+                    }
+                }
             }
+
+            config($this->getId(), $this->config);
         }
 
-        config($this->getId(), $this->config);
-
         return $this->config;
     }
 
-    public function setConfig($data = [])
+    final public function setConfig($data = [])
     {
-        $this->config = array_merge($this->config, $data);
+        $this->config = array_merge($this->getConfig(), $data);
 
         config($this->getId(), $this->config);
-
-        return $this->config;
-    }
-
-    public function getExtType()
-    {
-        return 'extension';
     }
 
     public function install()
@@ -249,47 +281,5 @@ abstract class Extension
         return $this->errors;
     }
 
-    public static function writeInstall($data)
-    {
-        $extPath = app()->getRootPath() . DIRECTORY_SEPARATOR . 'extension';
-
-        if (!is_dir($extPath)) {
-            @mkdir($extPath, 0755);
-        }
-
-        $file = $extPath . DIRECTORY_SEPARATOR . 'install.json';
-
-        return file_put_contents($file, json_encode($data));
-    }
-
-    public static function readInstall()
-    {
-        $extPath = app()->getRootPath() . DIRECTORY_SEPARATOR . 'extension';
-
-        if (!is_dir($extPath)) {
-            @mkdir($extPath, 0755);
-        }
-
-        $file = $extPath . DIRECTORY_SEPARATOR . 'install.json';
-
-        if (!is_file($file)) {
-
-            $list = [];
-            foreach (static::$extensions as $ext => $ins) {
-                $list[$ext] = [
-                    'install' => 0,
-                    'enable' => 0,
-                ];
-            }
-            static::writeInstall($list);
-
-            return $list;
-        }
-
-        $json = file_get_contents($file);
-
-        return json_decode($json, 1);
-    }
-
-    abstract public function autoCheck();
+    abstract public function pubblish();
 }

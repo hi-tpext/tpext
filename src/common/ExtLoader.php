@@ -2,15 +2,15 @@
 
 namespace tpext\common;
 
+use think\Db;
 use think\facade\Hook;
+use tpext\admin\model\Extension as ExtensionModel;
 
 class ExtLoader
 {
     private static $classMap = [];
 
     private static $modules = [];
-
-    private static $plugins = [];
 
     private static $bindMods = [];
 
@@ -45,20 +45,6 @@ class ExtLoader
         return self::$modules;
     }
 
-    public static function addPlugins($class)
-    {
-        if (is_array($class)) {
-            self::$plugins = array_merge(self::$plugins, $class);
-        } else {
-            self::$plugins[] = $class;
-        }
-    }
-
-    public static function getPlugins()
-    {
-        return self::$plugins;
-    }
-
     public static function bindModules($class)
     {
         if (is_array($class)) {
@@ -91,5 +77,28 @@ class ExtLoader
     public static function geWatches()
     {
         return self::$watches;
+    }
+
+    public static function getInstalled($reget = false)
+    {
+        $tableName = config('database.prefix') . 'extension';
+
+        $isTable = Db::query("SHOW TABLES LIKE '{$tableName}'");
+
+        if (empty($isTable)) {
+            return [];
+        }
+
+        $data = cache('installedExtensions');
+
+        if (!$reget && $data) {
+            return $data;
+        }
+
+        $list = ExtensionModel::all();
+
+        cache('installExtensions', $list);
+
+        return $list;
     }
 }

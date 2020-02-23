@@ -32,7 +32,7 @@ class Tool
                 if (is_dir($src . DIRECTORY_SEPARATOR . $file)) {
                     static::copyDir($src . DIRECTORY_SEPARATOR . $file, $dst . DIRECTORY_SEPARATOR . $file);
                 } else {
-                    copy($src . DIRECTORY_SEPARATOR . $file, $dst . DIRECTORY_SEPARATOR . $file);
+                    @copy($src . DIRECTORY_SEPARATOR . $file, $dst . DIRECTORY_SEPARATOR . $file);
                 }
             }
         }
@@ -51,6 +51,41 @@ class Tool
         }
 
         return true;
+    }
+
+    public static function clearAssetsDir($dirName)
+    {
+        $dirs = ['', 'assets', $dirName, ''];
+
+        $scriptName = $_SERVER['SCRIPT_FILENAME'];
+
+        $assetsDir = realpath(dirname($scriptName)) . implode(DIRECTORY_SEPARATOR, $dirs);
+
+        if (is_dir($assetsDir)) {
+            static::deleteDir($assetsDir);
+        }
+
+        return true;
+    }
+
+    public static function deleteDir($path)
+    {
+        if (is_dir($path)) {
+            $dirs = scandir($path);
+
+            foreach ($dirs as $dir) {
+                if ($dir != '.' && $dir != '..') {
+                    $sonDir = $path . '/' . $dir;
+                    if (is_dir($sonDir)) {
+                        static::deleteDir($sonDir);
+                        @rmdir($sonDir);
+                    } else {
+                        @unlink($sonDir);
+                    }
+                }
+            }
+            @rmdir($path);
+        }
     }
 
     public static function checkAssetsDir($dirName)
@@ -131,7 +166,6 @@ class Tool
                 $success += 1;
             } catch (\Exception $e) {
                 $errors[] = $e;
-                echo $e->__toString(), '<br>';
             }
         }
 
