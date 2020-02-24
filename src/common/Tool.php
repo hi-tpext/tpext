@@ -29,10 +29,12 @@ class Tool
 
             if (($file != '.') && ($file != '..')) {
 
-                if (is_dir($src . DIRECTORY_SEPARATOR . $file)) {
-                    static::copyDir($src . DIRECTORY_SEPARATOR . $file, $dst . DIRECTORY_SEPARATOR . $file);
+                $sonDir = $src . DIRECTORY_SEPARATOR . $file;
+
+                if (is_dir($sonDir)) {
+                    static::copyDir($sonDir, $dst . DIRECTORY_SEPARATOR . $file);
                 } else {
-                    @copy($src . DIRECTORY_SEPARATOR . $file, $dst . DIRECTORY_SEPARATOR . $file);
+                    @copy($sonDir, $dst . DIRECTORY_SEPARATOR . $file);
                 }
             }
         }
@@ -71,11 +73,14 @@ class Tool
     public static function deleteDir($path)
     {
         if (is_dir($path)) {
-            $dirs = scandir($path);
 
-            foreach ($dirs as $dir) {
-                if ($dir != '.' && $dir != '..') {
-                    $sonDir = $path . '/' . $dir;
+            $dir = opendir($path);
+
+            while (false !== ($file = readdir($dir))) {
+
+                if (($file != '.') && ($file != '..')) {
+
+                    $sonDir = $path . DIRECTORY_SEPARATOR . $file;
                     if (is_dir($sonDir)) {
                         static::deleteDir($sonDir);
                         @rmdir($sonDir);
@@ -84,8 +89,10 @@ class Tool
                     }
                 }
             }
+            closedir($dir);
             @rmdir($path);
         }
+
     }
 
     public static function checkAssetsDir($dirName)

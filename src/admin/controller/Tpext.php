@@ -110,7 +110,7 @@ class Tpext extends Controller
             ->btnEdit(url('edit', ['id' => '__data.id__']))
             ->btnEnable()
             ->btnDisable()
-            ->btnPostRowid('copyAssets', url('copyAssets'), '', 'btn-cyan', 'mdi-refresh', true, 'title="刷新资源"')
+            ->btnPostRowid('copyAssets', url('copyAssets'), '', 'btn-cyan', 'mdi-refresh', 'title="刷新资源"')
             ->mapClass([
                 'install' => ['hidden' => '__h_in__'],
                 'uninstall' => ['hidden' => '__h_un__'],
@@ -169,9 +169,7 @@ class Tpext extends Controller
                     'tags' => $instance->getTags(),
                     'install' => 1,
                     'enable' => 1,
-                    'config' => json_encode($config),
-                    'create_time' => date('Y-m-d H:i:s'),
-                    'update_time' => date('Y-m-d H:i:s'),
+                    'config' => json_encode($config)
                 ]);
 
                 ExtLoader::getInstalled(true);
@@ -381,7 +379,7 @@ class Tpext extends Controller
         $ids = input('ids', '');
         $ids = str_replace('.', '\\', $ids);
 
-        $ids = explode(',', $ids);
+        $ids = array_filter(explode(',', $ids), 'strlen');
 
         if (empty($ids)) {
             $this->error('参数有误');
@@ -399,7 +397,7 @@ class Tpext extends Controller
         $ids = input('ids', '');
         $ids = str_replace('.', '\\', $ids);
 
-        $ids = explode(',', $ids);
+        $ids = array_filter(explode(',', $ids), 'strlen');
 
         if (empty($ids)) {
             $this->error('参数有误');
@@ -425,7 +423,7 @@ class Tpext extends Controller
         $ids = input('ids', '');
         $ids = str_replace('.', '\\', $ids);
 
-        $ids = explode(',', $ids);
+        $ids = array_filter(explode(',', $ids), 'strlen');
 
         if (empty($ids)) {
             $this->error('参数有误');

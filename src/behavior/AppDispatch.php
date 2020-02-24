@@ -171,7 +171,7 @@ class AppDispatch
 
         $rootpath = $namespaceMap[1];
 
-        $url_controller_layer = config('app.url_controller_layer');
+        $url_controller_layer = 'controller';
 
         $class = '\\' . $module . '\\' . $url_controller_layer . '\\' . ucfirst($controller);
 
