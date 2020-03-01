@@ -92,7 +92,6 @@ class Tool
             closedir($dir);
             @rmdir($path);
         }
-
     }
 
     public static function checkAssetsDir($dirName)

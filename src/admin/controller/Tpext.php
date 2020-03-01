@@ -12,7 +12,7 @@ class Tpext extends Controller
 {
     protected $extensions = [];
 
-    public function __construct()
+    protected function initialize()
     {
         $this->extensions = Extension::extensionsList();
 
