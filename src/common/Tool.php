@@ -34,7 +34,7 @@ class Tool
                 if (is_dir($sonDir)) {
                     static::copyDir($sonDir, $dst . DIRECTORY_SEPARATOR . $file);
                 } else {
-                    @copy($sonDir, $dst . DIRECTORY_SEPARATOR . $file);
+                    copy($sonDir, $dst . DIRECTORY_SEPARATOR . $file);
                 }
             }
         }
@@ -83,14 +83,13 @@ class Tool
                     $sonDir = $path . DIRECTORY_SEPARATOR . $file;
                     if (is_dir($sonDir)) {
                         static::deleteDir($sonDir);
-                        @rmdir($sonDir);
                     } else {
-                        @unlink($sonDir);
+                        unlink($sonDir);
                     }
                 }
             }
             closedir($dir);
-            @rmdir($path);
+            rmdir($path);
         }
     }
 

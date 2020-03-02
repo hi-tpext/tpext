@@ -259,7 +259,8 @@ abstract class Extension
         $sqlFile = realpath($this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql');
 
         if (is_file($sqlFile)) {
-            return Tool::executeSqlFile($sqlFile, $this->errors);
+            $success = Tool::executeSqlFile($sqlFile, $this->errors);
+            return $success && empty($this->errors);
         }
 
         return true;
@@ -270,7 +271,8 @@ abstract class Extension
         $sqlFile = realpath($this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'uninstall.sql');
 
         if (is_file($sqlFile)) {
-            return Tool::executeSqlFile($sqlFile, $this->errors);
+            $success = Tool::executeSqlFile($sqlFile, $this->errors);
+            return $success && empty($this->errors);
         }
 
         return true;

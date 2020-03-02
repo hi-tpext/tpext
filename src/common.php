@@ -8,10 +8,3 @@
 // +----------------------------------------------------------------------
 // | Author: yunwuxin <448901948@qq.com>
 // +----------------------------------------------------------------------
-
-use tpext\common\ExtLoader;
-
-function trigger($name, $params = null, $once = false)
-{
-    return ExtLoader::trigger($name, $params, $once);
-}

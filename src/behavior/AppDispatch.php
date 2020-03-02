@@ -109,8 +109,6 @@ class AppDispatch
 
             $instance->pubblish();
 
-            $instance->copyAssets();
-
             ExtLoader::trigger('tpext_match_module', [$matchMod, $url[0]]);
 
             App::dispatch($newDispatch->init());
