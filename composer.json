@@ -1,7 +1,7 @@
 {
     "name": "ichynul/tpext",
     "description": "thinkphp extension",
-    "type": "project",
+    "type": "library",
     "keywords": [
         "thinkphp"
     ],
