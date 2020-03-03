@@ -69,6 +69,8 @@ class AppDispatch
 
             foreach ($modules as $name => $intance) {
 
+                $name = $intance->getName();
+                
                 if ($name == $extension || strtolower(preg_replace('/\W/', '', $name)) == $extension) {
 
                     //http://localhost/tpexthelloworldmodule/home/hello/say/name/2334
