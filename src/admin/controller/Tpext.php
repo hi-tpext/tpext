@@ -2,9 +2,8 @@
 namespace tpext\admin\controller;
 
 use think\Controller;
-use tpext\admin\model\Extension as ExtensionModel;
+use tpext\admin\model\Extension;
 use tpext\builder\common\Builder;
-use tpext\common\Extension;
 use tpext\common\ExtLoader;
 use tpext\common\TpextModule;
 
@@ -14,8 +13,7 @@ class Tpext extends Controller
 
     protected function initialize()
     {
-        $this->extensions = Extension::extensionsList();
-
+        $this->extensions = ExtLoader::getModules();
         ksort($this->extensions);
     }
 
@@ -28,6 +26,10 @@ class Tpext extends Controller
         $table = $builder->table();
 
         $page = input('__page__/d', 1);
+
+        if ($page < 1) {
+            $page = 1;
+        }
 
         $table->paginator(count($this->extensions), $pagezise);
 
@@ -67,18 +69,20 @@ class Tpext extends Controller
                 'tags' => $instance->getTags(),
                 '__h_in__' => $is_install,
                 '__h_un__' => !$is_install,
-                '__h_ed__' => !$is_install || !$has_config,
+                '__h_st__' => !$is_install || !$has_config,
                 '__h_en__' => $is_enable,
                 '__h_dis__' => !$is_install || !$is_enable,
                 '__h_cp__' => empty($instance->getAssets()),
+                '__d_un__' => 0,
             ];
 
             if ($key == TpextModule::class) {
-                $data[$key]['__h_un__'] = 1;
-                $data[$key]['__h_ed__'] = 1;
+                $data[$key]['__h_un__'] = 0;
+                $data[$key]['__h_st__'] = 1;
                 $data[$key]['__h_en__'] = 1;
                 $data[$key]['__h_dis__'] = 1;
                 $data[$key]['__h_cp__'] = 1;
+                $data[$key]['__d_un__'] = 1;
             }
         }
 
@@ -107,14 +111,14 @@ class Tpext extends Controller
         $table->getActionbar()
             ->btnLink('install', url('install', ['id' => '__data.id__']), '', 'btn-primary', 'mdi-plus', 'title="安装"')
             ->btnLink('uninstall', url('uninstall', ['id' => '__data.id__']), '', 'btn-danger', 'mdi-delete', 'title="卸载"')
-            ->btnEdit(url('edit', ['id' => '__data.id__']))
+            ->btnLink('setting', url('config', ['id' => '__data.id__']), '', 'btn-info', 'mdi-settings', 'title="设置"')
             ->btnEnable()
             ->btnDisable()
             ->btnPostRowid('copyAssets', url('copyAssets'), '', 'btn-cyan', 'mdi-refresh', 'title="刷新资源"')
             ->mapClass([
                 'install' => ['hidden' => '__h_in__'],
-                'uninstall' => ['hidden' => '__h_un__'],
-                'edit' => ['hidden' => '__h_ed__'],
+                'uninstall' => ['hidden' => '__h_un__', 'disabled' => '__d_un__'],
+                'setting' => ['hidden' => '__h_st__'],
                 'enable' => ['hidden' => '__h_en__'],
                 'disable' => ['hidden' => '__h_dis__'],
                 'copyAssets' => ['hidden' => '__h_cp__'],
@@ -161,7 +165,7 @@ class Tpext extends Controller
 
                 $config = $instance->defaultConfig();
 
-                ExtensionModel::create([
+                Extension::create([
                     'key' => $id,
                     'name' => $instance->getName(),
                     'title' => $instance->getTitle(),
@@ -169,10 +173,11 @@ class Tpext extends Controller
                     'tags' => $instance->getTags(),
                     'install' => 1,
                     'enable' => 1,
-                    'config' => json_encode($config)
+                    'config' => json_encode($config),
                 ]);
 
                 ExtLoader::getInstalled(true);
+                $this->clearCache();
 
                 return $builder->layer()->closeRefresh(1, '安装成功');
             } else {
@@ -210,7 +215,7 @@ class Tpext extends Controller
             $form->btnSubmit('安&nbsp;&nbsp;装');
             $form->btnLayerClose();
 
-            return $builder->render();
+            return $builder->render()->getContent();
         }
 
     }
@@ -236,9 +241,11 @@ class Tpext extends Controller
 
             if ($res) {
 
-                ExtensionModel::where(['key' => $id])->delete();
+                Extension::where(['key' => $id])->delete();
 
                 ExtLoader::getInstalled(true);
+
+                $this->clearCache();
 
                 return $builder->layer()->closeRefresh(1, '卸载成功');
             } else {
@@ -280,7 +287,13 @@ class Tpext extends Controller
         }
     }
 
-    public function edit($id = '')
+    private function clearCache()
+    {
+        cache('tpext_modules', null);
+        cache('tpext_bind_modules', null);
+    }
+
+    public function config($id = '')
     {
         if (empty($id)) {
             return Builder::getInstance('扩展管理')->layer()->close(0, '参数有误！');
@@ -317,7 +330,7 @@ class Tpext extends Controller
                 }
             }
 
-            ExtensionModel::where(['key' => $id])->update(['config' => json_encode($data)]);
+            Extension::where(['key' => $id])->update(['config' => json_encode($data)]);
 
             return $builder->layer()->closeRefresh(1, '修改成功');
 
@@ -325,52 +338,94 @@ class Tpext extends Controller
 
             $form = $builder->form();
 
-            $ext = ExtensionModel::where(['key' => $id])->find();
+            $ext = Extension::where(['key' => $id])->find();
             $saved = json_decode($ext['config'], 1);
-            $savedKeys = array_keys($saved);
 
-            $fiedTypes = [];
-
-            if (isset($config['__config__'])) {
-                $fiedTypes = $config['__config__'];
-            }
-
-            foreach ($config as $key => $val) {
-                if ($key == '__config__') {
-                    continue;
-                }
-
-                if (is_array($val)) {
-                    $val = json_encode($val);
-                }
-
-                if (isset($fiedTypes[$key])) {
-                    $type = $fiedTypes[$key];
-
-                    $fieldType = $type['type'];
-                    $label = isset($type['label']) ? $type['label'] : '';
-                    $help = isset($type['help']) ? $type['help'] : '';
-
-                    if (preg_match('/(radio|select|checkbox|multipleSelect)/i', $type['type'])) {
-
-                        $field = $form->$fieldType($key, $label)->options($type['options'])->default($val)->help($help);
-                    } else {
-                        $field = $form->$fieldType($key, $label)->default($val)->help($help);
-                    }
-                } else {
-                    $field = $form->text($key)->default($val)->help($help);
-                }
-
-                if (in_array($key, $savedKeys)) {
-                    $field->value($saved[$key]);
-                }
-            }
-
-            $form->html('', '', 6)->showLabel(false);
-            $form->btnSubmit('保&nbsp;&nbsp;存', 1, 'btn-success');
-            $form->btnLayerClose();
+            $this->buildConfig($form, $config, $saved);
 
             return $builder->render();
+        }
+    }
+
+    public function setting()
+    {
+        $builder = Builder::getInstance('配置管理', '配置修改');
+
+        $installed = ExtLoader::getInstalled();
+
+        $form = $builder->form();
+
+        foreach ($this->extensions as $key => $instance) {
+            $is_install = 0;
+            $has_config = !empty($instance->defaultConfig());
+
+            foreach ($installed as $ins) {
+                if ($ins['key'] == $key) {
+                    $is_install = $ins['install'];
+                    break;
+                }
+            }
+
+            if (!$is_install || !$has_config) {
+                continue;
+            }
+
+            $config = $instance->defaultConfig();
+
+            if (empty($config)) {
+                continue;
+            }
+
+            $ext = Extension::where(['key' => $key])->find();
+            $saved = json_decode($ext['config'], 1);
+
+            $form->tab($instance->getTitle());
+
+            $this->buildConfig($form, $config, $saved);
+        }
+
+        return $builder->render();
+    }
+
+    private function buildConfig(&$form, $config, $saved = [])
+    {
+        $savedKeys = array_keys($saved);
+
+        $fiedTypes = [];
+
+        if (isset($config['__config__'])) {
+            $fiedTypes = $config['__config__'];
+        }
+
+        foreach ($config as $key => $val) {
+            if ($key == '__config__') {
+                continue;
+            }
+
+            if (is_array($val)) {
+                $val = json_encode($val);
+            }
+
+            if (isset($fiedTypes[$key])) {
+                $type = $fiedTypes[$key];
+
+                $fieldType = $type['type'];
+                $label = isset($type['label']) ? $type['label'] : '';
+                $help = isset($type['help']) ? $type['help'] : '';
+
+                if (preg_match('/(radio|select|checkbox|multipleSelect)/i', $type['type'])) {
+
+                    $field = $form->$fieldType($key, $label)->options($type['options'])->default($val)->help($help);
+                } else {
+                    $field = $form->$fieldType($key, $label)->default($val)->help($help);
+                }
+            } else {
+                $field = $form->text($key)->default($val)->help($help);
+            }
+
+            if (in_array($key, $savedKeys)) {
+                $field->value($saved[$key]);
+            }
         }
     }
 
@@ -410,7 +465,7 @@ class Tpext extends Controller
         }
 
         foreach ($ids as $id) {
-            ExtensionModel::where(['key' => $id])->update(['enable' => 1]);
+            Extension::where(['key' => $id])->update(['enable' => 1]);
         }
 
         ExtLoader::getInstalled(true);
@@ -436,7 +491,10 @@ class Tpext extends Controller
         }
 
         foreach ($ids as $id) {
-            ExtensionModel::where(['key' => $id])->update(['enable' => 0]);
+            if ($id == TpextModule::class) {
+                continue;
+            }
+            Extension::where(['key' => $id])->update(['enable' => 0]);
         }
 
         ExtLoader::getInstalled(true);

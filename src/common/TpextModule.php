@@ -16,14 +16,7 @@ class TpextModule extends baseModule
 
     protected $__root__ = __DIR__ . '/../../';
 
-    protected $assets = '';
-
     protected $modules = [
         'admin' => ['tpext'],
     ];
-
-    public function moduleInit($info = [])
-    {
-        return parent::moduleInit($info);
-    }
 }

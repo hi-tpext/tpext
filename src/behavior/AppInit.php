@@ -23,7 +23,17 @@ class AppInit
 
         Hook::add('app_dispatch', behavior\AppDispatch::class);
 
-        $this->bindExtensions();
+        $this->modules = cache('tpext_modules');
+        $this->bindModules = cache('tpext_bind_modules');
+
+        if (!empty($this->modules && !empty($this->bindModules))) {
+            ExtLoader::addModules($this->modules);
+            ExtLoader::bindModules($this->bindModules);
+        } else {
+            $this->bindExtensions();
+        }
+
+        ExtLoader::trigger('tpext_modules_loaded');
     }
 
     protected function bindExtensions()
@@ -48,10 +58,10 @@ class AppInit
         }
 
         ExtLoader::addModules($this->modules);
-
         ExtLoader::bindModules($this->bindModules);
 
-        ExtLoader::trigger('tpext_modules_loaded');
+        cache('tpext_modules', $this->modules);
+        cache('tpext_bind_modules', $this->bindModules);
     }
 
     private function passClasses($declare)
@@ -120,13 +130,7 @@ class AppInit
                     continue;
                 }
 
-                $name = $instance->getName();
-
-                if (!$name) {
-                    $name = strtolower(preg_replace('/\W/', '.', $declare));
-                }
-
-                $this->modules[$declare] = $name;
+                $this->modules[$declare] = $instance;
 
                 if ($declare != TpextModule::class
                     && !empty($disenabled) && in_array($declare, $disenabled)) {
@@ -136,6 +140,12 @@ class AppInit
                 $mods = $instance->getModules();
 
                 if (!empty($mods)) {
+
+                    $name = $instance->getName();
+
+                    if (!$name) {
+                        $name = strtolower(preg_replace('/\W/', '.', $declare));
+                    }
 
                     foreach ($mods as $key => $controllers) {
 

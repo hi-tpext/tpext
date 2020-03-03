@@ -4,26 +4,10 @@ namespace tpext\common;
 
 abstract class Extension
 {
-    /**
-     * Extensions.
-     *
-     */
     protected static $extensions = [];
 
     protected $version = '1.0.1';
 
-    /**
-     * 扩展的根目录
-     * 代码放在 src 里面的 为 __DIR__ . '/../../'
-     * --/assets/
-     * --/src/common/Module.php
-     *
-     * 否则为 __DIR__ . '/../'
-     * --/assets/
-     * --/common/Module.php
-     *
-     * @var string
-     */
     protected $__root__ = null;
 
     protected $__ID__ = null;

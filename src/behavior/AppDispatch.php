@@ -67,7 +67,7 @@ class AppDispatch
         } else {
             $modules = ExtLoader::getModules();
 
-            foreach ($modules as $name) {
+            foreach ($modules as $name => $intance) {
 
                 if ($name == $extension || strtolower(preg_replace('/\W/', '', $name)) == $extension) {
 
