@@ -4,6 +4,7 @@ namespace tpext\common;
 
 use think\db;
 use think\facade\Env;
+use think\facade\Log;
 
 class Tool
 {
@@ -152,7 +153,7 @@ class Tool
 
         $content = preg_replace('/\n?\s*--\s.*?\n/', "\n", $content);
 
-        $content = preg_replace('/\n?\s*#.*?\n/', "\n", $content);
+        //$content = preg_replace('/\n?\s*#.*?\n/', "\n", $content);
 
         $content = preg_replace('/\/\*.*?\*\//s', "\n", $content);
 
@@ -170,6 +171,7 @@ class Tool
                 db::execute($sql);
                 $success += 1;
             } catch (\Exception $e) {
+                Log::error($e->__toString());
                 $errors[] = $e;
             }
         }

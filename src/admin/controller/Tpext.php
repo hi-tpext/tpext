@@ -215,6 +215,8 @@ class Tpext extends Controller
             $form->btnSubmit('安&nbsp;&nbsp;装');
             $form->btnLayerClose();
 
+            $form->ajax(false);
+
             return $builder->render()->getContent();
         }
 
@@ -282,7 +284,8 @@ class Tpext extends Controller
             $form->html('', '', 6)->showLabel(false);
             $form->btnSubmit('卸&nbsp;&nbsp;载', 1, 'btn-danger');
             $form->btnLayerClose();
-
+            $form->ajax(false);
+            
             return $builder->render();
         }
     }
