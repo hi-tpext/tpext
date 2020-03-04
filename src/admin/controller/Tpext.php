@@ -285,7 +285,7 @@ class Tpext extends Controller
             $form->btnSubmit('卸&nbsp;&nbsp;载', 1, 'btn-danger');
             $form->btnLayerClose();
             $form->ajax(false);
-            
+
             return $builder->render();
         }
     }
@@ -320,22 +320,14 @@ class Tpext extends Controller
 
         if (request()->isPost()) {
             $post = request()->post();
-            $data = [];
 
-            foreach ($config as $key => $val) {
-                if ($key == '__config__') {
-                    continue;
-                }
+            $res = $this->seveConfig($config, $post, $id);
 
-                $data[$key] = $post[$key];
-                if (is_array($val)) {
-                    $data[$key] = json_encode($post[$key]);
-                }
+            if ($res) {
+                return $builder->layer()->closeRefresh(1, '修改成功');
+            } else {
+                return $builder->layer()->closeRefresh(0, '修改失败，或无变化');
             }
-
-            Extension::where(['key' => $id])->update(['config' => json_encode($data)]);
-
-            return $builder->layer()->closeRefresh(1, '修改成功');
 
         } else {
 
@@ -350,47 +342,103 @@ class Tpext extends Controller
         }
     }
 
+    private function seveConfig($config, $post, $id)
+    {
+        $data = [];
+
+        foreach ($config as $key => $val) {
+            if ($key == '__config__') {
+                continue;
+            }
+
+            $data[$key] = $post[$key];
+            if (is_array($val)) {
+                $data[$key] = json_encode($post[$key]);
+            }
+        }
+
+        return Extension::where(['key' => $id])->update(['config' => json_encode($data)]);
+    }
+
     public function setting()
     {
         $builder = Builder::getInstance('配置管理', '配置修改');
 
         $installed = ExtLoader::getInstalled();
 
-        $form = $builder->form();
+        if (request()->isPost()) {
+            $post = request()->post();
 
-        foreach ($this->extensions as $key => $instance) {
-            $is_install = 0;
-            $has_config = !empty($instance->defaultConfig());
+            $count = 0;
 
-            foreach ($installed as $ins) {
-                if ($ins['key'] == $key) {
-                    $is_install = $ins['install'];
-                    break;
+            foreach ($this->extensions as $key => $instance) {
+                $is_install = 0;
+                $has_config = !empty($instance->defaultConfig());
+
+                foreach ($installed as $ins) {
+                    if ($ins['key'] == $key) {
+                        $is_install = $ins['install'];
+                        break;
+                    }
+                }
+
+                if (!$is_install || !$has_config) {
+                    continue;
+                }
+
+                $id = $instance->getId();
+                if (isset($post[$id])) {
+                    $config = $instance->defaultConfig();
+                    $data = $post[$id];
+                    $res = $this->seveConfig($config, $data, $key);
+                    if ($res) {
+                        $count += 1;
+                    }
                 }
             }
+            
+            if ($count) {
+                $this->success('修改成功');
+            } else {
+                $this->error('修改失败，或无变化');
+            }
+        } else {
+            $form = $builder->form();
 
-            if (!$is_install || !$has_config) {
-                continue;
+            foreach ($this->extensions as $key => $instance) {
+                $is_install = 0;
+                $has_config = !empty($instance->defaultConfig());
+
+                foreach ($installed as $ins) {
+                    if ($ins['key'] == $key) {
+                        $is_install = $ins['install'];
+                        break;
+                    }
+                }
+
+                if (!$is_install || !$has_config) {
+                    continue;
+                }
+
+                $config = $instance->defaultConfig();
+
+                if (empty($config)) {
+                    continue;
+                }
+
+                $ext = Extension::where(['key' => $key])->find();
+                $saved = json_decode($ext['config'], 1);
+
+                $form->tab($instance->getTitle());
+
+                $this->buildConfig($form, $config, $saved, $instance->getId());
             }
 
-            $config = $instance->defaultConfig();
-
-            if (empty($config)) {
-                continue;
-            }
-
-            $ext = Extension::where(['key' => $key])->find();
-            $saved = json_decode($ext['config'], 1);
-
-            $form->tab($instance->getTitle());
-
-            $this->buildConfig($form, $config, $saved);
+            return $builder->render();
         }
-
-        return $builder->render();
     }
 
-    private function buildConfig(&$form, $config, $saved = [])
+    private function buildConfig(&$form, $config, $saved = [], $extKey = '')
     {
         $savedKeys = array_keys($saved);
 
@@ -401,6 +449,12 @@ class Tpext extends Controller
         }
 
         foreach ($config as $key => $val) {
+            $fieldName = $key;
+
+            if ($extKey) {
+                $fieldName = $extKey . '[' . $key . ']';
+            }
+
             if ($key == '__config__') {
                 continue;
             }
@@ -415,14 +469,18 @@ class Tpext extends Controller
                 $fieldType = $type['type'];
                 $label = isset($type['label']) ? $type['label'] : '';
                 $help = isset($type['help']) ? $type['help'] : '';
+                $required = isset($type['required']) ? $type['required'] : false;
+                $colSize = isset($type['colSize']) && is_numeric($type['colSize']) ? $type['colSize'] : 12;
+                $size = isset($type['size']) && is_array($type['size']) && count($type['size']) == 2 ? $type['size'] : [2, 8];
 
                 if (preg_match('/(radio|select|checkbox|multipleSelect)/i', $type['type'])) {
 
-                    $field = $form->$fieldType($key, $label)->options($type['options'])->default($val)->help($help);
+                    $field = $form->$fieldType($fieldName, $label, $colSize)->options($type['options'])->required($required)->default($val)->help($help)->size($size[0], $size[1]);
                 } else {
-                    $field = $form->$fieldType($key, $label)->default($val)->help($help);
+                    $field = $form->$fieldType($fieldName, $label, $colSize)->required($required)->default($val)->help($help)->size($size[0], $size[1]);
                 }
             } else {
+
                 $field = $form->text($key)->default($val)->help($help);
             }
 
