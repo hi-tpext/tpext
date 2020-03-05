@@ -2,6 +2,8 @@
 
 namespace tpext\common;
 
+use tpext\admin\model\WebConfig;
+
 abstract class Extension
 {
     protected static $extensions = [];
@@ -99,7 +101,7 @@ abstract class Extension
     final public function getId()
     {
         if (empty($this->__ID__)) {
-            $this->__ID__ = preg_replace('/\W/', '', get_called_class());
+            $this->__ID__ = strtolower(preg_replace('/\W/', '_', get_called_class()));
         }
 
         return $this->__ID__;
@@ -212,13 +214,17 @@ abstract class Extension
 
             $this->config = $defaultConfig;
 
+            $intalled = ExtLoader::getInstalled();
             if (!empty($defaultConfig)) {
 
                 $installed = ExtLoader::getInstalled();
 
                 foreach ($installed as $install) {
                     if ($install['key'] == get_called_class()) {
-                        $this->config = json_decode($install['config'], 1);
+                        $config = WebConfig::where(['key' => $this->getId()])->find();
+                        if ($config) {
+                            $this->setConfig(json_decode($config['config'], 1));
+                        }
                         unset($this->config['__config__']);
                         break;
                     }

@@ -7,7 +7,7 @@ use tpext\common\Module as baseModule;
 class TpextModule extends baseModule
 {
     protected $version = '1.0.1';
-    
+
     protected $name = 'tpext.core';
 
     protected $title = 'tpext核心';
@@ -17,6 +17,6 @@ class TpextModule extends baseModule
     protected $__root__ = __DIR__ . '/../../';
 
     protected $modules = [
-        'admin' => ['tpext'],
+        'admin' => ['tpext', 'config'],
     ];
 }
