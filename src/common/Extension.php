@@ -213,8 +213,7 @@ abstract class Extension
             $defaultConfig = $this->defaultConfig();
 
             $this->config = $defaultConfig;
-
-            $intalled = ExtLoader::getInstalled();
+            
             if (!empty($defaultConfig)) {
 
                 $installed = ExtLoader::getInstalled();

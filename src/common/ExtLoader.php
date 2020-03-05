@@ -86,6 +86,7 @@ class ExtLoader
         $isTable = Db::query("SHOW TABLES LIKE '{$tableName}'");
 
         if (empty($isTable)) {
+            cache('installedExtensions', null);
             return [];
         }
 
