@@ -81,6 +81,10 @@ class ExtLoader
 
     public static function getInstalled($reget = false)
     {
+        if (empty(config('database.database'))) {
+            return [];
+        }
+
         $tableName = config('database.prefix') . 'extension';
 
         $isTable = Db::query("SHOW TABLES LIKE '{$tableName}'");
