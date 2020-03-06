@@ -203,7 +203,7 @@ class Config extends Controller
                     'isRandName' => ['type' => 'radio', 'label' => '随机文件名', 'options' => [0 => '否', 1 => '是'], 'col_size' => 6, 'size' => [3, 8]],
                 ], //支持【tpext-builder】表单元素 ，不是太复杂的大多能满足。配置的值尽量为常规类型，如果是数组则会转换成json。
             ];
-            //使用 \tpext\admin\model\config('myconfig');
+            //使用 \\tpext\admin\model\config('myconfig');
             </code>
 EOT;
             $builder = Builder::getInstance('配置管理', '添加');
