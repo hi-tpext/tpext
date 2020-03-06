@@ -335,8 +335,12 @@ EOT;
         $table->text('title', '名称')->autoPost()->getWapper()->addStyle('max-width:80px');
         $table->show('create_time', '添加时间')->getWapper()->addStyle('width:180px');
         $table->show('update_time', '修改时间')->getWapper()->addStyle('width:180px');
+        $table->getToolbar()
+            ->btnAdd()
+            ->btnDelete();
         $table->getActionbar()
             ->btnDelete();
+        $table->sortable([]);
 
         $data = $this->dataModel->order('key')->select();
 
