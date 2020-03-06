@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `__PREFIX__web_config` (
   `key` varchar(55) NOT NULL DEFAULT '' COMMENT '标识',
   `file` varchar(255) NOT NULL DEFAULT '' COMMENT '文件路径',
   `title` varchar(55) NOT NULL DEFAULT '' COMMENT '标题',
-  `config` text  DEFAULT '{}' COMMENT '配置信息json',
+  `config` text COMMENT '配置信息json',
   `create_time` datetime NOT NULL DEFAULT '2020-01-01 00:00:00' COMMENT '添加时间',
   `update_time` datetime NOT NULL DEFAULT '2020-01-01 00:00:00' COMMENT '更新时间',
   PRIMARY KEY (`id`),

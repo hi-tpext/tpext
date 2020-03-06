@@ -211,7 +211,8 @@ EOT;
             $form->text('title', '名称')->required()->help('给配置取个名字，如: 商城');
             $form->text('key', '配置键')->help('不填则以文件名为键');
             $form->text('file', '文件路径')->required()->beforSymbol('<code>RootPath .</code>')
-                ->help('文件路径，从网站根目录开始，如 <code>config/myconfig.php</code>' . $template);
+                ->help('文件路径，从网站根目录开始，如 <code>config/myconfig.php</code>');
+            $form->raw('template', '示例')->value($template)->size(2, 10);
 
             return $builder->render();
         }
