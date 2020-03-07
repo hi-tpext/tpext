@@ -6,8 +6,7 @@ use think\facade\Env;
 use think\facade\Hook;
 use tpext\behavior;
 use tpext\common\ExtLoader;
-use tpext\common\Module as TpexModule;
-use tpext\common\TpextModule;
+use tpext\common\Module;
 
 class AppInit
 {
@@ -18,8 +17,6 @@ class AppInit
     public function run()
     {
         include realpath(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'common.php';
-
-        ExtLoader::addClassMap(TpextModule::class);
 
         Hook::add('app_dispatch', behavior\AppDispatch::class);
 
@@ -67,10 +64,6 @@ class AppInit
     private function passClasses($declare)
     {
         if (preg_match('/^think\\\.+/i', $declare)) {
-            return true;
-        }
-
-        if ($declare != TpextModule::class && preg_match('/^tpext\\\common\\\.+/i', $declare)) {
             return true;
         }
 
@@ -126,14 +119,13 @@ class AppInit
 
                 $instance = $declare::getInstance();
 
-                if (!($instance instanceof TpexModule)) {
+                if (!($instance instanceof Module)) {
                     continue;
                 }
 
                 $this->modules[$declare] = $instance;
 
-                if ($declare != TpextModule::class
-                    && !empty($disenabled) && in_array($declare, $disenabled)) {
+                if (!empty($disenabled) && in_array($declare, $disenabled)) {
                     continue;
                 }
 
