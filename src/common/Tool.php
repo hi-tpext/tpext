@@ -3,7 +3,6 @@
 namespace tpext\common;
 
 use think\db;
-use think\facade\Env;
 use think\facade\Log;
 
 class Tool
@@ -44,7 +43,7 @@ class Tool
         return true;
     }
 
-    public static function mkdirs($path = '', $mode = 0777, $recursive = true)
+    public static function mkdirs($path = '', $mode = 0775, $recursive = true)
     {
         clearstatcache();
 
@@ -96,28 +95,25 @@ class Tool
 
     public static function checkAssetsDir($dirName)
     {
-        $dirs = ['', 'assets', $dirName, ''];
+        $dirs = ['public', 'assets', $dirName, ''];
 
-        $scriptName = $_SERVER['SCRIPT_FILENAME'];
-
-        $assetsDir = realpath(dirname($scriptName)) . implode(DIRECTORY_SEPARATOR, $dirs);
+        $assetsDir = app()->getRootPath() . implode(DIRECTORY_SEPARATOR, $dirs);
 
         if (is_dir($assetsDir)) {
 
             return false;
         }
 
-        mkdir($assetsDir, 0777, true);
+        mkdir($assetsDir, 0775, true);
 
         return $assetsDir;
     }
 
     public static function getNameSpaceMap($class)
     {
-
         if (empty(static::$autoload_psr4)) {
 
-            $composerPath = Env::get('root_path') . 'vendor' . DIRECTORY_SEPARATOR . 'composer' . DIRECTORY_SEPARATOR;
+            $composerPath = app()->getRootPath() . 'vendor' . DIRECTORY_SEPARATOR . 'composer' . DIRECTORY_SEPARATOR;
 
             if (is_file($composerPath . 'autoload_psr4.php')) {
                 static::$autoload_psr4 = require $composerPath . 'autoload_psr4.php';
