@@ -8,7 +8,6 @@ class Module extends Extension
 {
     /**
      * 模块定义，如 ['module1' => ['controller1','controller2']]
-     * 或者 ['module1' => ['controllerdir\\controller1','controllerdir\\controller2']] (controller 目录下又分目录的情况)
      *
      * @var array
      */

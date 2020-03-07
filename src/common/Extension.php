@@ -52,18 +52,6 @@ abstract class Extension
     protected $assets = '';
 
     /**
-     * 安装时的sql路径，绝对路径
-     * @var string
-     */
-    protected $installSql = '';
-
-    /**
-     * 卸载时的sql路径，绝对路径
-     * @var string
-     */
-    protected $uninstallSql = '';
-
-    /**
      * 命名空间和路径，一般不用填写 如 ['namespace', 'codepath']
      *
      * @var array
@@ -248,69 +236,69 @@ abstract class Extension
     {
         $sqlFile = realpath($this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql');
 
+        $success = true;
+        
         if (is_file($sqlFile)) {
             $success = Tool::executeSqlFile($sqlFile, $this->errors);
-
-            if ($success) {
-                $this->copyAssets();
-
-                ExtensionMode::create([
-                    'key' => get_called_class(),
-                    'name' => $this->getName(),
-                    'title' => $this->getTitle(),
-                    'description' => $this->getDescription(),
-                    'tags' => $this->getTags(),
-                    'install' => 1,
-                    'enable' => 1,
-                ]);
-
-                $config = $this->defaultConfig();
-
-                if(!empty($config))
-                {
-                    unset($config['__config__']);
-                    WebConfig::create(['key' => $this->getId(), 'config' => json_encode($config)]);
-                }
-
-                ExtLoader::getInstalled(true);
-                ExtLoader::clearCache();
-            }
-
-            return $success;
         }
 
-        return true;
+        if ($success) {
+            $this->copyAssets();
+
+            ExtensionModel::create([
+                'key' => get_called_class(),
+                'name' => $this->getName(),
+                'title' => $this->getTitle(),
+                'description' => $this->getDescription(),
+                'tags' => $this->getTags(),
+                'install' => 1,
+                'enable' => 1,
+            ]);
+
+            $config = $this->defaultConfig();
+
+            if(!empty($config))
+            {
+                unset($config['__config__']);
+                WebConfig::create(['key' => $this->getId(), 'config' => json_encode($config)]);
+            }
+
+            ExtLoader::getInstalled(true);
+            ExtLoader::clearCache();
+        }
+
+        return $success;
     }
 
     public function uninstall()
     {
         $sqlFile = realpath($this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'uninstall.sql');
 
+        $success = true;
+
         if (is_file($sqlFile)) {
             $success = Tool::executeSqlFile($sqlFile, $this->errors);
-
-            if ($success) {
-                ExtensionModel::where(['key' => get_called_class()])->delete();
-
-                WebConfig::where(['key' => $this->getId()])->delete();
-
-                ExtLoader::getInstalled(true);
-
-                ExtLoader::clearCache();
-
-                $name = $this->assetsDirName();
-
-                $assetsDir = Tool::checkAssetsDir($name);
-
-                if ($assetsDir) {
-                    Tool::clearAssetsDir($name);
-                }
-            }
-            
-            return $success;
         }
 
-        return true;
+        if ($success) {
+            ExtensionModel::where(['key' => get_called_class()])->delete();
+
+            WebConfig::where(['key' => $this->getId()])->delete();
+
+            ExtLoader::getInstalled(true);
+
+            ExtLoader::clearCache();
+
+            $name = $this->assetsDirName();
+
+            $assetsDir = Tool::checkAssetsDir($name);
+
+            if ($assetsDir) {
+                Tool::clearAssetsDir($name);
+            }
+        }
+
+        return $success;
     }
 
     final public function getErrors()

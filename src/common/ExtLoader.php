@@ -91,6 +91,9 @@ class ExtLoader
 
         if (empty($isTable)) {
             cache('installedExtensions', null);
+
+            TpextCore::getInstance()->install();
+
             return [];
         }
 
@@ -106,8 +109,6 @@ class ExtLoader
 
         return $list;
     }
-
-    
 
     public static function clearCache()
     {
