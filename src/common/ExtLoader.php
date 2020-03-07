@@ -106,4 +106,12 @@ class ExtLoader
 
         return $list;
     }
+
+    
+
+    public static function clearCache()
+    {
+        cache('tpext_modules', null);
+        cache('tpext_bind_modules', null);
+    }
 }

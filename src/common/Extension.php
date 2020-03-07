@@ -3,6 +3,7 @@
 namespace tpext\common;
 
 use tpext\common\model\WebConfig;
+use tpext\common\model\Extension as ExtensionModel;
 
 abstract class Extension
 {
@@ -213,7 +214,7 @@ abstract class Extension
             $defaultConfig = $this->defaultConfig();
 
             $this->config = $defaultConfig;
-            
+
             if (!empty($defaultConfig)) {
 
                 $installed = ExtLoader::getInstalled();
@@ -249,7 +250,33 @@ abstract class Extension
 
         if (is_file($sqlFile)) {
             $success = Tool::executeSqlFile($sqlFile, $this->errors);
-            return $success && empty($this->errors);
+
+            if ($success) {
+                $this->copyAssets();
+
+                ExtensionMode::create([
+                    'key' => get_called_class(),
+                    'name' => $this->getName(),
+                    'title' => $this->getTitle(),
+                    'description' => $this->getDescription(),
+                    'tags' => $this->getTags(),
+                    'install' => 1,
+                    'enable' => 1,
+                ]);
+
+                $config = $this->defaultConfig();
+
+                if(!empty($config))
+                {
+                    unset($config['__config__']);
+                    WebConfig::create(['key' => $this->getId(), 'config' => json_encode($config)]);
+                }
+
+                ExtLoader::getInstalled(true);
+                ExtLoader::clearCache();
+            }
+
+            return $success;
         }
 
         return true;
@@ -261,7 +288,26 @@ abstract class Extension
 
         if (is_file($sqlFile)) {
             $success = Tool::executeSqlFile($sqlFile, $this->errors);
-            return $success && empty($this->errors);
+
+            if ($success) {
+                ExtensionModel::where(['key' => get_called_class()])->delete();
+
+                WebConfig::where(['key' => $this->getId()])->delete();
+
+                ExtLoader::getInstalled(true);
+
+                ExtLoader::clearCache();
+
+                $name = $this->assetsDirName();
+
+                $assetsDir = Tool::checkAssetsDir($name);
+
+                if ($assetsDir) {
+                    Tool::clearAssetsDir($name);
+                }
+            }
+            
+            return $success;
         }
 
         return true;
