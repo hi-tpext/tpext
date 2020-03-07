@@ -2,7 +2,7 @@
 
 namespace tpext\common;
 
-use tpext\admin\model\WebConfig;
+use tpext\common\model\WebConfig;
 
 abstract class Extension
 {

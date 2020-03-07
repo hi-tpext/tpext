@@ -4,7 +4,7 @@ namespace tpext\common;
 
 use think\Db;
 use think\facade\Hook;
-use tpext\admin\model\Extension as ExtensionModel;
+use tpext\common\model\Extension as ExtensionModel;
 
 class ExtLoader
 {
