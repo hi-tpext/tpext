@@ -3,6 +3,7 @@
 namespace tpext\common;
 
 use think\db;
+use think\facade\Env;
 use think\facade\Log;
 
 class Tool
@@ -43,7 +44,7 @@ class Tool
         return true;
     }
 
-    public static function mkdirs($path = '', $mode = 0775, $recursive = true)
+    public static function mkdirs($path = '', $mode = 0777, $recursive = true)
     {
         clearstatcache();
 
@@ -104,7 +105,7 @@ class Tool
             return false;
         }
 
-        mkdir($assetsDir, 0775, true);
+        mkdir($assetsDir, 0777, true);
 
         return $assetsDir;
     }
@@ -113,7 +114,7 @@ class Tool
     {
         if (empty(static::$autoload_psr4)) {
 
-            $composerPath = app()->getRootPath() . 'vendor' . DIRECTORY_SEPARATOR . 'composer' . DIRECTORY_SEPARATOR;
+            $composerPath = Env::get('root_path') . 'vendor' . DIRECTORY_SEPARATOR . 'composer' . DIRECTORY_SEPARATOR;
 
             if (is_file($composerPath . 'autoload_psr4.php')) {
                 static::$autoload_psr4 = require $composerPath . 'autoload_psr4.php';
