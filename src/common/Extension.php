@@ -2,8 +2,8 @@
 
 namespace tpext\common;
 
-use tpext\common\model\WebConfig;
 use tpext\common\model\Extension as ExtensionModel;
+use tpext\common\model\WebConfig;
 
 abstract class Extension
 {
@@ -237,7 +237,7 @@ abstract class Extension
         $sqlFile = realpath($this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql');
 
         $success = true;
-        
+
         if (is_file($sqlFile)) {
             $success = Tool::executeSqlFile($sqlFile, $this->errors);
         }
@@ -257,10 +257,11 @@ abstract class Extension
 
             $config = $this->defaultConfig();
 
-            if(!empty($config))
-            {
+            if (!empty($config)) {
                 unset($config['__config__']);
-                WebConfig::create(['key' => $this->getId(), 'config' => json_encode($config)]);
+                $filePath = str_replace(app()->getRootPath(), '', $this->configPath());
+
+                WebConfig::create(['key' => $this->getId(), 'file' => $filePath, 'title' => $this->getTitle(), 'config' => json_encode($config)]);
             }
 
             ExtLoader::getInstalled(true);
