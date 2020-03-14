@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS `__PREFIX__extension` (
-  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `key` varchar(55) NOT NULL DEFAULT '' COMMENT '类名',
   `name` varchar(55) NOT NULL DEFAULT '' COMMENT '标识',
   `title` varchar(55) NOT NULL DEFAULT '' COMMENT '标题',
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `__PREFIX__extension` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='扩展信息表';
 
 CREATE TABLE IF NOT EXISTS `__PREFIX__web_config` (
-  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
   `key` varchar(55) NOT NULL DEFAULT '' COMMENT '标识',
   `file` varchar(255) NOT NULL DEFAULT '' COMMENT '文件路径',
   `title` varchar(55) NOT NULL DEFAULT '' COMMENT '标题',
