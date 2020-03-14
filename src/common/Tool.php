@@ -2,7 +2,7 @@
 
 namespace tpext\common;
 
-use think\db;
+use think\Db;
 use think\facade\Log;
 
 class Tool
@@ -164,7 +164,7 @@ class Tool
                 continue;
             }
             try {
-                db::execute($sql);
+                Db::execute($sql);
                 $success += 1;
             } catch (\Exception $e) {
                 Log::error($e->__toString());
