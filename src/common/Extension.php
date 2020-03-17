@@ -227,7 +227,7 @@ abstract class Extension
 
     final public function setConfig($data = [])
     {
-        $this->config = array_merge($this->getConfig(), $data);
+        $this->config = array_merge($this->defaultConfig(), $data);
 
         config($this->getId(), $this->config);
     }
