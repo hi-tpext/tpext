@@ -294,7 +294,7 @@ abstract class Extension
 
             $assetsDir = Tool::checkAssetsDir($name);
 
-            if ($assetsDir) {
+            if (!$assetsDir) {
                 Tool::clearAssetsDir($name);
             }
         }
