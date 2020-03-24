@@ -95,9 +95,11 @@ class Tool
 
     public static function checkAssetsDir($dirName)
     {
-        $dirs = ['public', 'assets', $dirName, ''];
+        $dirs = ['', 'assets', $dirName, ''];
 
-        $assetsDir = app()->getRootPath() . implode(DIRECTORY_SEPARATOR, $dirs);
+        $scriptName = $_SERVER['SCRIPT_FILENAME'];
+
+        $assetsDir = realpath(dirname($scriptName)) . implode(DIRECTORY_SEPARATOR, $dirs);
 
         if (is_dir($assetsDir)) {
 
