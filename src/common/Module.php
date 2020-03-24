@@ -49,9 +49,4 @@ class Module extends Extension
 
         config('template.tpl_replace_string', $tpl_replace_string);
     }
-
-    public function editConfig()
-    {
-        return false;
-    }
 }
