@@ -289,14 +289,6 @@ abstract class Extension
             ExtLoader::getInstalled(true);
 
             ExtLoader::clearCache();
-
-            $name = $this->assetsDirName();
-
-            $assetsDir = Tool::checkAssetsDir($name);
-
-            if (!$assetsDir) {
-                Tool::clearAssetsDir($name);
-            }
         }
 
         return $success;
