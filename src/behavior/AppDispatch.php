@@ -68,6 +68,11 @@ class AppDispatch
             $modules = ExtLoader::getModules();
 
             foreach ($modules as $name => $intance) {
+                
+                if(!class_exists($name)) 
+                {
+                    continue;
+                }
 
                 $name = $intance->getName();
                 
