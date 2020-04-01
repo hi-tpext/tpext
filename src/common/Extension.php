@@ -161,8 +161,18 @@ abstract class Extension
 
             Tool::clearAssetsDir($name);
         }
+        $res = Tool::copyDir($src, $assetsDir);
 
-        return Tool::copyDir($src, $assetsDir);
+        if ($res) {
+            file_put_contents($assetsDir . 'tpext-warning.txt',
+                '此目录是存放扩展静态资源的，' . "\n"
+                . '不要替换文件或上传新文件到此目录及子目录，' . "\n"
+                . '否则刷新扩展资源后文件将还原或丢失，' . "\n"
+                . '文件建议传到根目录的`public/static`目录下。'
+            );
+        }
+
+        return $res;
     }
 
     final public function assetsDirName()
