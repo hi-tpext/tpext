@@ -255,23 +255,47 @@ abstract class Extension
         if ($success) {
             $this->copyAssets();
 
-            ExtensionModel::create([
-                'key' => get_called_class(),
+            $ekey = get_called_class();
+            $extData = [
+                'key' => $ekey,
                 'name' => $this->getName(),
                 'title' => $this->getTitle(),
                 'description' => $this->getDescription(),
                 'tags' => $this->getTags(),
                 'install' => 1,
                 'enable' => 1,
-            ]);
+            ];
+            
+            if (ExtensionModel::where(['key' => $ekey])->find()) {
+
+                ExtensionModel::where(['key' => $ekey])->update($extData);
+            } else {
+
+                ExtensionModel::create($extData);
+            }
 
             $config = $this->defaultConfig();
 
             if (!empty($config)) {
+
                 unset($config['__config__']);
+
                 $filePath = str_replace(app()->getRootPath(), '', $this->configPath());
 
-                WebConfig::create(['key' => $this->getId(), 'file' => $filePath, 'title' => $this->getTitle(), 'config' => json_encode($config)]);
+                $confData = [
+                    'key' => $this->getId(),
+                    'file' => $filePath,
+                    'title' => $this->getTitle(),
+                    'config' => json_encode($config),
+                ];
+
+                if (WebConfig::where(['key' => $this->getId()])->find()) {
+
+                    WebConfig::where(['key' => $this->getId()])->update($confData);
+                } else {
+
+                    WebConfig::create($confData);
+                }
             }
 
             ExtLoader::getInstalled(true);
