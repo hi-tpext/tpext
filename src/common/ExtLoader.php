@@ -59,7 +59,7 @@ class ExtLoader
         return self::$bindMods;
     }
 
-    public static function watch($name, $class, $desc = '', $first = false)
+    public static function watch($name, $class, $first = false, $desc = '')
     {
         if (!isset(self::$watches[$class])) {
 

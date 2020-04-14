@@ -3,7 +3,6 @@
 namespace tpext\behavior;
 
 use think\facade\Env;
-use think\facade\Hook;
 use tpext\behavior;
 use tpext\common\ExtLoader;
 use tpext\common\Module;
@@ -18,7 +17,7 @@ class AppInit
     {
         include realpath(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'common.php';
 
-        Hook::add('app_dispatch', behavior\AppDispatch::class);
+        ExtLoader::watch('app_dispatch', behavior\AppDispatch::class);
 
         $this->modules = cache('tpext_modules');
         $this->bindModules = cache('tpext_bind_modules');
