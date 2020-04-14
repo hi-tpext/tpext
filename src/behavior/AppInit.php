@@ -17,7 +17,7 @@ class AppInit
     {
         include realpath(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'common.php';
 
-        ExtLoader::watch('app_dispatch', behavior\AppDispatch::class);
+        ExtLoader::watch('app_dispatch', AppDispatch::class);
 
         $this->modules = cache('tpext_modules');
         $this->bindModules = cache('tpext_bind_modules');
