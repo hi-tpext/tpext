@@ -244,6 +244,8 @@ abstract class Extension
 
     public function install()
     {
+        $this->copyAssets();
+
         $sqlFile = realpath($this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql');
 
         $success = true;
@@ -253,8 +255,6 @@ abstract class Extension
         }
 
         if ($success) {
-            $this->copyAssets();
-
             $ekey = get_called_class();
             $extData = [
                 'key' => $ekey,
