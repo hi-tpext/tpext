@@ -61,6 +61,7 @@ class AppInit
         ExtLoader::bindModules($this->bindModules);
 
         cache('tpext_modules', $this->modules);
+        cache('tpext_resources', $this->resources);
         cache('tpext_bind_modules', $this->bindModules);
     }
 
