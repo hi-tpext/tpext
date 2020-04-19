@@ -112,9 +112,7 @@ class AppDispatch
 
             $instance = $matchMod['classname']::getInstance();
 
-            $instance->moduleInit($matchMod);
-
-            $instance->pubblish();
+            $instance->extInit($matchMod);
 
             ExtLoader::trigger('tpext_match_module', [$matchMod, $url[0]]);
 

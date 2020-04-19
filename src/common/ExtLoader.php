@@ -12,6 +12,8 @@ class ExtLoader
 
     private static $modules = [];
 
+    private static $resources = [];
+
     private static $bindMods = [];
 
     private static $watches = [];
@@ -40,9 +42,28 @@ class ExtLoader
         }
     }
 
+    public static function addResources($class)
+    {
+        if (is_array($class)) {
+            self::$resources = array_merge(self::$resources, $class);
+        } else {
+            self::$resources[] = $class;
+        }
+    }
+
     public static function getModules()
     {
         return self::$modules;
+    }
+
+    public static function getResources()
+    {
+        return self::$resources;
+    }
+
+    public static function getExtensions()
+    {
+        return array_merge(self::$modules, self::$resources);
     }
 
     public static function bindModules($class)
@@ -61,9 +82,9 @@ class ExtLoader
 
     public static function watch($name, $class, $first = false, $desc = '')
     {
-        if (!isset(self::$watches[$class])) {
+        if (!isset(self::$watches[$name . ':' . $class])) {
 
-            self::$watches[$class] = [$class, $desc, $first];
+            self::$watches[$name . ':' . $class] = [$class, $desc, $first];
 
             Hook::add($name, $class, $first);
         }

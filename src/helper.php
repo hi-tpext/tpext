@@ -10,4 +10,4 @@
 // +----------------------------------------------------------------------
 use tpext\common\ExtLoader;
 
-ExtLoader::watch('app_init',tpext\behavior\AppInit::class);
+ExtLoader::watch('app_init', tpext\behavior\AppInit::class, true, '初始化tpext');

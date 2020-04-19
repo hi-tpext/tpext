@@ -333,5 +333,5 @@ abstract class Extension
         return $this->errors;
     }
 
-    abstract public function pubblish();
+    abstract public function extInit($info = []);
 }

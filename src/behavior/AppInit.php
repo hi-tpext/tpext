@@ -3,13 +3,14 @@
 namespace tpext\behavior;
 
 use think\facade\Env;
-use tpext\behavior;
+use tpext\common\Extension;
 use tpext\common\ExtLoader;
-use tpext\common\Module;
+use tpext\common\Resource;
 
 class AppInit
 {
     private $modules = [];
+    private $resources = [];
 
     private $bindModules = [];
 
@@ -17,9 +18,10 @@ class AppInit
     {
         include realpath(dirname(__DIR__)) . DIRECTORY_SEPARATOR . 'common.php';
 
-        ExtLoader::watch('app_dispatch', AppDispatch::class);
+        ExtLoader::watch('app_dispatch', AppDispatch::class, true, 'tpext路由处理');
 
         $this->modules = cache('tpext_modules');
+        $this->resources = cache('tpext_resources');
         $this->bindModules = cache('tpext_bind_modules');
 
         if (!empty($this->modules && !empty($this->bindModules))) {
@@ -54,6 +56,7 @@ class AppInit
         }
 
         ExtLoader::addModules($this->modules);
+        ExtLoader::addModules($this->resources);
         ExtLoader::bindModules($this->bindModules);
 
         cache('tpext_modules', $this->modules);
@@ -114,11 +117,16 @@ class AppInit
                 continue;
             }
 
-            if (!isset($this->modules[$declare]) && $reflectionClass->hasMethod('moduleInit') && $reflectionClass->hasMethod('getInstance')) {
+            if (!isset($this->modules[$declare]) && $reflectionClass->hasMethod('extInit') && $reflectionClass->hasMethod('getInstance')) {
 
                 $instance = $declare::getInstance();
 
-                if (!($instance instanceof Module)) {
+                if (!($instance instanceof Extension)) {
+                    continue;
+                }
+
+                if ($instance instanceof Resource) {
+                    $this->resources[$declare] = $instance;
                     continue;
                 }
 

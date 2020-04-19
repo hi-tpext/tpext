@@ -18,8 +18,9 @@ class Module extends Extension
         return $this->modules;
     }
 
-    public function moduleInit($info = [])
+    public function extInit($info = [])
     {
+        $this->pubblish();
         return true;
     }
 
