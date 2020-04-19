@@ -134,6 +134,7 @@ class ExtLoader
     public static function clearCache()
     {
         cache('tpext_modules', null);
+        cache('tpext_resources', null);
         cache('tpext_bind_modules', null);
     }
 }

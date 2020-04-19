@@ -24,9 +24,10 @@ class AppInit
         $this->resources = cache('tpext_resources');
         $this->bindModules = cache('tpext_bind_modules');
 
-        if (!empty($this->modules && !empty($this->bindModules))) {
+        if (!empty($this->modules)) {
             ExtLoader::addModules($this->modules);
             ExtLoader::bindModules($this->bindModules);
+            ExtLoader::addResources($this->resources);
         } else {
             $this->bindExtensions();
         }
@@ -56,7 +57,7 @@ class AppInit
         }
 
         ExtLoader::addModules($this->modules);
-        ExtLoader::addModules($this->resources);
+        ExtLoader::addResources($this->resources);
         ExtLoader::bindModules($this->bindModules);
 
         cache('tpext_modules', $this->modules);
@@ -117,7 +118,7 @@ class AppInit
                 continue;
             }
 
-            if (!isset($this->modules[$declare]) && $reflectionClass->hasMethod('extInit') && $reflectionClass->hasMethod('getInstance')) {
+            if (!isset($this->modules[$declare]) && !isset($this->resources[$declare]) && $reflectionClass->hasMethod('extInit') && $reflectionClass->hasMethod('getInstance')) {
 
                 $instance = $declare::getInstance();
 
