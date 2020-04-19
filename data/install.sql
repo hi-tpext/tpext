@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS `__PREFIX__extension` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键',
-  `key` varchar(55) NOT NULL DEFAULT '' COMMENT '类名',
-  `name` varchar(55) NOT NULL DEFAULT '' COMMENT '标识',
+  `key` varchar(55) NOT NULL DEFAULT '' COMMENT '标识',
+  `name` varchar(55) NOT NULL DEFAULT '' COMMENT '类名',
+  `version` varchar(55) DEFAULT '1.0.1' COMMENT '版本号',
   `title` varchar(55) NOT NULL DEFAULT '' COMMENT '标题',
   `description` varchar(50) NOT NULL DEFAULT '' COMMENT '介绍',
   `tags` varchar(255) NOT NULL DEFAULT '' COMMENT '类型',

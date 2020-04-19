@@ -259,13 +259,14 @@ abstract class Extension
             $extData = [
                 'key' => $ekey,
                 'name' => $this->getName(),
+                'version' => $this->getVersion(),
                 'title' => $this->getTitle(),
                 'description' => $this->getDescription(),
                 'tags' => $this->getTags(),
                 'install' => 1,
                 'enable' => 1,
             ];
-            
+
             if (ExtensionModel::where(['key' => $ekey])->find()) {
 
                 ExtensionModel::where(['key' => $ekey])->update($extData);
@@ -316,7 +317,9 @@ abstract class Extension
         }
 
         if ($success) {
-            ExtensionModel::where(['key' => get_called_class()])->delete();
+            if (get_called_class() != TpextCore::class) {
+                ExtensionModel::where(['key' => get_called_class()])->delete();
+            }
 
             WebConfig::where(['key' => $this->getId()])->delete();
 
