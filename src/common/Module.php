@@ -7,21 +7,55 @@ use think\facade\Request;
 class Module extends Extension
 {
     /**
-     * 模块定义，如 ['module1' => ['controller1','controller2']]
+     * 模块定义，如 $modules = ['module1' => ['controller1','controller2']]
      *
      * @var array
      */
     protected $modules = [];
+
+    /**
+     * 后台菜单
+     *
+     * @var array
+     */
+    protected $menus = [];
 
     final public function getModules()
     {
         return $this->modules;
     }
 
+    final public function getMenus()
+    {
+        return $this->menus;
+    }
+
     public function extInit($info = [])
     {
         $this->pubblish();
         return true;
+    }
+
+    public function install()
+    {
+        $success = parent::install();
+
+        if ($success && !empty($this->menus)) {
+            ExtLoader::trigger('tpext_menus', ['create', $this->menus]);
+        }
+
+        return $success;
+    }
+
+    public function uninstall()
+    {
+        $success = parent::uninstall();
+
+        if ($success && !empty($this->meuns)) {
+            ExtLoader::trigger('tpext_menus', ['delete', $this->meuns]);
+        }
+
+        return $success;
     }
 
     public function pubblish()
