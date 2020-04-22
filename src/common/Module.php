@@ -51,8 +51,8 @@ class Module extends Extension
     {
         $success = parent::uninstall();
 
-        if ($success && !empty($this->meuns)) {
-            ExtLoader::trigger('tpext_menus', ['delete', $this->meuns]);
+        if ($success && !empty($this->menus)) {
+            ExtLoader::trigger('tpext_menus', ['delete', $this->menus]);
         }
 
         return $success;

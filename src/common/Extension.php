@@ -172,6 +172,8 @@ abstract class Extension
             );
         }
 
+        $this->afterCopyAssets();
+
         return $res;
     }
 
@@ -334,6 +336,10 @@ abstract class Extension
     final public function getErrors()
     {
         return $this->errors;
+    }
+
+    public function afterCopyAssets()
+    {
     }
 
     abstract public function extInit($info = []);
