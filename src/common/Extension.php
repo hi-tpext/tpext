@@ -244,6 +244,11 @@ abstract class Extension
         config($this->getId(), $this->config);
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return boolean
+     */
     public function install()
     {
         $this->copyAssets();
@@ -308,6 +313,11 @@ abstract class Extension
         return $success;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return boolean
+     */
     public function uninstall()
     {
         $sqlFile = realpath($this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'uninstall.sql');
@@ -338,7 +348,21 @@ abstract class Extension
         return $this->errors;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return void
+     */
     public function afterCopyAssets()
+    {
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return void
+     */
+    public function enabled($state)
     {
     }
 

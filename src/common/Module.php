@@ -20,22 +20,42 @@ class Module extends Extension
      */
     protected $menus = [];
 
+    /**
+     * Undocumented function
+     *
+     * @return array
+     */
     final public function getModules()
     {
         return $this->modules;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return array
+     */
     final public function getMenus()
     {
         return $this->menus;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return boolean
+     */
     public function extInit($info = [])
     {
         $this->pubblish();
         return true;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return boolean
+     */
     public function install()
     {
         $success = parent::install();
@@ -47,6 +67,11 @@ class Module extends Extension
         return $success;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return boolean
+     */
     public function uninstall()
     {
         $success = parent::uninstall();
@@ -56,6 +81,18 @@ class Module extends Extension
         }
 
         return $success;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return void
+     */
+    public function enabled($state)
+    {
+        if (!empty($this->menus)) {
+            ExtLoader::trigger('tpext_menus', [$state ? 'enable' : 'disable', $this->menus]);
+        }
     }
 
     public function pubblish()
