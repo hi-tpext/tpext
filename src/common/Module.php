@@ -61,7 +61,14 @@ class Module extends Extension
         $success = parent::install();
 
         if ($success && !empty($this->menus)) {
-            ExtLoader::trigger('tpext_menus', ['create', $this->menus]);
+
+            $menus = [];
+            foreach ($this->menus as $menu) {
+                $menu['module'] = $this->getId();
+                $menus[] = $menu;
+            }
+
+            ExtLoader::trigger('tpext_menus', ['create', $menus]);
         }
 
         return $success;
@@ -77,7 +84,14 @@ class Module extends Extension
         $success = parent::uninstall();
 
         if ($success && !empty($this->menus)) {
-            ExtLoader::trigger('tpext_menus', ['delete', $this->menus]);
+
+            $menus = [];
+            foreach ($this->menus as $menu) {
+                $menu['module'] = $this->getId();
+                $menus[] = $menu;
+            }
+
+            ExtLoader::trigger('tpext_menus', ['delete', $menus]);
         }
 
         return $success;
@@ -91,6 +105,7 @@ class Module extends Extension
     public function enabled($state)
     {
         if (!empty($this->menus)) {
+
             ExtLoader::trigger('tpext_menus', [$state ? 'enable' : 'disable', $this->menus]);
         }
     }
