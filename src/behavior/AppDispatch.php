@@ -4,7 +4,7 @@ namespace tpext\behavior;
 
 use think\facade\App;
 use think\facade\Route;
-use think\Loader as Tploader;
+use think\Loader;
 use think\route\dispatch\Url;
 use tpext\common\ExtLoader;
 use tpext\common\Tool;
@@ -30,25 +30,25 @@ class AppDispatch
     {
         $result = explode('|', $dispatch);
 
-        $extension = isset($result[0]) ? strtolower($result[0]) : '';
+        $extension = isset($result[0]) ? $result[0] : '';
 
-        $module = isset($result[1]) && !empty($result[1]) ? strtolower($result[1]) : '';
+        $module = isset($result[1]) && !empty($result[1]) ? $result[1] : '';
 
-        $controller = isset($result[2]) && !empty($result[2]) ? strtolower($result[2]) : '';
+        $controller = isset($result[2]) && !empty($result[2]) ? $result[2] : '';
 
-        $action = isset($result[3]) && !empty($result[3]) ? strtolower($result[3]) : '';
+        $action = isset($result[3]) && !empty($result[3]) ? $result[3] : '';
 
         $matchMod = null;
 
         if (empty($module)) {
-            $module = strtolower(config('default_controller'));
+            $module = config('default_controller');
 
-            $controller = strtolower(config('default_action'));
+            $controller = config('default_action');
 
             $url = [$extension, $module, $controller];
 
         } else if (empty($controller)) {
-            $controller = strtolower(config('default_action'));
+            $controller = config('default_action');
 
             $url = [$extension, $module, $controller];
 
@@ -68,14 +68,13 @@ class AppDispatch
             $modules = ExtLoader::getModules();
 
             foreach ($modules as $name => $intance) {
-                
-                if(!class_exists($name)) 
-                {
+
+                if (!class_exists($name)) {
                     continue;
                 }
 
                 $name = $intance->getName();
-                
+
                 if ($name == $extension || strtolower(preg_replace('/\W/', '', $name)) == $extension) {
 
                     //http://localhost/tpexthelloworldmodule/home/hello/say/name/2334
@@ -124,6 +123,8 @@ class AppDispatch
     private function matchModule($module, $controller, $action, $ext = true)
     {
         $controller = $controller ? $controller : config('app.empty_controller');
+
+        $controller = Loader::parseName($controller);
 
         $action = $action ? $action : config('app.default_action');
 
@@ -176,7 +177,7 @@ class AppDispatch
 
         $url_controller_layer = 'controller';
 
-        $class = '\\' . $module . '\\' . $url_controller_layer . '\\' . ucfirst($controller);
+        $class = '\\' . $module . '\\' . $url_controller_layer . '\\' . Loader::parseName($controller, 1);
 
         if (!class_exists($namespace . $class)) {
             return null;
@@ -188,9 +189,9 @@ class AppDispatch
             return null;
         }
 
-        TpLoader::addClassAlias('app' . $class, $namespace . $class);
+        Loader::addClassAlias('app' . $class, $namespace . $class);
 
-        TpLoader::autoload('app' . $class);
+        Loader::autoload('app' . $class);
 
         $mod['namespace'] = $namespace;
 

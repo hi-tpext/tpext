@@ -6,6 +6,7 @@ use think\facade\Request;
 
 class Module extends Extension
 {
+    public static $current = '';
     /**
      * 模块定义，如 $modules = ['module1' => ['controller1','controller2']]
      *
@@ -135,5 +136,7 @@ class Module extends Extension
         ]);
 
         config('template.tpl_replace_string', $tpl_replace_string);
+
+        static::$current = $this->getId();
     }
 }

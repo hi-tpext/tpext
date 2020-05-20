@@ -3,6 +3,7 @@
 namespace tpext\behavior;
 
 use think\facade\Env;
+use think\Loader;
 use tpext\common\Extension;
 use tpext\common\ExtLoader;
 use tpext\common\Resource;
@@ -150,7 +151,9 @@ class AppInit
 
                     foreach ($mods as $key => $controllers) {
 
-                        $controllers = array_map('strtolower', $controllers);
+                        $controllers = array_map(function ($val) {
+                            return Loader::parseName($val);
+                        }, $controllers);
 
                         $this->bindModules[strtolower($key)][] = ['name' => $name, 'controlers' => $controllers,
                             'namespace_map' => $instance->getNameSpaceMap(), 'classname' => $declare];
