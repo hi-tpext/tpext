@@ -1,1 +1,2 @@
 DROP TABLE IF EXISTS `__PREFIX__extension`;
+DROP TABLE IF EXISTS `__PREFIX__web_config`;
