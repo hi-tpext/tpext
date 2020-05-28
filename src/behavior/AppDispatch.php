@@ -13,22 +13,22 @@ class AppDispatch
 {
     public function run()
     {
-        $route = App::routeCheck();
+        $dispatch = App::routeCheck();
 
-        if ($route instanceof Url) {
+        if ($dispatch instanceof Url) {
 
-            $dispatch = $route->getDispatch();
+            $url = $dispatch->getDispatch();
 
-            if (is_string($dispatch)) {
+            if (is_string($url)) {
 
-                $this->cherckModule($dispatch);
+                $this->cherckModule($url, $dispatch);
             }
         }
     }
 
-    private function cherckModule($dispatch)
+    private function cherckModule($url, $dispatch)
     {
-        $result = explode('|', $dispatch);
+        $result = explode('|', $url);
 
         $extension = isset($result[0]) ? $result[0] : '';
 
@@ -46,12 +46,10 @@ class AppDispatch
             $controller = config('default_action');
 
             $url = [$extension, $module, $controller];
-
         } else if (empty($controller)) {
             $controller = config('default_action');
 
             $url = [$extension, $module, $controller];
-
         } else {
             $url = $result;
         }
@@ -63,7 +61,6 @@ class AppDispatch
             $matchMod = $this->matchModule($module, $controller, $action, false);
 
             array_shift($url);
-
         } else {
             $modules = ExtLoader::getModules();
 
@@ -116,7 +113,9 @@ class AppDispatch
             ExtLoader::trigger('tpext_match_module', [$matchMod, $url[0]]);
 
             App::dispatch($newDispatch->init());
+        } else {
 
+            App::dispatch($dispatch->init());
         }
     }
 
@@ -139,6 +138,10 @@ class AppDispatch
                 continue;
             }
 
+            if ($matchMod) {
+                break;
+            }
+
             if ($module == $key) {
 
                 foreach ($bindModule as $mod) {
@@ -150,6 +153,7 @@ class AppDispatch
                         if ($mod != null) {
 
                             $matchMod = $mod;
+                            break;
                         }
                     }
                 }

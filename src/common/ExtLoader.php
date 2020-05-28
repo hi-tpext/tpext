@@ -118,7 +118,7 @@ class ExtLoader
             return [];
         }
 
-        $data = cache('installedExtensions');
+        $data = cache('installed_extensions');
 
         if (!$reget && $data) {
             return $data;
@@ -126,7 +126,7 @@ class ExtLoader
 
         $list = ExtensionModel::all();
 
-        cache('installExtensions', $list);
+        cache('installed_extensions', $list);
 
         return $list;
     }
