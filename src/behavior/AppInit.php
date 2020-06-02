@@ -7,6 +7,7 @@ use think\Loader;
 use tpext\common\Extension;
 use tpext\common\ExtLoader;
 use tpext\common\Resource;
+use tpext\common\Module;
 
 class AppInit
 {
@@ -53,7 +54,6 @@ class AppInit
                 $classMap = array_keys($classMap);
 
                 $this->findExtensions($classMap);
-
             }
         }
 
@@ -68,6 +68,10 @@ class AppInit
 
     private function passClasses($declare)
     {
+        if (in_array($declare, [Extension::class, Resource::class, Module::class])) {
+            return true;
+        }
+
         if (preg_match('/^think\\\.+/i', $declare)) {
             return true;
         }
@@ -155,8 +159,10 @@ class AppInit
                             return Loader::parseName($val);
                         }, $controllers);
 
-                        $this->bindModules[strtolower($key)][] = ['name' => $name, 'controlers' => $controllers,
-                            'namespace_map' => $instance->getNameSpaceMap(), 'classname' => $declare];
+                        $this->bindModules[strtolower($key)][] = [
+                            'name' => $name, 'controlers' => $controllers,
+                            'namespace_map' => $instance->getNameSpaceMap(), 'classname' => $declare
+                        ];
                     }
                 }
 
