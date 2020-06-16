@@ -66,6 +66,9 @@ class Module extends Extension
             $menus = [];
             foreach ($this->menus as $menu) {
                 $menu['module'] = $this->getId();
+                if (isset($menu['children']) && !empty($menu['children'])) {
+                    $menu['url'] = '#';
+                }
                 $menus[] = $menu;
             }
 
@@ -89,6 +92,9 @@ class Module extends Extension
             $menus = [];
             foreach ($this->menus as $menu) {
                 $menu['module'] = $this->getId();
+                if (isset($menu['children']) && !empty($menu['children'])) {
+                    $menu['url'] = '#';
+                }
                 $menus[] = $menu;
             }
 

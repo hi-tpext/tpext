@@ -331,9 +331,8 @@ abstract class Extension
         if ($success) {
             if (get_called_class() != TpextCore::class) {
                 ExtensionModel::where(['key' => get_called_class()])->delete();
+                WebConfig::where(['key' => $this->getId()])->delete();
             }
-
-            WebConfig::where(['key' => $this->getId()])->delete();
 
             ExtLoader::getInstalled(true);
 
