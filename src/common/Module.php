@@ -83,9 +83,9 @@ class Module extends Extension
      *
      * @return boolean
      */
-    public function uninstall()
+    public function uninstall($runSql = true)
     {
-        $success = parent::uninstall();
+        $success = parent::uninstall($runSql);
 
         if ($success && !empty($this->menus)) {
 
@@ -107,7 +107,8 @@ class Module extends Extension
     /**
      * Undocumented function
      *
-     * @return void
+     * @param boolean|int $state
+     * @return boolean
      */
     public function enabled($state)
     {
@@ -115,6 +116,8 @@ class Module extends Extension
 
             ExtLoader::trigger('tpext_menus', [$state ? 'enable' : 'disable', $this->menus]);
         }
+
+        return parent::enabled($state);
     }
 
     public function pubblish()

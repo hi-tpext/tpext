@@ -124,7 +124,7 @@ class ExtLoader
             return $data;
         }
 
-        $list = ExtensionModel::all();
+        $list = ExtensionModel::where(['install' => 1])->select();
 
         cache('installed_extensions', $list);
 

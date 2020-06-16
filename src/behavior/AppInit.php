@@ -22,9 +22,11 @@ class AppInit
 
         ExtLoader::watch('app_dispatch', AppDispatch::class, true, 'tpext路由处理');
 
-        $this->modules = cache('tpext_modules');
-        $this->resources = cache('tpext_resources');
-        $this->bindModules = cache('tpext_bind_modules');
+        if (!config('app_debug')) {
+            $this->modules = cache('tpext_modules');
+            $this->resources = cache('tpext_resources');
+            $this->bindModules = cache('tpext_bind_modules');
+        }
 
         if (!empty($this->modules)) {
             ExtLoader::addModules($this->modules);
@@ -61,9 +63,11 @@ class AppInit
         ExtLoader::addResources($this->resources);
         ExtLoader::bindModules($this->bindModules);
 
-        cache('tpext_modules', $this->modules);
-        cache('tpext_resources', $this->resources);
-        cache('tpext_bind_modules', $this->bindModules);
+        if (!config('app_debug')) {
+            cache('tpext_modules', $this->modules);
+            cache('tpext_resources', $this->resources);
+            cache('tpext_bind_modules', $this->bindModules);
+        }
     }
 
     private function passClasses($declare)
@@ -101,11 +105,15 @@ class AppInit
     {
         $installed = ExtLoader::getInstalled();
 
-        $disenabled = [];
+        $enabled = [];
         foreach ($installed as $ins) {
-            if ($ins['enable'] == 0) {
-                $disenabled[] = $ins['key'];
+            if ($ins['enable'] == 1 && $ins['install'] == 1) {
+                $enabled[] = $ins['key'];
             }
+        }
+
+        if (empty($enabled)) {
+            return;
         }
 
         foreach ($classMap as $declare) {
@@ -139,7 +147,7 @@ class AppInit
 
                 $this->modules[$declare] = $instance;
 
-                if (!empty($disenabled) && in_array($declare, $disenabled)) {
+                if (!in_array($declare, $enabled)) {
                     continue;
                 }
 

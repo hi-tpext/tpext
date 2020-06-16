@@ -164,11 +164,12 @@ abstract class Extension
         $res = Tool::copyDir($src, $assetsDir);
 
         if ($res) {
-            file_put_contents($assetsDir . 'tpext-warning.txt',
+            file_put_contents(
+                $assetsDir . 'tpext-warning.txt',
                 '此目录是存放扩展静态资源的，' . "\n"
-                . '不要替换文件或上传新文件到此目录及子目录，' . "\n"
-                . '否则刷新扩展资源后文件将还原或丢失，' . "\n"
-                . '文件建议传到根目录的`public/static`目录下。'
+                    . '不要替换文件或上传新文件到此目录及子目录，' . "\n"
+                    . '否则刷新扩展资源后文件将还原或丢失，' . "\n"
+                    . '文件建议传到根目录的`public/static`目录下。'
             );
         }
 
@@ -305,10 +306,10 @@ abstract class Extension
                     WebConfig::create($confData);
                 }
             }
-
-            ExtLoader::getInstalled(true);
-            ExtLoader::clearCache();
         }
+
+        ExtLoader::clearCache();
+        ExtLoader::getInstalled(true);
 
         return $success;
     }
@@ -316,28 +317,28 @@ abstract class Extension
     /**
      * Undocumented function
      *
+     * @param boolean $runSql
      * @return boolean
      */
-    public function uninstall()
+    public function uninstall($runSql = true)
     {
         $sqlFile = realpath($this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'uninstall.sql');
 
         $success = true;
 
-        if (is_file($sqlFile)) {
+        if ($runSql && is_file($sqlFile)) {
             $success = Tool::executeSqlFile($sqlFile, $this->errors);
         }
 
         if ($success) {
             if (get_called_class() != TpextCore::class) {
-                ExtensionModel::where(['key' => get_called_class()])->delete();
+                ExtensionModel::where(['key' => get_called_class()])->update(['install' => 0, 'enable' => 0]);
                 WebConfig::where(['key' => $this->getId()])->delete();
             }
-
-            ExtLoader::getInstalled(true);
-
-            ExtLoader::clearCache();
         }
+
+        ExtLoader::clearCache();
+        ExtLoader::getInstalled(true);
 
         return $success;
     }
@@ -354,15 +355,21 @@ abstract class Extension
      */
     public function afterCopyAssets()
     {
+        return true;
     }
 
     /**
      * Undocumented function
      *
-     * @return void
+     * @param boolean|int $state
+     * @return boolean
      */
     public function enabled($state)
     {
+        ExtLoader::clearCache();
+        ExtLoader::getInstalled(true);
+
+        return true;
     }
 
     abstract public function extInit($info = []);
