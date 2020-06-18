@@ -208,6 +208,11 @@ abstract class Extension
         }
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return array
+     */
     final public function getConfig()
     {
         if ($this->config === null) {
@@ -238,11 +243,36 @@ abstract class Extension
         return $this->config;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param string $key
+     * @return mixed
+     */
+    final public static function config($key = null)
+    {
+        $config = static::getInstance()->getConfig();
+
+        if ($key) {
+            return $config[$key];
+        }
+
+        return $config;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param array $data
+     * @return array
+     */
     final public function setConfig($data = [])
     {
-        $this->config = array_merge($this->defaultConfig(), $data);
+        $this->config = array_merge($this->getConfig(), $data);
 
         config($this->getId(), $this->config);
+
+        return $this->config;
     }
 
     /**
