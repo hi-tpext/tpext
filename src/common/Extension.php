@@ -249,12 +249,12 @@ abstract class Extension
      * @param string $key
      * @return mixed
      */
-    final public static function config($key = null)
+    final public static function config($key = null, $default = '')
     {
         $config = static::getInstance()->getConfig();
 
         if ($key) {
-            return $config[$key];
+            return isset($config[$key]) ? $config[$key] : $default;
         }
 
         return $config;
