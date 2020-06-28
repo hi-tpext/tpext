@@ -2,12 +2,11 @@
 
 namespace tpext\behavior;
 
-use think\facade\Env;
 use think\Loader;
 use tpext\common\Extension;
 use tpext\common\ExtLoader;
-use tpext\common\Resource;
 use tpext\common\Module;
+use tpext\common\Resource;
 
 class AppInit
 {
@@ -45,19 +44,19 @@ class AppInit
 
         $this->findExtensions($initedClassMap);
 
-        $composerPath = Env::get('root_path') . 'vendor' . DIRECTORY_SEPARATOR . 'composer' . DIRECTORY_SEPARATOR;
+        /*   $composerPath = Env::get('root_path') . 'vendor' . DIRECTORY_SEPARATOR . 'composer' . DIRECTORY_SEPARATOR;
 
         if (is_file($composerPath . 'autoload_classmap.php')) {
 
-            $classMap = require $composerPath . 'autoload_classmap.php';
+        $classMap = require $composerPath . 'autoload_classmap.php';
 
-            if ($classMap && is_array($classMap)) {
+        if ($classMap && is_array($classMap)) {
 
-                $classMap = array_keys($classMap);
+        $classMap = array_keys($classMap);
 
-                $this->findExtensions($classMap);
-            }
+        $this->findExtensions($classMap);
         }
+        }*/
 
         ExtLoader::addModules($this->modules);
         ExtLoader::addResources($this->resources);
@@ -169,7 +168,7 @@ class AppInit
 
                         $this->bindModules[strtolower($key)][] = [
                             'name' => $name, 'controlers' => $controllers,
-                            'namespace_map' => $instance->getNameSpaceMap(), 'classname' => $declare
+                            'namespace_map' => $instance->getNameSpaceMap(), 'classname' => $declare,
                         ];
                     }
                 }
