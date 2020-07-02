@@ -26,16 +26,16 @@ class WebConfig extends Model
             return [];
         }
 
+        $config = json_decode($theConfig['config'], 1);
+
         $rootPath = app()->getRootPath();
         $filePath = $rootPath . $theConfig['file'];
 
         if (!is_file($filePath)) {
-            $this->error('原始配置文件不存在：' . $theConfig['file']);
+            return $config;
         }
 
         $default = include $filePath;
-
-        $config = json_decode($theConfig['config'], 1);
 
         if (empty($config)) {
             return $default;
@@ -47,9 +47,9 @@ class WebConfig extends Model
             if ($key == '__config__') {
                 continue;
             }
-
-            $values[$key] = $config[$key];
-
+            if (isset($config[$key])) {
+                $values[$key] = $config[$key];
+            }
             if (is_array($val)) {
                 $values[$key] = json_decode($config[$key], 1);
             }

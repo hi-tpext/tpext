@@ -104,15 +104,11 @@ class AppInit
     {
         $installed = ExtLoader::getInstalled();
 
-        $enabled = [];
+        $disabled = [];
         foreach ($installed as $ins) {
-            if ($ins['enable'] == 1 && $ins['install'] == 1) {
-                $enabled[] = $ins['key'];
+            if ($ins['install'] == 0 || $ins['enable'] == 0) {
+                $disabled[] = $ins['key'];
             }
-        }
-
-        if (empty($enabled)) {
-            return;
         }
 
         foreach ($classMap as $declare) {
@@ -146,7 +142,7 @@ class AppInit
 
                 $this->modules[$declare] = $instance;
 
-                if (!in_array($declare, $enabled)) {
+                if (in_array($declare, $disabled)) {
                     continue;
                 }
 
