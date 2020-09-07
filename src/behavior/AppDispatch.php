@@ -51,6 +51,8 @@ class AppDispatch
 
         $action = isset($result[3]) && !empty($result[3]) ? $result[3] : '';
 
+        $extra = isset($result[4]) && !empty($result[4]) ? $result[4] : '';
+
         $matchMod = null;
 
         if (empty($module)) {
@@ -67,13 +69,21 @@ class AppDispatch
             $url = $result;
         }
 
-        if ($extension == 'ext') {
-
+        if ($extension == 'ext' || ($bind && $module == 'ext')) {
             //http://localhost/ext/home/hello/say/name/2334
 
-            $matchMod = $this->matchModule($module, $controller, $action, false);
+            if ($bind && $controller == $bind) {
+                unset($url[0]);
+
+                $url = array_values($url);
+
+                $matchMod = $this->matchModule($controller, $action, $extra, false);
+            } else {
+                $matchMod = $this->matchModule($module, $controller, $action, false);
+            }
 
             array_shift($url);
+
         } else {
             $modules = ExtLoader::getModules();
 
@@ -85,11 +95,19 @@ class AppDispatch
 
                 $name = $intance->getName();
 
-                if ($name == $extension || strtolower(preg_replace('/\W/', '', $name)) == $extension) {
+                if ($name == $extension || strtolower(preg_replace('/\W/', '', $name)) == $extension
+                    || ($bind && ($name == $module || strtolower(preg_replace('/\W/', '', $name)) == $module))) {
 
                     //http://localhost/tpexthelloworldmodule/home/hello/say/name/2334
+                    if ($bind && $controller == $bind) {
+                        unset($url[0]);
 
-                    $matchMod = $this->matchModule($module, $controller, $action, true);
+                        $url = array_values($url);
+
+                        $matchMod = $this->matchModule($controller, $action, $extra, true);
+                    } else {
+                        $matchMod = $this->matchModule($module, $controller, $action, true);
+                    }
 
                     array_shift($url);
 
