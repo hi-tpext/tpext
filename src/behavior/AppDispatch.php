@@ -29,10 +29,16 @@ class AppDispatch
     private function cherckModule($url, $dispatch)
     {
         $auto_bind_module = config('auto_bind_module');
+        $bind = '';
 
         if ($auto_bind_module) {
-            $script = pathinfo($_SERVER['SCRIPT_FILENAME'], PATHINFO_FILENAME);
-            $url = $url ? $script . '|' . $url : $script;
+            $bind = pathinfo($_SERVER['SCRIPT_FILENAME'], PATHINFO_FILENAME);
+        } else {
+            $bind = Route::getBind();
+        }
+
+        if ($bind) {
+            $url = $url ? $bind . '|' . $url : $bind;
         }
 
         $result = explode('|', $url);
@@ -105,7 +111,7 @@ class AppDispatch
 
             Route::setConfig(['empty_module' => $url[0]]);
 
-            if ($auto_bind_module) {
+            if ($bind) {
                 array_shift($url);
                 $urlDispatch = implode($pathinfo_depr, $url);
             } else {
