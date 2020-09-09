@@ -1,6 +1,6 @@
 <?php
 
-namespace tpext\behavior;
+namespace tpext\common\behavior;
 
 use think\facade\App;
 use think\facade\Route;
@@ -8,6 +8,10 @@ use think\Loader;
 use think\route\dispatch\Url;
 use tpext\common\ExtLoader;
 use tpext\common\Tool;
+
+/**
+ * for tp5
+ */
 
 class AppDispatch
 {
@@ -127,8 +131,6 @@ class AppDispatch
 
             $pathinfo_depr = config('app.pathinfo_depr');
 
-            Route::setConfig(['empty_module' => $url[0]]);
-
             if ($bind) {
                 array_shift($url);
                 $urlDispatch = implode($pathinfo_depr, $url);
@@ -139,6 +141,8 @@ class AppDispatch
             $newDispatch = Route::check($urlDispatch, false);
 
             App::path($matchMod['rootPath']);
+
+            App::setNamespace($matchMod['namespace']);
 
             App::init('');
 
@@ -227,10 +231,6 @@ class AppDispatch
         if (!$reflectionClass->hasMethod($action) && !$ext) {
             return null;
         }
-
-        Loader::addClassAlias('app' . $class, $namespace . $class);
-
-        Loader::autoload('app' . $class);
 
         $mod['namespace'] = $namespace;
 

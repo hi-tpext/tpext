@@ -2,8 +2,12 @@
 
 namespace tpext\common;
 
+use think\App;
 use think\Db;
+use think\facade\Event;
 use think\facade\Hook;
+use think\helper\Str;
+use think\Loader;
 use tpext\common\model\Extension as ExtensionModel;
 
 class ExtLoader
@@ -14,9 +18,11 @@ class ExtLoader
 
     private static $resources = [];
 
-    private static $bindMods = [];
+    private static $bindModules = [];
 
     private static $watches = [];
+
+    private static $tpVer;
 
     // 注册classmap
     public static function addClassMap($class)
@@ -69,15 +75,15 @@ class ExtLoader
     public static function bindModules($class)
     {
         if (is_array($class)) {
-            self::$bindMods = array_merge(self::$bindMods, $class);
+            self::$bindModules = array_merge(self::$bindModules, $class);
         } else {
-            self::$bindMods[] = $class;
+            self::$bindModules[] = $class;
         }
     }
 
     public static function getBindModules()
     {
-        return self::$bindMods;
+        return self::$bindModules;
     }
 
     public static function watch($name, $class, $first = false, $desc = '')
@@ -85,19 +91,175 @@ class ExtLoader
         if (!isset(self::$watches[$name . ':' . $class])) {
 
             self::$watches[$name . ':' . $class] = [$class, $desc, $first];
-
-            Hook::add($name, $class, $first);
+            if (strstr(App::VERSION, '.', true) == '5') {
+                Hook::add($name, $class, $first);
+            } else {
+                Event::listen($name, $class, $first);
+                App::getInstance()->event->listen($name, $class, $first);
+            }
         }
     }
 
     public static function trigger($name, $params = null, $once = false)
     {
-        Hook::listen($name, $params, $once);
+        if (strstr(App::VERSION, '.', true) == '5') {
+            Hook::listen($name, $params, $once);
+        } else {
+            App::getInstance()->event->trigger($name, $params, $once);
+        }
     }
 
     public static function geWatches()
     {
         return self::$watches;
+    }
+
+    public static function bindExtensions()
+    {
+        if (!config('app_debug')) {
+            self::$modules = cache('tpext_modules');
+            self::$resources = cache('tpext_resources');
+            self::$bindModules = cache('tpext_bind_modules');
+        }
+
+        if (empty(self::$modules)) {
+            self::findExtensions();
+            cache('tpext_modules', self::$modules);
+            cache('tpext_resources', self::$resources);
+            cache('tpext_bind_modules', self::$bindModules);
+        }
+    }
+
+    private static function findExtensions()
+    {
+        $installed = ExtLoader::getInstalled();
+
+        $disabled = [];
+        foreach ($installed as $ins) {
+            if ($ins['install'] == 0 || $ins['enable'] == 0) {
+                $disabled[] = $ins['key'];
+            }
+        }
+
+        $classMap = self::$classMap;
+
+        foreach ($classMap as $declare) {
+
+            if (static::passClasses($declare)) {
+                continue;
+            }
+
+            if (!class_exists($declare)) {
+                continue;
+            }
+
+            $reflectionClass = new \ReflectionClass($declare);
+
+            if (!$reflectionClass->isInstantiable()) {
+                continue;
+            }
+
+            if (!isset(self::$modules[$declare]) && !isset(self::$resources[$declare]) && $reflectionClass->hasMethod('extInit') && $reflectionClass->hasMethod('getInstance')) {
+
+                $instance = $declare::getInstance();
+
+                if (!($instance instanceof Extension)) {
+                    continue;
+                }
+
+                if ($instance instanceof Resource) {
+                    self::$resources[$declare] = $instance;
+                    continue;
+                }
+
+                self::$modules[$declare] = $instance;
+
+                if (in_array($declare, $disabled)) {
+                    continue;
+                }
+
+                $mods = $instance->getModules();
+
+                if (!empty($mods)) {
+
+                    $name = $instance->getName();
+
+                    if (!$name) {
+                        $name = strtolower(preg_replace('/\W/', '.', $declare));
+                    }
+
+                    foreach ($mods as $key => $controllers) {
+
+                        $controllers = array_map(function ($val) {
+                            if (self::getTpVer() == 5) {
+                                return Loader::parseName($val);
+                            } else {
+                                return Str::studly($val);
+                            }
+                        }, $controllers);
+
+                        self::$bindModules[strtolower($key)][] = [
+                            'name' => $name, 'controlers' => $controllers,
+                            'namespace_map' => $instance->getNameSpaceMap(), 'classname' => $declare,
+                        ];
+                    }
+                }
+
+                continue;
+            }
+
+            continue;
+        }
+    }
+
+    public static function getTpVer()
+    {
+        if (empty(self::$tpVer)) {
+            self::$tpVer = strstr(App::VERSION, '.', true);
+        }
+
+        return self::$tpVer;
+    }
+
+    public static function isTP51()
+    {
+        return self::getTpVer() == 5;
+    }
+
+    public static function isTP60()
+    {
+        return self::getTpVer() == 6;
+    }
+
+    private static function passClasses($declare)
+    {
+        if (in_array($declare, [Extension::class, Resource::class, Module::class])) {
+            return true;
+        }
+
+        if (preg_match('/^think\\\.+/i', $declare)) {
+            return true;
+        }
+
+        if (preg_match('/^PHPUnit\\\.+/i', $declare)) {
+            return true;
+        }
+
+        if (preg_match('/^PHP_Token_.+/i', $declare)) {
+            return true;
+        }
+
+        if (preg_match('/^PharIo\\\.+/i', $declare)) {
+            return true;
+        }
+
+        if (preg_match('/^Symfony\\\.+/i', $declare)) {
+            return true;
+        }
+
+        if (preg_match('/^phpDocumentor\\\.+/i', $declare)) {
+            return true;
+        }
     }
 
     public static function getInstalled($reget = false)
