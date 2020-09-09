@@ -4,7 +4,6 @@ namespace tpext\common;
 
 use think\Service as BaseService;
 use tpext\common\middleware\AppRun;
-use tpext\common\compatible\BaseController;
 
 /**
  * for tp6
@@ -18,8 +17,6 @@ class Service extends BaseService
         $this->app->event->listen('HttpRun', function () {
             $this->app->middleware->add(AppRun::class);
         });
-
-        class_alias(BaseController::class, 'think\Controller');
 
         ExtLoader::bindExtensions();
 

@@ -165,6 +165,8 @@ class AppRun
             $url = $url ? $bind . '|' . $url : $bind;
         }
 
+        $url = strtolower($url);
+
         $result = explode('|', $url);
 
         $extension = isset($result[0]) ? $result[0] : '';
@@ -229,8 +231,15 @@ class AppRun
                         $url = array_values($url);
 
                         $matchMod = $this->matchModule($controller, $action, $extra, true);
+                        if ($matchMod) {
+                            $this->app->request->setPathinfo("{$controller}/{$action}/{$extra}");
+                        }
+
                     } else {
                         $matchMod = $this->matchModule($module, $controller, $action, true);
+                        if ($matchMod) {
+                            $this->app->request->setPathinfo("{$module}/{$controller}/{$action}");
+                        }
                     }
 
                     array_shift($url);
@@ -255,6 +264,10 @@ class AppRun
 
             $this->app->http->path($matchMod['rootPath'] . DIRECTORY_SEPARATOR . $url[0]);
 
+            if (is_file($matchMod['rootPath'] . DIRECTORY_SEPARATOR . 'common.php')) {
+                include_once $matchMod['rootPath'] . DIRECTORY_SEPARATOR . 'common.php';
+            }
+
             $this->app->setNamespace($matchMod['namespace']);
 
             $this->app->http->name($url[0]);
@@ -262,8 +275,6 @@ class AppRun
             $this->app->request->setRoot('/' . $url[0]);
 
             $this->app->request->setPathinfo(strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : '');
-
-            $this->app->http->name($url[0]);
 
             $instance = $matchMod['classname']::getInstance();
 

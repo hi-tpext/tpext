@@ -2,7 +2,7 @@
 
 namespace tpext\common;
 
-use think\Db;
+use think\facade\Db;
 use think\facade\Log;
 
 class Tool
@@ -143,7 +143,17 @@ class Tool
             return false;
         }
 
-        $prefix = config('database.prefix');
+        $type = Db::getConfig('default', 'mysql');
+
+        $connections = Db::getConfig('connections');
+
+        $config = $connections[$type] ?? [];
+
+        if (empty($config) || empty($config['database'])) {
+            return false;
+        }
+
+        $prefix = $config['prefix'];
 
         $content = preg_replace('/\r\n|\r/', "\n", $content);
 

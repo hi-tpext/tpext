@@ -3,7 +3,7 @@
 namespace tpext\common;
 
 use think\App;
-use think\Db;
+use think\facade\Db;
 use think\facade\Event;
 use think\facade\Hook;
 use think\helper\Str;
@@ -91,21 +91,20 @@ class ExtLoader
         if (!isset(self::$watches[$name . ':' . $class])) {
 
             self::$watches[$name . ':' . $class] = [$class, $desc, $first];
-            if (strstr(App::VERSION, '.', true) == '5') {
+            if (self::isTP51()) {
                 Hook::add($name, $class, $first);
             } else {
                 Event::listen($name, $class, $first);
-                App::getInstance()->event->listen($name, $class, $first);
             }
         }
     }
 
     public static function trigger($name, $params = null, $once = false)
     {
-        if (strstr(App::VERSION, '.', true) == '5') {
+        if (self::isTP51()) {
             Hook::listen($name, $params, $once);
         } else {
-            App::getInstance()->event->trigger($name, $params, $once);
+            Event::trigger($name, $params, $once);
         }
     }
 
@@ -132,7 +131,7 @@ class ExtLoader
 
     private static function findExtensions()
     {
-        $installed = ExtLoader::getInstalled();
+        $installed = self::getInstalled();
 
         $disabled = [];
         foreach ($installed as $ins) {
@@ -264,11 +263,18 @@ class ExtLoader
 
     public static function getInstalled($reget = false)
     {
-        if (empty(config('database.database'))) {
-            return [];
+
+        $type = Db::getConfig('default', 'mysql');
+
+        $connections = Db::getConfig('connections');
+
+        $config = $connections[$type] ?? [];
+
+        if (empty($config) || empty($config['database'])) {
+            return false;
         }
 
-        $tableName = config('database.prefix') . 'extension';
+        $tableName = $config['prefix'] . 'extension';
 
         $isTable = Db::query("SHOW TABLES LIKE '{$tableName}'");
 

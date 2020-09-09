@@ -1,17 +1,18 @@
 <?php
 declare (strict_types = 1);
 
-namespace tpext\common\compatible;
+namespace think;
 
 use think\App;
 use think\exception\ValidateException;
 use think\Response;
 use think\Validate;
+use tpext\common\TpextCore;
 
 /**
  * 控制器基础类
  */
-abstract class BaseController
+abstract class Controller
 {
     /**
      * Request实例
@@ -140,5 +141,87 @@ abstract class BaseController
         return $this;
     }
 
-    /** tp5 **/
+    /**
+     * 操作成功跳转的快捷方法
+     * @access protected
+     * @param  mixed     $msg 提示信息
+     * @param  string    $url 跳转的URL地址
+     * @param  mixed     $data 返回的数据
+     * @param  integer   $wait 跳转等待时间
+     * @param  array     $header 发送的Header信息
+     * @return void
+     */
+    protected function success($msg = '', $url = null, $data = '', $wait = 3, array $header = [])
+    {
+        if (is_null($url) && isset($_SERVER["HTTP_REFERER"])) {
+            $url = $_SERVER["HTTP_REFERER"];
+        } elseif ('' !== $url) {
+            $url = (string) $url;
+            $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : url($url)->__toString();
+        }
+
+        $result = [
+            'code' => 1,
+            'msg' => $msg,
+            'data' => $data,
+            'url' => $url,
+            'wait' => $wait,
+        ];
+
+        $response = null;
+
+        if ($this->app->request->isAjax()) {
+            $response = json($result);
+        } else {
+            $rootPath = TpextCore::getInstance()->getRoot();
+            $tplPath = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
+            $response = view($tplPath, $result);
+        }
+        $response->header($header);
+        $response->send();
+        $this->app->http->end($response);
+        exit;
+    }
+
+    /**
+     * 操作错误跳转的快捷方法
+     * @access protected
+     * @param  mixed     $msg 提示信息
+     * @param  string    $url 跳转的URL地址
+     * @param  mixed     $data 返回的数据
+     * @param  integer   $wait 跳转等待时间
+     * @param  array     $header 发送的Header信息
+     * @return void
+     */
+    protected function error($msg = '', $url = null, $data = '', $wait = 3, array $header = [])
+    {
+        if (is_null($url) && isset($_SERVER["HTTP_REFERER"])) {
+            $url = $_SERVER["HTTP_REFERER"];
+        } elseif ('' !== $url) {
+            $url = (string) $url;
+            $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : url($url)->__toString();
+        }
+
+        $result = [
+            'code' => 0,
+            'msg' => $msg,
+            'data' => $data,
+            'url' => $url,
+            'wait' => $wait,
+        ];
+
+        $response = null;
+
+        if ($this->app->request->isAjax()) {
+            $response = json($result);
+        } else {
+            $rootPath = TpextCore::getInstance()->getRoot();
+            $tplPath = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
+            $response = view($tplPath, $result);
+        }
+        $response->header($header);
+        $response->send();
+        $this->app->http->end($response);
+        exit;
+    }
 }

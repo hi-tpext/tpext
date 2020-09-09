@@ -3,6 +3,7 @@
 namespace tpext\common;
 
 use think\facade\Request;
+use think\facade\View;
 
 class Module extends Extension
 {
@@ -130,21 +131,12 @@ class Module extends Extension
 
         $PUBLIC_PATH = $base_dir;
 
-        $tpl_replace_string = config('template.tpl_replace_string');
-
-        if (empty($tpl_replace_string)) {
-
-            $tpl_replace_string = [];
-        }
-
-        $tpl_replace_string = array_merge($tpl_replace_string, [
+        View::config(['tpl_replace_string' => [
             '__ASSETS__' => $PUBLIC_PATH . 'assets',
             '__M_NAME__' => $name,
             '__MODULE__' => $PUBLIC_PATH . 'assets/' . $name,
             strtoupper('__' . $name . '__') => $PUBLIC_PATH . 'assets/' . $name,
-        ]);
-
-        config('template.tpl_replace_string', $tpl_replace_string);
+        ]]);
 
         static::$current = $this->getId();
     }

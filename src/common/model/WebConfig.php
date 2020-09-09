@@ -6,7 +6,7 @@ use think\Model;
 
 class WebConfig extends Model
 {
-    protected $autoWriteTimestamp = 'dateTime';
+    protected $autoWriteTimestamp = 'datetime';
 
     public static function clearCache($configKey)
     {
