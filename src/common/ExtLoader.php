@@ -91,21 +91,20 @@ class ExtLoader
         if (!isset(self::$watches[$name . ':' . $class])) {
 
             self::$watches[$name . ':' . $class] = [$class, $desc, $first];
-            if (strstr(App::VERSION, '.', true) == '5') {
+            if (self::isTP51()) {
                 Hook::add($name, $class, $first);
             } else {
                 Event::listen($name, $class, $first);
-                App::getInstance()->event->listen($name, $class, $first);
             }
         }
     }
 
     public static function trigger($name, $params = null, $once = false)
     {
-        if (strstr(App::VERSION, '.', true) == '5') {
+        if (self::isTP51()) {
             Hook::listen($name, $params, $once);
         } else {
-            App::getInstance()->event->trigger($name, $params, $once);
+            Event::trigger($name, $params, $once);
         }
     }
 
