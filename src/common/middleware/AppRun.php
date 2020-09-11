@@ -256,6 +256,10 @@ class AppRun
             }
         }
 
+        if ($url[0] == 'admin') {
+            $this->app->middleware->add(\think\middleware\SessionInit::class, 'app');
+        }
+
         if ($matchMod) {
 
             $path = $this->app->request->pathinfo();
