@@ -271,7 +271,11 @@ class ExtLoader
         $config = $connections[$type] ?? [];
 
         if (empty($config) || empty($config['database'])) {
-            return false;
+            return [];
+        }
+
+        if ($config['database'] == 'test' && $config['username'] == 'username' && $config['password'] == 'password') {
+            return [];
         }
 
         $tableName = $config['prefix'] . 'extension';
