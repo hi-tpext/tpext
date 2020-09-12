@@ -82,29 +82,28 @@ class AppRun
             // 自动多应用识别
             $this->app->http->setBind(false);
 
-            $bind = $this->app->route->getDomainBind(); //绑定到模块　Route::bind('admin');
             $module_bind = $this->app->config->get('app.domain_bind', []);
 
-            if (!empty($bind)) {
+            if (!empty($module_bind)) {
                 // 获取当前子域名
                 $subDomain = $this->app->request->subDomain();
                 $domain = $this->app->request->host(true);
 
-                if (isset($bind[$domain])) {
-                    $module_bind = $bind[$domain];
-                } elseif (isset($bind[$subDomain])) {
-                    $module_bind = $bind[$subDomain];
-                } elseif (isset($bind['*'])) {
-                    $module_bind = $bind['*'];
+                if (isset($module_bind[$domain])) {
+                    $bind = $module_bind[$domain];
+                } elseif (isset($module_bind[$subDomain])) {
+                    $bind = $module_bind[$subDomain];
+                } elseif (isset($module_bind['*'])) {
+                    $bind = $module_bind['*'];
                 }
             } else {
-                $module_bind = $this->app->route->getDomainBind(); //绑定到模块　Route::bind('admin');
+                $bind = $this->app->route->getDomainBind('-'); //绑定到模块　Route::bind('admin');
             }
         }
 
         $url = str_replace(config('route.pathinfo_depr'), '|', $this->path());
 
-        if ($this->cherckModule($url, $module_bind)) {
+        if ($this->cherckModule($url, $bind)) {
             return true;
         }
 
