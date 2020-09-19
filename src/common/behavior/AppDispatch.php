@@ -45,8 +45,6 @@ class AppDispatch
             $url = $url ? $bind . '|' . $url : $bind;
         }
 
-        $url = strtolower($url);
-
         $result = explode('|', $url);
 
         $extension = isset($result[0]) ? $result[0] : '';
