@@ -164,8 +164,6 @@ class AppRun
             $url = $url ? $bind . '|' . $url : $bind;
         }
 
-        $url = strtolower($url);
-
         $result = explode('|', $url);
 
         $extension = isset($result[0]) ? $result[0] : '';
@@ -255,7 +253,7 @@ class AppRun
             }
         }
 
-        if ($url[0] == 'admin') {
+        if (strtolower($url[0]) == 'admin') {
             $this->app->middleware->add(\think\middleware\SessionInit::class, 'app');
         }
 
