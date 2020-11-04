@@ -140,6 +140,8 @@ class ExtLoader
             }
         }
 
+        ExtLoader::trigger('tpext_find_extensions');
+
         $classMap = self::$classMap;
 
         foreach ($classMap as $declare) {
