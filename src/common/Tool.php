@@ -127,12 +127,15 @@ class Tool
             foreach (static::$autoload_psr4 as $namespace => $paths) {
 
                 if (false !== strpos(strtolower($class), strtolower($namespace))) {
-                    return [$namespace, '..' . DIRECTORY_SEPARATOR . preg_replace('/.*[\/\\\](vendor[\/\\\].+$)/i', '$1', $paths[0])];
+                    return [$namespace, $paths[0]];
                 }
             }
         }
 
-        return [];
+        $fitst = strstr($class, '\\', true);
+
+        return [$fitst, app()->getRootPath() . 'extend' . DIRECTORY_SEPARATOR . $fitst];
+
     }
 
     public static function executeSqlFile($file, &$errors = [])
