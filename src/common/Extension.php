@@ -191,7 +191,7 @@ abstract class Extension
         return $name;
     }
 
-    final public function configPath()
+    public function configPath()
     {
         return realpath($this->getRoot() . 'src' . DIRECTORY_SEPARATOR . 'config.php');
     }
