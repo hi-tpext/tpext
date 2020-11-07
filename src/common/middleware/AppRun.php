@@ -269,7 +269,7 @@ class AppRun
                 include_once $matchMod['rootPath'] . DIRECTORY_SEPARATOR . 'common.php';
             }
 
-            $this->app->setNamespace($matchMod['namespace']);
+            $this->app->config->set(['app_namespace' => $matchMod['namespace'] . '\\admin'], 'app');
 
             $this->app->http->name($url[0]);
 
@@ -362,12 +362,6 @@ class AppRun
         if (!$reflectionClass->hasMethod($action) && !$ext) {
             return null;
         }
-
-        class_alias($namespace . $class, 'app' . $class);
-
-        $this->app->bind([
-            'app' . $class => $namespace . $class,
-        ]);
 
         $mod['namespace'] = $namespace;
 
