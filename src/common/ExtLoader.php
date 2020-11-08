@@ -146,10 +146,6 @@ class ExtLoader
 
         foreach ($classMap as $declare) {
 
-            if (static::passClasses($declare)) {
-                continue;
-            }
-
             if (!class_exists($declare)) {
                 continue;
             }
@@ -230,37 +226,6 @@ class ExtLoader
     public static function isTP60()
     {
         return self::getTpVer() == 6;
-    }
-
-    private static function passClasses($declare)
-    {
-        if (in_array($declare, [Extension::class, Resource::class, Module::class])) {
-            return true;
-        }
-
-        if (preg_match('/^think\\\.+/i', $declare)) {
-            return true;
-        }
-
-        if (preg_match('/^PHPUnit\\\.+/i', $declare)) {
-            return true;
-        }
-
-        if (preg_match('/^PHP_Token_.+/i', $declare)) {
-            return true;
-        }
-
-        if (preg_match('/^PharIo\\\.+/i', $declare)) {
-            return true;
-        }
-
-        if (preg_match('/^Symfony\\\.+/i', $declare)) {
-            return true;
-        }
-
-        if (preg_match('/^phpDocumentor\\\.+/i', $declare)) {
-            return true;
-        }
     }
 
     public static function getInstalled($reget = false)
