@@ -142,6 +142,17 @@ class ExtLoader
 
         ExtLoader::trigger('tpext_find_extensions');
 
+        $config = TpextCore::getInstance()->config();
+
+        if (isset($config['find_extensions']) && !empty($config['find_extensions'])) {
+            $findExtensions = str_replace(['|', "\n"], ',', $config['find_extensions']);
+            $findExtensions = str_replace([' ', "\r"], '', $findExtensions);
+            $findExtensions = str_replace(["/", "\\\\"], '\\', $findExtensions);
+            $findExtensions = array_filter(explode(',', $findExtensions), 'trim');
+
+            self::addClassMap($findExtensions);
+        }
+
         $classMap = self::$classMap;
 
         foreach ($classMap as $declare) {
