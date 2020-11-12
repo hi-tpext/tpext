@@ -64,16 +64,7 @@ class Module extends Extension
 
         if ($success && !empty($this->menus)) {
 
-            $menus = [];
-            foreach ($this->menus as $menu) {
-                $menu['module'] = $this->getId();
-                if (isset($menu['children']) && !empty($menu['children'])) {
-                    $menu['url'] = '#';
-                }
-                $menus[] = $menu;
-            }
-
-            ExtLoader::trigger('tpext_menus', ['create', $menus]);
+            ExtLoader::trigger('tpext_menus', ['create', $this->getId(), $this->menus]);
         }
 
         return $success;
@@ -90,16 +81,7 @@ class Module extends Extension
 
         if ($success && !empty($this->menus)) {
 
-            $menus = [];
-            foreach ($this->menus as $menu) {
-                $menu['module'] = $this->getId();
-                if (isset($menu['children']) && !empty($menu['children'])) {
-                    $menu['url'] = '#';
-                }
-                $menus[] = $menu;
-            }
-
-            ExtLoader::trigger('tpext_menus', ['delete', $menus]);
+            ExtLoader::trigger('tpext_menus', ['delete', $this->getId(), $this->menus]);
         }
 
         return $success;
@@ -115,7 +97,7 @@ class Module extends Extension
     {
         if (!empty($this->menus)) {
 
-            ExtLoader::trigger('tpext_menus', [$state ? 'enable' : 'disable', $this->menus]);
+            ExtLoader::trigger('tpext_menus', [$state ? 'enable' : 'disable', $this->getId(), $this->menus]);
         }
 
         return parent::enabled($state);
