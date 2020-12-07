@@ -73,6 +73,7 @@ class Module extends Extension
     /**
      * Undocumented function
      *
+     * @param boolean $runSql
      * @return boolean
      */
     public function uninstall($runSql = true)
