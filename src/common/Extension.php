@@ -236,8 +236,6 @@ abstract class Extension
                     }
                 }
             }
-
-            config($this->getId(), $this->config);
         }
 
         return $this->config;
@@ -269,8 +267,6 @@ abstract class Extension
     final public function setConfig($data = [])
     {
         $this->config = array_merge($this->getConfig(), $data);
-
-        config($this->getId(), $this->config);
 
         return $this->config;
     }
