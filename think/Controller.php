@@ -96,7 +96,7 @@ abstract class Controller
             $v->batch(true);
         }
 
-        return $v->failException(true)->check($data);
+        return $v->failException(false)->check($data);
     }
 
     /** tp5兼容 **/
