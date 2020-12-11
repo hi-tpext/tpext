@@ -96,7 +96,11 @@ abstract class Controller
             $v->batch(true);
         }
 
-        return $v->failException(false)->check($data);
+        if (!$v->failException(false)->check($data)) {
+            return $v->getError();
+        }
+
+        return true;
     }
 
     /** tp5兼容 **/
@@ -153,8 +157,8 @@ abstract class Controller
      */
     protected function success($msg = '', $url = null, $data = '', $wait = 3, array $header = [])
     {
-        if (is_null($url) && isset($_SERVER["HTTP_REFERER"])) {
-            $url = $_SERVER["HTTP_REFERER"];
+        if (is_null($url)) {
+            $url = $this->app['request']->isAjax() ? '' : 'javascript:history.back(-1);';
         } elseif ('' !== $url) {
             $url = (string) $url;
             $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : url($url)->__toString();
@@ -195,8 +199,8 @@ abstract class Controller
      */
     protected function error($msg = '', $url = null, $data = '', $wait = 3, array $header = [])
     {
-        if (is_null($url) && isset($_SERVER["HTTP_REFERER"])) {
-            $url = $_SERVER["HTTP_REFERER"];
+        if (is_null($url)) {
+            $url = $this->app['request']->isAjax() ? '' : 'javascript:history.back(-1);';
         } elseif ('' !== $url) {
             $url = (string) $url;
             $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : url($url)->__toString();
