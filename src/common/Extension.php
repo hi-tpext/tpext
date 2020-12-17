@@ -372,6 +372,47 @@ abstract class Extension
         return $success;
     }
 
+    public function upgrade()
+    {
+        $ekey = get_called_class();
+
+        $extension = ExtensionModel::where(['key' => $ekey])->find();
+
+        if (!$extension) {
+            return false;
+        }
+
+        if ($extension['version'] == $this->version) {
+            return false;
+        }
+
+        if (!$this->onUpgrade($extension['version'], $this->version)) {
+            return false;
+        }
+
+        ExtensionModel::where(['key' => $ekey])->update(['version' => $this->version]);
+
+        ExtLoader::clearCache();
+        ExtLoader::getInstalled(true);
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param string $oldVer
+     * @param string $newVer
+     * @return boolean
+     */
+    protected function onUpgrade($oldVer, $newVer)
+    {
+        return true;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return array
+     */
     final public function getErrors()
     {
         return $this->errors;
@@ -380,7 +421,7 @@ abstract class Extension
     /**
      * Undocumented function
      *
-     * @return void
+     * @return boolean
      */
     public function afterCopyAssets()
     {
@@ -401,5 +442,11 @@ abstract class Extension
         return true;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param array $info
+     * @return boolean
+     */
     abstract public function extInit($info = []);
 }
