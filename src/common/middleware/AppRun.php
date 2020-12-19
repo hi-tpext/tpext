@@ -269,7 +269,7 @@ class AppRun
                 include_once $matchMod['rootPath'] . DIRECTORY_SEPARATOR . 'common.php';
             }
 
-            $this->app->config->set(['app_namespace' => $matchMod['namespace'] . '\\admin'], 'app');
+            $this->app->config->set(['app_namespace' => $matchMod['namespace'] . '\\' . strtolower($url[0])], 'app');
 
             $this->app->http->name($url[0]);
 
