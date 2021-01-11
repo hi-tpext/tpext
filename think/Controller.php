@@ -6,6 +6,7 @@ namespace think;
 use think\App;
 use think\exception\ValidateException;
 use think\Response;
+use think\response\Redirect;
 use think\Validate;
 use tpext\common\TpextCore;
 
@@ -227,5 +228,74 @@ abstract class Controller
         $response->send();
         $this->app->http->end($response);
         exit;
+    }
+
+    /**
+     * 返回封装后的API数据到客户端
+     * @access protected
+     * @param  mixed     $data 要返回的数据
+     * @param  integer   $code 返回的code
+     * @param  mixed     $msg 提示信息
+     * @param  string    $type 返回数据格式
+     * @param  array     $header 发送的Header信息
+     * @return void
+     */
+    protected function result($data, $code = 0, $msg = '', $type = '', array $header = [])
+    {
+        $result = [
+            'code' => $code,
+            'msg' => $msg,
+            'time' => time(),
+            'data' => $data,
+        ];
+
+        $type = $type ?: $this->getResponseType();
+        $response = Response::create($result, $type)->header($header);
+
+        $response->send();
+        $this->app->http->end($response);
+        exit;
+    }
+
+    /**
+     * URL重定向
+     * @access protected
+     * @param  string         $url 跳转的URL表达式
+     * @param  array|integer  $params 其它URL参数
+     * @param  integer        $code http code
+     * @param  array          $with 隐式传参
+     * @return void
+     */
+    protected function redirect($url, $params = [], $code = 302, $with = [])
+    {
+        $response = Response::create($url, 'redirect', $code);
+
+        if (is_integer($params)) {
+            $code = $params;
+            $params = [];
+        }
+
+        $response->code($code);
+
+        $response->send();
+        $this->app->http->end($response);
+        exit;
+    }
+
+    /**
+     * 获取当前的response 输出类型
+     * @access protected
+     * @return string
+     */
+    protected function getResponseType()
+    {
+        if (!$this->app) {
+            $this->app = Container::get('app');
+        }
+
+        $isAjax = $this->app['request']->isAjax();
+        $config = $this->app['config'];
+
+        return $isAjax ? 'json' : 'html';
     }
 }
