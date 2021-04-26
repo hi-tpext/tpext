@@ -421,6 +421,7 @@ abstract class Extension
         if (empty($versions)) {
             return true;
         }
+
         $success = 1;
         $sqlPath = realpath($this->getRoot() . 'data') . DIRECTORY_SEPARATOR;
         $sqlFile = '';
@@ -450,7 +451,8 @@ abstract class Extension
                     $this->errors += $errors;
                 }
             } else {
-                $this->errors[] = ['文件路径错误：' . $sqlFile];
+                $this->errors[] = new \Exception('文件路径错误：' . $sqlFile);
+                return false;
             }
 
             if ($key == $newVer) {
