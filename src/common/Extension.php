@@ -62,6 +62,18 @@ abstract class Extension
 
     protected $errors = [];
 
+    /**
+     * 版本列表
+     * 版本号 => 升级脚本
+     *
+     * @var array
+     */
+    protected $versions = [
+        // '1.0.1' => '',
+        // '1.0.2' => 'upgrade-1.0.2.sql',
+        // '1.0.3' => '', //如果升级不涉及数据库改动，留空
+    ];
+
     final public function getName()
     {
         return $this->name;
@@ -167,9 +179,9 @@ abstract class Extension
             file_put_contents(
                 $assetsDir . 'tpext-warning.txt',
                 '此目录是存放扩展静态资源的，' . "\n"
-                . '不要替换文件或上传新文件到此目录及子目录，' . "\n"
-                . '否则刷新扩展资源后文件将还原或丢失，' . "\n"
-                . '文件建议传到根目录的`public/static`目录下。'
+                    . '不要替换文件或上传新文件到此目录及子目录，' . "\n"
+                    . '否则刷新扩展资源后文件将还原或丢失，' . "\n"
+                    . '文件建议传到根目录的`public/static`目录下。'
             );
         }
 
@@ -405,7 +417,48 @@ abstract class Extension
      */
     protected function onUpgrade($oldVer, $newVer)
     {
-        return true;
+        $versions = $this->versions;
+        if (empty($versions)) {
+            return true;
+        }
+        $success = 1;
+        $sqlPath = realpath($this->getRoot() . 'data') . DIRECTORY_SEPARATOR;
+        $sqlFile = '';
+        $findOldVer = 0;
+        $errors = [];
+
+        foreach ($versions as $key => $sql) {
+            if ($key == $oldVer) {
+                $findOldVer = 1;
+                continue;
+            }
+
+            if (!$findOldVer) {
+                continue;
+            }
+
+            if (empty($sql)) {
+                $success += 1;
+                continue;
+            }
+
+            $sqlFile = $sqlPath . $sql;
+            if (is_file($sqlFile)) {
+                if (Tool::executeSqlFile($sqlFile, $errors)) {
+                    $success += 1;
+                } else {
+                    $this->errors += $errors;
+                }
+            } else {
+                $this->errors[] = ['文件路径错误：' . $sqlFile];
+            }
+
+            if ($key == $newVer) {
+                break;
+            }
+        }
+
+        return $success > 0;
     }
 
     /**
