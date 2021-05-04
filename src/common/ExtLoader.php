@@ -164,16 +164,18 @@ class ExtLoader
                     continue;
                 }
 
+                if (in_array($declare, $disabled)) {
+                    continue;
+                }
+
+                $instance->loaded();
+
                 if ($instance instanceof Resource) {
                     self::$resources[$declare] = $instance;
                     continue;
                 }
 
                 self::$modules[$declare] = $instance;
-
-                if (in_array($declare, $disabled)) {
-                    continue;
-                }
 
                 $mods = $instance->getModules();
 
