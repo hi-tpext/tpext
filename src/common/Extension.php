@@ -133,7 +133,9 @@ abstract class Extension
         $class = get_called_class();
 
         if (!isset(self::$extensions[$class]) || !self::$extensions[$class] instanceof $class) {
-            self::$extensions[$class] = new static();
+            $nstance = new static();
+            $nstance->created();
+            self::$extensions[$class] = $nstance;
         }
 
         return self::$extensions[$class];
@@ -495,6 +497,11 @@ abstract class Extension
         ExtLoader::getInstalled(true);
 
         return true;
+    }
+
+    public function created()
+    {
+        //
     }
 
     /**
