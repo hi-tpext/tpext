@@ -499,9 +499,26 @@ abstract class Extension
         return true;
     }
 
+    /**
+     * 实例被创建以后调用
+     *
+     * @return $this
+     */
     public function created()
     {
         //
+        return $this;
+    }
+
+    /**
+     * 实例安装并启用，查找到之后调用
+     *
+     * @return $this
+     */
+    public function loaded()
+    {
+        //
+        return $this;
     }
 
     /**
