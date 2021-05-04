@@ -127,6 +127,14 @@ class ExtLoader
             cache('tpext_resources', self::$resources);
             cache('tpext_bind_modules', self::$bindModules);
         }
+
+        foreach (self::$modules as $m) {
+            $m->loaded();
+        }
+
+        foreach (self::$resources as $r) {
+            $r->loaded();
+        }
     }
 
     private static function findExtensions()
@@ -167,8 +175,6 @@ class ExtLoader
                 if (in_array($declare, $disabled)) {
                     continue;
                 }
-
-                $instance->loaded();
 
                 if ($instance instanceof Resource) {
                     self::$resources[$declare] = $instance;
