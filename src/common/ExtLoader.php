@@ -121,24 +121,6 @@ class ExtLoader
             self::$bindModules = cache('tpext_bind_modules');
         }
 
-        if (empty(self::$modules)) {
-            self::findExtensions();
-            cache('tpext_modules', self::$modules);
-            cache('tpext_resources', self::$resources);
-            cache('tpext_bind_modules', self::$bindModules);
-        }
-
-        foreach (self::$modules as $m) {
-            $m->loaded();
-        }
-
-        foreach (self::$resources as $r) {
-            $r->loaded();
-        }
-    }
-
-    private static function findExtensions()
-    {
         $installed = self::getInstalled();
 
         $disabled = [];
@@ -148,6 +130,34 @@ class ExtLoader
             }
         }
 
+        if (empty(self::$modules)) {
+            self::findExtensions($disabled);
+            cache('tpext_modules', self::$modules);
+            cache('tpext_resources', self::$resources);
+            cache('tpext_bind_modules', self::$bindModules);
+        }
+
+        foreach (self::$modules as $k => $m) {
+            if (!in_array($k, $disabled)) {
+                $m->loaded();
+            }
+        }
+
+        foreach (self::$resources as $k => $r) {
+            if (!in_array($k, $disabled)) {
+                $r->loaded();
+            }
+        }
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param array $disabled
+     * @return void
+     */
+    private static function findExtensions($disabled)
+    {
         self::trigger('tpext_find_extensions');
 
         $classMap = self::$classMap;
@@ -172,16 +182,16 @@ class ExtLoader
                     continue;
                 }
 
-                if (in_array($declare, $disabled)) {
-                    continue;
-                }
-
                 if ($instance instanceof Resource) {
                     self::$resources[$declare] = $instance;
                     continue;
                 }
 
                 self::$modules[$declare] = $instance;
+
+                if (in_array($declare, $disabled)) {
+                    continue;
+                }
 
                 $mods = $instance->getModules();
 
