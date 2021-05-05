@@ -123,28 +123,28 @@ class ExtLoader
 
         $installed = self::getInstalled();
 
-        $disabled = [];
+        $enabled = [];
         foreach ($installed as $ins) {
-            if ($ins['install'] == 0 || $ins['enable'] == 0) {
-                $disabled[] = $ins['key'];
+            if ($ins['enable'] == 1) {
+                $enabled[] = $ins['key'];
             }
         }
 
         if (empty(self::$modules)) {
-            self::findExtensions($disabled);
+            self::findExtensions($enabled);
             cache('tpext_modules', self::$modules);
             cache('tpext_resources', self::$resources);
             cache('tpext_bind_modules', self::$bindModules);
         }
 
         foreach (self::$modules as $k => $m) {
-            if (!in_array($k, $disabled)) {
+            if (in_array($k, $enabled)) {
                 $m->loaded();
             }
         }
 
         foreach (self::$resources as $k => $r) {
-            if (!in_array($k, $disabled)) {
+            if (in_array($k, $enabled)) {
                 $r->loaded();
             }
         }
@@ -153,10 +153,10 @@ class ExtLoader
     /**
      * Undocumented function
      *
-     * @param array $disabled
+     * @param array $enabled
      * @return void
      */
-    private static function findExtensions($disabled)
+    private static function findExtensions($enabled)
     {
         self::trigger('tpext_find_extensions');
 
@@ -189,7 +189,7 @@ class ExtLoader
 
                 self::$modules[$declare] = $instance;
 
-                if (in_array($declare, $disabled)) {
+                if (!in_array($declare, $enabled)) {
                     continue;
                 }
 
