@@ -257,7 +257,7 @@ class ExtLoader
         $isTable = Db::query("SHOW TABLES LIKE '{$tableName}'");
 
         if (empty($isTable)) {
-            cache('installedExtensions', null);
+            cache('installed_extensions', null);
 
             TpextCore::getInstance()->install();
 
