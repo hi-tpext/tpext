@@ -44,15 +44,10 @@ class WebConfig extends Model
         $values = [];
         foreach ($default as $key => $val) {
 
-            if ($key == '__config__') {
+            if ($key == '__config__' || $key == '__saving__') {
                 continue;
             }
-            if (isset($config[$key])) {
-                $values[$key] = $config[$key];
-            }
-            if (is_array($val)) {
-                $values[$key] = json_decode($config[$key], 1);
-            }
+            $values[$key] = $config[$key] ?? $val;
         }
         if (!empty($values)) {
             cache('web_config_' . $configKey, $values);
