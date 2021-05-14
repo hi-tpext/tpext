@@ -189,6 +189,8 @@ abstract class Extension
 
         $this->afterCopyAssets();
 
+        ExtLoader::trigger('tpext_copy_assets', $this->getId());
+
         return $res;
     }
 
@@ -237,18 +239,7 @@ abstract class Extension
 
             if (!empty($defaultConfig)) {
 
-                $installed = ExtLoader::getInstalled();
-
-                foreach ($installed as $install) {
-                    if ($install['key'] == get_called_class()) {
-                        $config = WebConfig::where(['key' => $this->getId()])->find();
-                        if ($config) {
-                            $this->setConfig(json_decode($config['config'], 1));
-                        }
-                        unset($this->config['__config__']);
-                        break;
-                    }
-                }
+                $this->config = WebConfig::config($this->getId()) ?: [];
             }
         }
 
@@ -292,8 +283,6 @@ abstract class Extension
      */
     public function install()
     {
-        $this->copyAssets();
-
         $sqlFile = realpath($this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql');
 
         $success = true;
@@ -350,7 +339,7 @@ abstract class Extension
                 }
             }
         }
-
+        $this->copyAssets();
         ExtLoader::clearCache();
         ExtLoader::getInstalled(true);
 
@@ -386,6 +375,11 @@ abstract class Extension
         return $success;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return boolean
+     */
     public function upgrade()
     {
         $ekey = get_called_class();
@@ -406,8 +400,11 @@ abstract class Extension
 
         ExtensionModel::where(['key' => $ekey])->update(['version' => $this->version]);
 
+        $this->copyAssets();
         ExtLoader::clearCache();
         ExtLoader::getInstalled(true);
+
+        return true;
     }
 
     /**
