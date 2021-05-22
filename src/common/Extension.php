@@ -236,10 +236,11 @@ abstract class Extension
             $defaultConfig = $this->defaultConfig();
 
             $this->config = $defaultConfig;
+            
+            $saved = WebConfig::config($this->getId());
 
-            if (!empty($defaultConfig)) {
-
-                $this->config = WebConfig::config($this->getId()) ?: [];
+            if (!empty($saved)) {
+                $this->config =  $saved;
             }
         }
 

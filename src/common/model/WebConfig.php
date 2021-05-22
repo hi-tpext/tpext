@@ -29,7 +29,7 @@ class WebConfig extends Model
         $config = json_decode($theConfig['config'], 1);
 
         $rootPath = app()->getRootPath();
-        $filePath = $rootPath . $theConfig['file'];
+        $filePath = $rootPath . str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $theConfig['file']);
 
         if (!is_file($filePath)) {
             return $config;
