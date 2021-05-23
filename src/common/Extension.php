@@ -126,7 +126,7 @@ abstract class Extension
     /**
      * 获取实列
      *
-     * @return self
+     * @return static
      */
     final public static function getInstance()
     {
