@@ -158,8 +158,8 @@ abstract class Controller
      */
     protected function success($msg = '', $url = null, $data = '', $wait = 3, array $header = [])
     {
-        if (is_null($url)) {
-            $url = $this->app['request']->isAjax() ? '' : 'javascript:history.back(-1);';
+        if (is_null($url) && isset($_SERVER["HTTP_REFERER"])) {
+            $url = $_SERVER["HTTP_REFERER"];
         } elseif ('' !== $url) {
             $url = (string) $url;
             $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : url($url)->__toString();
