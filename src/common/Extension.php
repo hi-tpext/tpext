@@ -63,7 +63,7 @@ abstract class Extension
     protected $errors = [];
 
     /**
-     * 版本列表
+     * 版本列表，列出所有存在过的版本，即使没有升级脚本也要列出
      * 版本号 => 升级脚本
      *
      * @var array
@@ -395,6 +395,10 @@ abstract class Extension
             return false;
         }
 
+        if (version_compare($extension['version'], $this->version) == 1) {
+            return false;
+        }
+
         if (!$this->onUpgrade($extension['version'], $this->version)) {
             return false;
         }
@@ -434,7 +438,7 @@ abstract class Extension
                 continue;
             }
 
-            if (!$findOldVer) {
+            if (!$findOldVer && $key != $newVer) {
                 continue;
             }
 
