@@ -262,6 +262,10 @@ class ExtLoader
             return [];
         }
 
+        if ($config['database'] == '' && $config['username'] == 'root' && $config['password'] == '') {
+            return [];
+        }
+
         if ($config['database'] == 'test' && $config['username'] == 'username' && $config['password'] == 'password') {
             return [];
         }
