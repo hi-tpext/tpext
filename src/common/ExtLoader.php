@@ -119,6 +119,18 @@ class ExtLoader
             self::$modules = cache('tpext_modules');
             self::$resources = cache('tpext_resources');
             self::$bindModules = cache('tpext_bind_modules');
+
+            foreach (self::$modules as $k => $m) {
+                if (!class_exists($k, false)) {
+                    unset(self::$modules[$k]);
+                }
+            }
+
+            foreach (self::$resources as $k => $r) {
+                if (!class_exists($k, false)) {
+                    unset(self::$resources[$k]);
+                }
+            }
         }
 
         $installed = self::getInstalled();
