@@ -116,9 +116,9 @@ class ExtLoader
     public static function bindExtensions()
     {
         if (!config('app_debug')) {
-            self::$modules = cache('tpext_modules');
-            self::$resources = cache('tpext_resources');
-            self::$bindModules = cache('tpext_bind_modules');
+            self::$modules = cache('tpext_modules') ?: [];
+            self::$resources = cache('tpext_resources') ?: [];
+            self::$bindModules = cache('tpext_bind_modules') ?: [];
 
             foreach (self::$modules as $k => $m) {
                 if (!class_exists($k, false)) {
