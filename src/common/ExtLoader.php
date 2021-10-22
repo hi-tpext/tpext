@@ -88,14 +88,14 @@ class ExtLoader
 
     public static function watch($name, $class, $first = false, $desc = '')
     {
-        if (!isset(self::$watches[$name . ':' . $class])) {
-
-            self::$watches[$name . ':' . $class] = [$class, $desc, $first];
-            if (self::isTP51()) {
-                Hook::add($name, $class, $first);
-            } else {
-                Event::listen($name, $class, $first);
-            }
+        if (!isset(self::$watches[$name])) {
+            self::$watches[$name] = [];
+        }
+        self::$watches[$name][] = [$class, $desc, $first];
+        if (self::isTP51()) {
+            Hook::add($name, $class, $first);
+        } else {
+            Event::listen($name, $class, $first);
         }
     }
 
