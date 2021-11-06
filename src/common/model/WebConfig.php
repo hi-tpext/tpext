@@ -3,6 +3,7 @@
 namespace tpext\common\model;
 
 use think\Model;
+use tpext\common\ExtLoader;
 
 class WebConfig extends Model
 {
@@ -11,6 +12,8 @@ class WebConfig extends Model
     public static function clearCache($configKey)
     {
         cache('web_config_' . $configKey, null);
+        ExtLoader::trigger('clear_cache_web_config_' . $configKey);
+        ExtLoader::trigger('clear_cache_web_config', $configKey);
     }
 
     public static function config($configKey, $reget = false)
