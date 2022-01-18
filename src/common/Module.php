@@ -26,7 +26,7 @@ class Module extends Extension
      *
      * @return array
      */
-    final public function getModules()
+    public function getModules()
     {
         return $this->modules;
     }
@@ -36,7 +36,7 @@ class Module extends Extension
      *
      * @return array
      */
-    final public function getMenus()
+    public function getMenus()
     {
         return $this->menus;
     }
