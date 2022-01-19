@@ -272,14 +272,14 @@ class ExtLoader
         $isTable = Db::query("SHOW TABLES LIKE '{$tableName}'");
 
         if (empty($isTable)) {
-            cache('installed_extensions', null);
+            cache('tpext_installed_extensions', null);
 
             TpextCore::getInstance()->install();
 
             return [];
         }
 
-        $data = cache('installed_extensions');
+        $data = cache('tpext_installed_extensions');
 
         if (!$reget && $data) {
             return $data;
@@ -287,7 +287,7 @@ class ExtLoader
 
         $list = ExtensionModel::where(['install' => 1])->select();
 
-        cache('installed_extensions', $list);
+        cache('tpext_installed_extensions', $list);
 
         return $list;
     }
