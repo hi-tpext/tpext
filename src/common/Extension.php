@@ -240,7 +240,7 @@ abstract class Extension
             $saved = WebConfig::config($this->getId());
 
             if (!empty($saved)) {
-                $this->config =  $saved;
+                $this->config =  array_merge($this->config, $saved);
             }
         }
 
