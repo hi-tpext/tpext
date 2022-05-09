@@ -146,7 +146,7 @@ class ExtLoader
         }
 
         if (empty(self::$modules)) {
-            self::findExtensions($disabled);
+            self::findExtensions($enabled);
             cache('tpext_modules', self::$modules);
             cache('tpext_resources', self::$resources);
             cache('tpext_bind_modules', self::$bindModules);
@@ -168,10 +168,10 @@ class ExtLoader
     /**
      * Undocumented function
      *
-     * @param array $disabled
+     * @param array $enabled
      * @return void
      */
-    private static function findExtensions($disabled)
+    private static function findExtensions($enabled)
     {
         self::trigger('tpext_find_extensions');
 
@@ -204,7 +204,7 @@ class ExtLoader
 
                 self::$modules[$declare] = $instance;
 
-                if (in_array($declare, $disabled)) {
+                if (!in_array($declare, $enabled)) {
                     continue;
                 }
 
