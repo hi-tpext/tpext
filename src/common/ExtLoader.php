@@ -204,7 +204,7 @@ class ExtLoader
 
                 self::$modules[$declare] = $instance;
 
-                if (count($enabled) < 2 && !in_array($declare, $enabled)) {
+                if (count($enabled) > 1 && !in_array($declare, $enabled)) {
                     continue;
                 }
 
