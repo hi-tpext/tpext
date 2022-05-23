@@ -12,6 +12,11 @@ use tpext\common\model\Extension as ExtensionModel;
 
 class ExtLoader
 {
+    /**
+     * Undocumented variable
+     *
+     * @var Module[]|Resource[]
+     */
     private static $classMap = [];
 
     private static $modules = [];
@@ -34,11 +39,22 @@ class ExtLoader
         }
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return Module[]|Resource[]
+     */
     public static function getClassMap()
     {
         return self::$classMap;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param Module|array $class
+     * @return void
+     */
     public static function addModules($class)
     {
         if (is_array($class)) {
@@ -48,6 +64,12 @@ class ExtLoader
         }
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param Resource|array $class
+     * @return void
+     */
     public static function addResources($class)
     {
         if (is_array($class)) {
@@ -57,21 +79,42 @@ class ExtLoader
         }
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return Module[]
+     */
     public static function getModules()
     {
         return self::$modules;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return Resource[]
+     */
     public static function getResources()
     {
         return self::$resources;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return Resource[]|Module[]
+     */
     public static function getExtensions()
     {
         return array_merge(self::$modules, self::$resources);
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param Module|array $class
+     * @return void
+     */
     public static function bindModules($class)
     {
         if (is_array($class)) {
@@ -81,11 +124,25 @@ class ExtLoader
         }
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return Module[]
+     */
     public static function getBindModules()
     {
         return self::$bindModules;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param string $name
+     * @param mixed $class
+     * @param boolean $first
+     * @param string $desc
+     * @return void
+     */
     public static function watch($name, $class, $first = false, $desc = '')
     {
         if (!isset(self::$watches[$name])) {
@@ -99,6 +156,14 @@ class ExtLoader
         }
     }
 
+    /**
+     * Undocumented function
+     *
+     * @param string $name
+     * @param mixed $params
+     * @param boolean $once
+     * @return void
+     */
     public static function trigger($name, $params = null, $once = false)
     {
         if (self::isTP51()) {
@@ -108,6 +173,11 @@ class ExtLoader
         }
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return array
+     */
     public static function geWatches()
     {
         return self::$watches;
@@ -197,48 +267,46 @@ class ExtLoader
                     continue;
                 }
 
+                if (count($enabled) > 1 && !in_array($declare, $enabled)) {
+                    continue;
+                }
+
                 if ($instance instanceof Resource) {
                     self::$resources[$declare] = $instance;
                     continue;
                 }
 
-                self::$modules[$declare] = $instance;
+                if ($instance instanceof Module) {
 
-                if (count($enabled) > 1 && !in_array($declare, $enabled)) {
-                    continue;
-                }
+                    self::$modules[$declare] = $instance;
+                    $mods = $instance->getModules();
 
-                $mods = $instance->getModules();
+                    if (!empty($mods)) {
 
-                if (!empty($mods)) {
+                        $name = $instance->getName();
 
-                    $name = $instance->getName();
+                        if (!$name) {
+                            $name = strtolower(preg_replace('/\W/', '.', $declare));
+                        }
 
-                    if (!$name) {
-                        $name = strtolower(preg_replace('/\W/', '.', $declare));
-                    }
+                        foreach ($mods as $key => $controllers) {
 
-                    foreach ($mods as $key => $controllers) {
+                            $controllers = array_map(function ($val) {
+                                if (self::getTpVer() == 5) {
+                                    return Loader::parseName($val);
+                                } else {
+                                    return Str::studly($val);
+                                }
+                            }, $controllers);
 
-                        $controllers = array_map(function ($val) {
-                            if (self::getTpVer() == 5) {
-                                return Loader::parseName($val);
-                            } else {
-                                return Str::studly($val);
-                            }
-                        }, $controllers);
-
-                        self::$bindModules[strtolower($key)][] = [
-                            'name' => $name, 'controlers' => $controllers,
-                            'namespace_map' => $instance->getNameSpaceMap(), 'classname' => $declare,
-                        ];
+                            self::$bindModules[strtolower($key)][] = [
+                                'name' => $name, 'controlers' => $controllers,
+                                'namespace_map' => $instance->getNameSpaceMap(), 'classname' => $declare,
+                            ];
+                        }
                     }
                 }
-
-                continue;
             }
-
-            continue;
         }
     }
 
