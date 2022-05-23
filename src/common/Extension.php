@@ -18,6 +18,13 @@ abstract class Extension
     protected $root = null;
 
     /**
+     * 扩展包类型:extend|composer
+     *
+     * @var string
+     */
+    protected $packgeType = '';
+
+    /**
      * 名称标识 ，英文字母，如 hello.world
      *
      * @var string
@@ -74,6 +81,20 @@ abstract class Extension
         // '1.0.3' => '', //如果升级不涉及数据库改动，留空
     ];
 
+    /**
+     * 获取扩展包类型:extend|composer
+     *
+     * @return string
+     */
+    final public function getPackgeType()
+    {
+        if (empty($this->packgeType)) {
+            $this->packgeType = stripos($this->getRoot(), 'vendor') === false ? 'extend' : 'composer';
+        }
+
+        return $this->packgeType;
+    }
+
     final public function getName()
     {
         return $this->name;
@@ -126,7 +147,7 @@ abstract class Extension
     /**
      * 获取实列
      *
-     * @return static
+     * @return static|Module|Resource
      */
     final public static function getInstance()
     {
@@ -153,6 +174,16 @@ abstract class Extension
         }
 
         return $this->__root__;
+    }
+
+    final public function isComposer()
+    {
+        return $this->getPackgeType() == 'composer';
+    }
+
+    final public function isExtend()
+    {
+        return $this->getPackgeType() == 'extend';
     }
 
     final public function copyAssets($force = false)
@@ -207,9 +238,18 @@ abstract class Extension
         return $name;
     }
 
+    /**
+     * 获取配置文件放置目录
+     *
+     * @return string
+     */
     public function configPath()
     {
-        return realpath($this->getRoot() . 'src' . DIRECTORY_SEPARATOR . 'config.php');
+        if ($this->isComposer()) { //默认约定，composer包的配置文件放在扩展src/目录下
+            return $this->getRoot() . 'src' . DIRECTORY_SEPARATOR . 'config.php';
+        }
+
+        return $this->getRoot() . 'config.php'; //默认约定，extend包的配置文件放在扩展根目录下
     }
 
     final public function defaultConfig()
@@ -284,7 +324,7 @@ abstract class Extension
      */
     public function install()
     {
-        $sqlFile = realpath($this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql');
+        $sqlFile = $this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql';
 
         $success = true;
 
@@ -355,7 +395,7 @@ abstract class Extension
      */
     public function uninstall($runSql = true)
     {
-        $sqlFile = realpath($this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'uninstall.sql');
+        $sqlFile = $this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'uninstall.sql';
 
         $success = true;
 
@@ -430,7 +470,7 @@ abstract class Extension
         }
 
         $success = 1;
-        $sqlPath = realpath($this->getRoot() . 'data') . DIRECTORY_SEPARATOR;
+        $sqlPath = $this->getRoot() . 'data' . DIRECTORY_SEPARATOR;
         $sqlFile = '';
         $findOldVer = 0;
         $errors = [];
@@ -511,7 +551,6 @@ abstract class Extension
      */
     public function created()
     {
-        //
         return $this;
     }
 
@@ -522,7 +561,6 @@ abstract class Extension
      */
     public function loaded()
     {
-        //
         return $this;
     }
 
