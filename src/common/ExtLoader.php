@@ -225,12 +225,14 @@ class ExtLoader
         foreach (self::$modules as $k => $m) {
             if (in_array($k, $enabled)) {
                 $m->loaded();
+                self::trigger('tpext_extension_loaded_' . $k);
             }
         }
 
         foreach (self::$resources as $k => $r) {
             if (in_array($k, $enabled)) {
                 $r->loaded();
+                self::trigger('tpext_extension_loaded_' . $k);
             }
         }
     }
@@ -267,10 +269,6 @@ class ExtLoader
                     continue;
                 }
 
-                if (count($enabled) > 1 && !in_array($declare, $enabled)) {
-                    continue;
-                }
-
                 if ($instance instanceof Resource) {
                     self::$resources[$declare] = $instance;
                     continue;
@@ -279,6 +277,11 @@ class ExtLoader
                 if ($instance instanceof Module) {
 
                     self::$modules[$declare] = $instance;
+
+                    if (count($enabled) > 1 && !in_array($declare, $enabled)) {
+                        continue;
+                    }
+
                     $mods = $instance->getModules();
 
                     if (!empty($mods)) {
