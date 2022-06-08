@@ -383,5 +383,9 @@ class ExtLoader
         cache('tpext_modules', null);
         cache('tpext_resources', null);
         cache('tpext_bind_modules', null);
+
+        self::$modules = [];
+        self::$resources = [];
+        self::$bindModules = [];
     }
 }
