@@ -363,14 +363,22 @@ class ExtLoader
         return $list;
     }
 
-    public static function clearCache()
+    /**
+     * Undocumented function
+     *
+     * @param boolean $clearInstance 是否清除ExtLoader中已发现的实列
+     * @return void
+     */
+    public static function clearCache($clearInstance = false)
     {
         cache('tpext_modules', null);
         cache('tpext_resources', null);
         cache('tpext_bind_modules', null);
 
-        self::$modules = [];
-        self::$resources = [];
-        self::$bindModules = [];
+        if ($clearInstance) {
+            self::$modules = [];
+            self::$resources = [];
+            self::$bindModules = [];
+        }
     }
 }
