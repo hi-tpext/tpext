@@ -258,7 +258,11 @@ abstract class Extension
 
         if (is_file($configPath)) {
 
-            return include $configPath;
+            $config = include $configPath;
+
+            unset($config['__config__'], $config['__saving__']);
+
+            return $config;
         } else {
             return [];
         }
