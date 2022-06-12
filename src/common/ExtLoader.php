@@ -15,14 +15,29 @@ class ExtLoader
     /**
      * Undocumented variable
      *
-     * @var Module[]|Resource[]
+     * @var string[]
      */
     private static $classMap = [];
 
+    /**
+     * Undocumented variable
+     *
+     * @var Module[]
+     */
     private static $modules = [];
 
+    /**
+     * Undocumented variable
+     *
+     * @var Resource[]
+     */
     private static $resources = [];
 
+    /**
+     * Undocumented variable
+     *
+     * @var array
+     */
     private static $bindModules = [];
 
     private static $watches = [];
@@ -42,7 +57,7 @@ class ExtLoader
     /**
      * Undocumented function
      *
-     * @return Module[]|Resource[]
+     * @return string[]
      */
     public static function getClassMap()
     {
@@ -112,22 +127,18 @@ class ExtLoader
     /**
      * Undocumented function
      *
-     * @param Module|array $class
+     * @param array $class
      * @return void
      */
     public static function bindModules($class)
     {
-        if (is_array($class)) {
-            self::$bindModules = array_merge(self::$bindModules, $class);
-        } else {
-            self::$bindModules[] = $class;
-        }
+        self::$bindModules = array_merge(self::$bindModules, $class);
     }
 
     /**
      * Undocumented function
      *
-     * @return Module[]
+     * @return array
      */
     public static function getBindModules()
     {
@@ -217,6 +228,7 @@ class ExtLoader
 
         if (empty(self::$modules)) {
             self::findExtensions($enabled);
+            trace(self::$modules);
             cache('tpext_modules', self::$modules);
             cache('tpext_resources', self::$resources);
             cache('tpext_bind_modules', self::$bindModules);
@@ -304,7 +316,8 @@ class ExtLoader
 
                             self::$bindModules[strtolower($key)][] = [
                                 'name' => $name, 'controlers' => $controllers,
-                                'namespace_map' => $instance->getNameSpaceMap(), 'classname' => $declare,
+                                'namespace_map' => $instance->getNameSpaceMap(),
+                                'classname' => $declare,
                             ];
                         }
                     }
