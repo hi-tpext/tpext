@@ -252,7 +252,13 @@ abstract class Extension
         return $this->getRoot() . 'config.php'; //默认约定，extend包的配置文件放在扩展根目录下
     }
 
-    final public function defaultConfig()
+    /**
+     * Undocumented function
+     *
+     * @param boolean $all 是否包含__config__|__saving__两个参数
+     * @return array
+     */
+    final public function defaultConfig($all = false)
     {
         $configPath = $this->configPath();
 
@@ -260,7 +266,9 @@ abstract class Extension
 
             $config = include $configPath;
 
-            unset($config['__config__'], $config['__saving__']);
+            if (!$all) {
+                unset($config['__config__'], $config['__saving__']);
+            }
 
             return $config;
         } else {
@@ -363,8 +371,6 @@ abstract class Extension
             $config = $this->defaultConfig();
 
             if (!empty($config)) {
-
-                unset($config['__config__']);
 
                 $filePath = str_replace(app()->getRootPath(), '', $this->configPath());
 
