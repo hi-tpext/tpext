@@ -228,7 +228,6 @@ class ExtLoader
 
         if (empty(self::$modules)) {
             self::findExtensions($enabled);
-            trace(self::$modules);
             cache('tpext_modules', self::$modules);
             cache('tpext_resources', self::$resources);
             cache('tpext_bind_modules', self::$bindModules);
