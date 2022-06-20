@@ -4,6 +4,7 @@ namespace tpext\common;
 
 use tpext\common\model\Extension as ExtensionModel;
 use tpext\common\model\WebConfig;
+use tpext\think\App;
 
 abstract class Extension
 {
@@ -372,7 +373,7 @@ abstract class Extension
 
             if (!empty($config)) {
 
-                $filePath = str_replace(app()->getRootPath(), '', $this->configPath());
+                $filePath = str_replace(App::getRootPath(), '', $this->configPath());
 
                 $confData = [
                     'key' => $this->getId(),

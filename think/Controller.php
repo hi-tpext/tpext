@@ -1,67 +1,30 @@
 <?php
-declare (strict_types = 1);
 
 namespace think;
 
-use think\App;
-use think\exception\ValidateException;
-use think\Response;
-use think\response\Redirect;
 use think\Validate;
+use support\Response;
+use tpext\think\View;
 use tpext\common\TpextCore;
+use think\exception\ValidateException;
+use Webman\App;
 
 /**
  * 控制器基础类
  */
 abstract class Controller
 {
-    /**
-     * Request实例
-     * @var \think\Request
-     */
-    protected $request;
+    protected $vars  = [];
 
-    /**
-     * 应用实例
-     * @var \think\App
-     */
-    protected $app;
-
-    /**
-     * 是否批量验证
-     * @var bool
-     */
-    protected $batchValidate = false;
-
-    /**
-     * 控制器中间件
-     * @var array
-     */
-    protected $middleware = [];
-
-    /**
-     * 视图类实例
-     * @var \think\View
-     */
-    protected $view;
-
-    /**
-     * 构造方法
-     * @access public
-     * @param  App  $app  应用对象
-     */
-    public function __construct(App $app)
+    // 初始化,兼容tp框架
+    protected function initialize()
     {
-        $this->app = $app;
-        $this->request = $this->app->request;
-
-        // 控制器初始化
-        $this->initialize();
     }
 
-    // 初始化
-    protected function initialize()
-    {}
+    public function beforeAction()
+    {
+        $this->initialize();
+    }
 
     /**
      * 验证数据
@@ -112,11 +75,13 @@ abstract class Controller
      * @param array    $vars     模板变量
      * @param int      $code     状态码
      * @param callable $filter   内容过滤
-     * @return \think\response\View
+     * @return View
      */
-    protected function fetch(string $template = '', $vars = [], $code = 200, $filter = null)
+    protected function fetch(string $template = '', $vars = [])
     {
-        return Response::create($template, 'view', $code)->assign($vars)->filter($filter);
+        $view = new View($template, array_merge($this->vars, $vars));
+
+        return new Response(200, [], $view->getContent());
     }
 
     /**
@@ -125,11 +90,15 @@ abstract class Controller
      * @param array    $vars    模板变量
      * @param int      $code    状态码
      * @param callable $filter  内容过滤
-     * @return \think\response\View
+     * @return View
      */
-    protected function display(string $content, $vars = [], $code = 200, $filter = null)
+    protected function display(string $content, $vars = [])
     {
-        return Response::create($content, 'view', $code)->isContent(true)->assign($vars)->filter($filter);
+        $view = new View($content, array_merge($this->vars, $vars));
+
+        $view->isContent();
+
+        return new Response(200, [], $view->getContent());
     }
 
     /**
@@ -139,9 +108,13 @@ abstract class Controller
      * @param  mixed $value 变量的值
      * @return $this
      */
-    protected function assign($name, $value = '')
+    public function assign($name, $value = '')
     {
-        $this->app->view->assign($name, $value);
+        if (is_array($name)) {
+            $this->vars = array_merge($this->vars, $name);
+        } else {
+            $this->vars[$name] = $value;
+        }
 
         return $this;
     }
@@ -156,7 +129,7 @@ abstract class Controller
      * @param  array     $header 发送的Header信息
      * @return void
      */
-    protected function success($msg = '', $url = null, $data = '', $wait = 3, array $header = [])
+    protected function success($msg = '', $url = null, $data = '', $wait = 3, $header = array())
     {
         if (is_null($url) && isset($_SERVER["HTTP_REFERER"])) {
             $url = $_SERVER["HTTP_REFERER"];
@@ -173,19 +146,14 @@ abstract class Controller
             'wait' => $wait,
         ];
 
-        $response = null;
-
-        if ($this->app->request->isAjax()) {
-            $response = json($result);
+        if ($this->getResponseType() == 'json') {
+            return json($result);
         } else {
             $rootPath = TpextCore::getInstance()->getRoot();
             $tplPath = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
-            $response = view($tplPath, $result);
+            $view = new View($tplPath, $result);
+            $this->send(new Response(200, $header, $view->getContent()));
         }
-        $response->header($header);
-        $response->send();
-        $this->app->http->end($response);
-        exit;
     }
 
     /**
@@ -198,7 +166,7 @@ abstract class Controller
      * @param  array     $header 发送的Header信息
      * @return void
      */
-    protected function error($msg = '', $url = null, $data = '', $wait = 3, array $header = [])
+    protected function error($msg = '', $url = null, $data = '', $wait = 3, $header = array())
     {
         if (is_null($url)) {
             $url = $this->app['request']->isAjax() ? '' : 'javascript:history.back(-1);';
@@ -215,19 +183,14 @@ abstract class Controller
             'wait' => $wait,
         ];
 
-        $response = null;
-
-        if ($this->app->request->isAjax()) {
-            $response = json($result);
+        if ($this->getResponseType() == 'json') {
+            return json($result);
         } else {
             $rootPath = TpextCore::getInstance()->getRoot();
             $tplPath = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
-            $response = view($tplPath, $result);
+            $view = new View($tplPath, $result);
+            $this->send(new Response(200, $header, $view->getContent()));
         }
-        $response->header($header);
-        $response->send();
-        $this->app->http->end($response);
-        exit;
     }
 
     /**
@@ -240,7 +203,7 @@ abstract class Controller
      * @param  array     $header 发送的Header信息
      * @return void
      */
-    protected function result($data, $code = 0, $msg = '', $type = '', array $header = [])
+    protected function result($data, $code = 0, $msg = '', $type = '', $header = [])
     {
         $result = [
             'code' => $code,
@@ -249,12 +212,37 @@ abstract class Controller
             'data' => $data,
         ];
 
-        $type = $type ?: $this->getResponseType();
-        $response = Response::create($result, $type)->header($header);
+        if ($this->getResponseType() == 'json') {
+            return json($result);
+        } else {
+            $rootPath = TpextCore::getInstance()->getRoot();
+            $tplPath = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
+            $view = new View($tplPath, $result);
+            $this->send(new Response(200, $header, $view->getContent()));
+        }
+    }
 
-        $response->send();
-        $this->app->http->end($response);
-        exit;
+
+
+    /**
+     * Undocumented function
+     *
+     * @param Response $response
+     * @return void
+     */
+    protected function send($response)
+    {
+        $request = App::request();
+        $connection = App::connection();
+
+        $keep_alive = $request->header('connection');
+        if (($keep_alive === null && $request->protocolVersion() === '1.1')
+            || $keep_alive === 'keep-alive' || $keep_alive === 'Keep-Alive'
+        ) {
+            $connection->send($response);
+            return;
+        }
+        $connection->close($response);
     }
 
     /**
@@ -263,23 +251,16 @@ abstract class Controller
      * @param  string         $url 跳转的URL表达式
      * @param  array|integer  $params 其它URL参数
      * @param  integer        $code http code
-     * @param  array          $with 隐式传参
      * @return void
      */
-    protected function redirect($url, $params = [], $code = 302, $with = [])
+    protected function redirect($url, $params = [], $code = 302)
     {
-        $response = Response::create($url, 'redirect', $code);
-
-        if (is_integer($params)) {
-            $code = $params;
-            $params = [];
+        $response = new Response($code, ['Location' => $url . ($params ? '?' . http_build_query($params) : '')]);
+        if (!empty($headers)) {
+            $response->withHeaders($headers);
         }
 
-        $response->code($code);
-
-        $response->send();
-        $this->app->http->end($response);
-        exit;
+        $this->send($response);
     }
 
     /**
@@ -289,12 +270,7 @@ abstract class Controller
      */
     protected function getResponseType()
     {
-        if (!$this->app) {
-            $this->app = Container::get('app');
-        }
-
-        $isAjax = $this->app['request']->isAjax();
-        $config = $this->app['config'];
+        $isAjax = request()->isAjax();
 
         return $isAjax ? 'json' : 'html';
     }
