@@ -1,12 +1,180 @@
 <?php
+// +----------------------------------------------------------------------
+// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2006~2021 http://thinkphp.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+// +----------------------------------------------------------------------
+// | Author: liu21st <liu21st@gmail.com>
+// +----------------------------------------------------------------------
 
 namespace think;
 
-use support\Request as baseRequest;
+use Workerman\Worker;
 
-class Request extends baseRequest
+class Request extends \support\Request
 {
     protected $method = '';
+
+    /**
+     * 当前SERVER参数
+     * @var array
+     */
+    protected $server = [];
+    /**
+     * 当前REQUEST参数
+     * @var array
+     */
+    protected $request = [];
+
+    public function decode()
+    {
+        $recv_buffer = $this->_buffer;
+        /**
+         * This file is part of workerman.
+         *
+         * Licensed under The MIT License
+         * For full copyright and license information, please see the MIT-LICENSE.txt
+         * Redistributions of files must retain the above copyright notice.
+         *
+         * @author    walkor<walkor@workerman.net>
+         * @copyright walkor<walkor@workerman.net>
+         * @link      http://www.workerman.net/
+         * @license   http://www.opensource.org/licenses/mit-license.php MIT License
+         */
+
+        $_POST = $_GET = $_COOKIE = $_REQUEST = $_SESSION = $_FILES = array();
+        $GLOBALS['HTTP_RAW_POST_DATA'] = '';
+        $microtime = \microtime(true);
+        // $_SERVER
+        $_SERVER = array(
+            'QUERY_STRING'         => '',
+            'REQUEST_METHOD'       => '',
+            'REQUEST_URI'          => '',
+            'SERVER_PROTOCOL'      => '',
+            'SERVER_SOFTWARE'      => 'workerman/' . Worker::VERSION,
+            'SERVER_NAME'          => '',
+            'HTTP_HOST'            => '',
+            'HTTP_USER_AGENT'      => '',
+            'HTTP_ACCEPT'          => '',
+            'HTTP_ACCEPT_LANGUAGE' => '',
+            'HTTP_ACCEPT_ENCODING' => '',
+            'HTTP_COOKIE'          => '',
+            'HTTP_CONNECTION'      => '',
+            'CONTENT_TYPE'         => '',
+            'REMOTE_ADDR'          => '',
+            'REMOTE_PORT'          => '0',
+            'REQUEST_TIME'         => (int)$microtime,
+            'REQUEST_TIME_FLOAT'   => $microtime //compatible php5.4
+        );
+
+        // Parse headers.
+        list($http_header, $http_body) = \explode("\r\n\r\n", $recv_buffer, 2);
+        $header_data = \explode("\r\n", $http_header);
+
+        list($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_SERVER['SERVER_PROTOCOL']) = \explode(
+            ' ',
+            $header_data[0]
+        );
+
+        $http_post_boundary = '';
+        unset($header_data[0]);
+        foreach ($header_data as $content) {
+            // \r\n\r\n
+            if (empty($content)) {
+                continue;
+            }
+            list($key, $value)       = \explode(':', $content, 2);
+            $key                     = \str_replace('-', '_', strtoupper($key));
+            $value                   = \trim($value);
+            $_SERVER['HTTP_' . $key] = $value;
+            switch ($key) {
+                    // HTTP_HOST
+                case 'HOST':
+                    $tmp                    = \explode(':', $value);
+                    $_SERVER['SERVER_NAME'] = $tmp[0];
+                    if (isset($tmp[1])) {
+                        $_SERVER['SERVER_PORT'] = $tmp[1];
+                    }
+                    break;
+                    // cookie
+                case 'COOKIE':
+                    \parse_str(\str_replace('; ', '&', $_SERVER['HTTP_COOKIE']), $_COOKIE);
+                    break;
+                    // content-type
+                case 'CONTENT_TYPE':
+                    if (!\preg_match('/boundary="?(\S+)"?/', $value, $match)) {
+                        if ($pos = \strpos($value, ';')) {
+                            $_SERVER['CONTENT_TYPE'] = \substr($value, 0, $pos);
+                        } else {
+                            $_SERVER['CONTENT_TYPE'] = $value;
+                        }
+                    } else {
+                        $_SERVER['CONTENT_TYPE'] = 'multipart/form-data';
+                        $http_post_boundary      = '--' . $match[1];
+                    }
+                    break;
+                case 'CONTENT_LENGTH':
+                    $_SERVER['CONTENT_LENGTH'] = $value;
+                    break;
+            }
+        }
+
+        // Parse $_POST.
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SERVER['CONTENT_TYPE']) {
+            switch ($_SERVER['CONTENT_TYPE']) {
+                case 'multipart/form-data':
+                    // self::parseUploadFiles($http_post_boundary);
+                    break;
+                case 'application/json':
+                    $_POST = \json_decode($http_body, true);
+                    break;
+                case 'application/x-www-form-urlencoded':
+                    \parse_str($http_body, $_POST);
+                    break;
+            }
+        }
+
+        // Parse other HTTP action parameters
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET' && $_SERVER['REQUEST_METHOD'] !== "POST") {
+            $data = array();
+            if ($_SERVER['CONTENT_TYPE'] === "application/x-www-form-urlencoded") {
+                \parse_str($http_body, $data);
+            } elseif ($_SERVER['CONTENT_TYPE'] === "application/json") {
+                $data = \json_decode($http_body, true);
+            }
+            $_REQUEST = \array_merge($_REQUEST, $data);
+        }
+
+        // HTTP_RAW_REQUEST_DATA HTTP_RAW_POST_DATA
+        $GLOBALS['HTTP_RAW_REQUEST_DATA'] = $GLOBALS['HTTP_RAW_POST_DATA'] = $http_body;
+
+        // QUERY_STRING
+        $_SERVER['QUERY_STRING'] = \parse_url($_SERVER['REQUEST_URI'], \PHP_URL_QUERY);
+        if ($_SERVER['QUERY_STRING']) {
+            // $GET
+            \parse_str($_SERVER['QUERY_STRING'], $_GET);
+        } else {
+            $_SERVER['QUERY_STRING'] = '';
+        }
+
+        if (\is_array($_POST)) {
+            // REQUEST
+            $_REQUEST = \array_merge($_GET, $_POST, $_REQUEST);
+        } else {
+            // REQUEST
+            $_REQUEST = \array_merge($_GET, $_REQUEST);
+        }
+
+        $this->server = $_SERVER;
+        $this->request = $_REQUEST;
+
+        // REMOTE_ADDR REMOTE_PORT
+        $_SERVER['REMOTE_ADDR'] = $this->connection->getRemoteIp();
+        $_SERVER['REMOTE_PORT'] = $this->connection->getRemotePort();
+    }
+    
     /**
      * Get method.
      *
@@ -24,9 +192,9 @@ class Request extends baseRequest
             return $this->method;
         }
 
-        if (strtoupper($method) == 'GET') {
-            $this->method = 'POST';
-        } else if (strtoupper($method) == 'POST') {
+        if ($method == 'GET') {
+            $this->method = 'GET';
+        } else if ($method == 'POST') {
 
             $this->method = 'POST';
 
@@ -171,7 +339,7 @@ class Request extends baseRequest
         }
 
         if (is_array($name)) {
-            return $this->only($name, $this->_data['post'], $filter);
+            return $this->_only($name, $this->_data['post'], $filter);
         }
 
         return $this->_input($this->_data['post'], $name, $default, $filter);
@@ -187,7 +355,7 @@ class Request extends baseRequest
      */
     public function put($name = '', $default = null, $filter = '')
     {
-        return $this->post($this->put, $name, $default, $filter);
+        return $this->post($name, $default, $filter);
     }
 
     /**
@@ -236,7 +404,11 @@ class Request extends baseRequest
 
         $data = $this->_data['post'] + $this->_data['get'];
 
-        return $this->filterData($data, $name, $default, $filter);
+        if (is_array($name)) {
+            return $this->_only($name, $data, $filter);
+        }
+
+        return $this->_input($data, $name, $default, $filter);
     }
 
     /**
@@ -249,10 +421,32 @@ class Request extends baseRequest
      */
     public function request($name = '', $default = null, $filter = '')
     {
-        return $this->param($name, $default, $filter);
+        if (is_array($name)) {
+            return $this->only($name, $this->request, $filter);
+        }
+
+        return $this->_input($this->request, $name, $default, $filter);
     }
 
-    protected function filterData($data, $name, $default, $filter)
+    /**
+     * 获取server参数
+     * @access public
+     * @param  string $name 数据名称
+     * @param  string $default 默认值
+     * @return mixed
+     */
+    public function server(string $name = '', string $default = '')
+    {
+        if (empty($name)) {
+            return $this->server;
+        } else {
+            $name = strtoupper($name);
+        }
+
+        return $this->server[$name] ?? $default;
+    }
+
+    protected function filterData($data, $filter, $name, $default)
     {
         // 解析过滤器
         $filter = $this->getFilter($filter, $default);
@@ -324,19 +518,66 @@ class Request extends baseRequest
     }
 
     /**
-     * @param array $keys
-     * @return array
+     * 是否存在某个请求参数
+     * @access public
+     * @param  string    $name 变量名
+     * @param  string    $type 变量类型
+     * @param  bool      $checkEmpty 是否检测空值
+     * @return mixed
      */
-    protected function _only(array $keys)
+    public function has($name, $type = 'param', $checkEmpty = false)
     {
-        $all = $this->all();
-        $result = [];
-        foreach ($keys as $key) {
-            if (isset($all[$key])) {
-                $result[$key] = $all[$key];
+        if (!in_array($type, ['param', 'get', 'post', 'request', 'put', 'patch', 'file', 'session', 'cookie', 'header'])) {
+            return false;
+        }
+
+        $param = $this->$type;
+
+        // 按.拆分成多维数组进行判断
+        foreach (explode('.', $name) as $val) {
+            if (isset($param[$val])) {
+                $param = $param[$val];
+            } else {
+                return false;
             }
         }
-        return $result;
+
+        return ($checkEmpty && '' === $param) ? false : true;
+    }
+
+    /**
+     * 获取指定的参数
+     * @access public
+     * @param  string|array  $name 变量名
+     * @param  string        $type 变量类型
+     * @return mixed
+     */
+    public function only($name, $type = 'param')
+    {
+        $param = $this->$type();
+
+        if (is_string($name)) {
+            $name = explode(',', $name);
+        }
+
+        $item = [];
+        foreach ($name as $key => $val) {
+
+            if (is_int($key)) {
+                $default = null;
+                $key     = $val;
+            } else {
+                $default = $val;
+            }
+
+            if (isset($param[$key])) {
+                $item[$key] = $param[$key];
+            } elseif (isset($default)) {
+                $item[$key] = $default;
+            }
+        }
+
+        return $item;
     }
 
     protected function _input(array $data = [], $name = '', $default = null, $filter = '')
@@ -374,7 +615,7 @@ class Request extends baseRequest
         return $data;
     }
 
-     /**
+    /**
      * 获取数据
      * @access public
      * @param  array         $data 数据源
@@ -461,8 +702,7 @@ class Request extends baseRequest
      */
     public function isAjax(bool $ajax = false): bool
     {
-        $value  = $this->header('X-Requested-With');
-        $result = $value && 'xmlhttprequest' == strtolower($value) ? true : false;
+        $result = parent::isAjax();
 
         if (true === $ajax) {
             return $result;
@@ -479,7 +719,7 @@ class Request extends baseRequest
      */
     public function isPjax(bool $pjax = false): bool
     {
-        $result = !empty($this->server('HTTP_X_PJAX')) || !empty($this->server('X-PJAX')) ? true : false;
+        $result = parent::isPjax();
 
         if (true === $pjax) {
             return $result;
@@ -525,7 +765,7 @@ class Request extends baseRequest
      */
     public function contentType(): string
     {
-        $contentType = $this->header('content-type');
+        $contentType = $this->header('content-type', '');
 
         if ($contentType) {
             if (strpos($contentType, ';')) {
@@ -547,7 +787,7 @@ class Request extends baseRequest
      */
     public function withGet(array $get)
     {
-        $this->_data['get'] = array_merge($this->_data['post'], $get);
+        $this->_data['get'] = array_merge($this->get(), $get);
         return $this;
     }
 
@@ -559,13 +799,7 @@ class Request extends baseRequest
      */
     public function withPost(array $post)
     {
-        $this->_data['post'] = array_merge($this->_data['post'], $post);
-        return $this;
-    }
-
-    public function withInput(array $input)
-    {
-        $this->_data['post'] = array_merge($this->_data['post'], $input);
+        $this->_data['post'] = array_merge($this->post(), $post);
         return $this;
     }
 }

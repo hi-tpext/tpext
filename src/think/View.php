@@ -2,19 +2,17 @@
 
 namespace tpext\think;
 
-use think\Response;
 use think\Template;
-use tpext\common\ExtLoader;
+use tpext\think\App;
+use Webman\Http\Response;
 
-class View extends Response
+class View
 {
-    protected $vars = [];
-
     protected static $shareVars = [];
-
+    protected $vars = [];
+    protected $content = null;
     protected $isContent = false;
-
-    protected $app;
+    protected $response = null;
 
     /**
      * Undocumented variable
@@ -28,17 +26,27 @@ class View extends Response
         $this->data = $data;
         $this->vars = $vars;
 
-        if (ExtLoader::isTP51()) {
-            $this->app = app();
-            $this->engine = new Template($this->app);
-        } else {
-            $this->engine = new Template;
-        }
+        $config = [
+            'cache_path'     => App::getRuntimePath() . 'temp' . DIRECTORY_SEPARATOR,
+            'view_suffix'   => 'html',
+            'tpl_cache'     => true,
+        ];
+
+        $this->engine = new Template($config);
     }
 
-    protected function output($data = '')
+    /**
+     * 获取输出数据
+     * @access public
+     * @return Response
+     */
+    public function getContent()
     {
-        return $this->fetch($data);
+        if (null == $this->content) {
+            $this->content = $this->fetch($this->data) ?: '';
+        }
+
+        return $this->content;
     }
 
     public function isContent($content = true)
@@ -65,46 +73,44 @@ class View extends Response
         } else {
             self::$shareVars[$name] = $value;
         }
+    }
 
-        if (class_exists('\\think\\facade\\View')) {
-            \think\facade\View::assign($name, $value);
-        }
+    public static function clearShareVars()
+    {
+        self::$shareVars  = [];
     }
 
     public function clear()
     {
-        self::$shareVars  = [];
-        $this->data = [];
         $this->vars = [];
+        $this->content = null;
 
         return $this;
     }
 
     protected function fetch($template = '')
     {
-        ob_start();
-
-        if (PHP_VERSION > 8.0) {
-            ob_implicit_flush(false);
-        } else {
-            ob_implicit_flush(0);
+        if (empty($template)) {
+            return '';
         }
+
+        ob_start();
 
         $vars = array_merge(self::$shareVars, $this->vars);
 
-        try {
-            if ($this->isContent) {
-                $this->engine->display($template, $vars);
-            } else {
-                $this->engine->fetch($template, $vars);
-            }
-        } catch (\Exception $e) {
-            ob_end_clean();
-            throw $e;
+        if ($this->isContent) {
+            $this->engine->display($template, $vars);
+        } else {
+            $this->engine->fetch($template, $vars);
         }
 
         $content = ob_get_clean();
 
         return $content;
+    }
+
+    public function __toString()
+    {
+        return $this->getContent();
     }
 }

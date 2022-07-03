@@ -10,7 +10,7 @@ class Install
      * @var array
      */
     protected static $pathRelation = array(
-        'config' => 'config/plugin/tpext',
+        'webman/config' => 'config/plugin/tpext/core',
     );
 
     /**
@@ -19,15 +19,19 @@ class Install
      */
     public static function install()
     {
+        $appConfig = file_get_contents(config_path() . '/app.php');
+
+        file_put_contents(config_path() . '/app.php', preg_replace('/([\'\"]request_class[\'\"]\s*=>\s*)[\w\\\]+::class/', '$1\\think\\Request::class', $appConfig));
+
+        echo "use [\\think\\Request::class] as [request_class] in config/app.php\n";
+
+        $exceptionConfig = file_get_contents(config_path() . '/exception.php');
+
+        file_put_contents(config_path() . '/exception.php', preg_replace('/([\'\"][\'\"]\s*=>\s*)[\w\\\]+Handler::class/', '$1\\think\\exception\\ExceptionHandler::class', $exceptionConfig));
+
+        echo "use [\\think\\exception\\ExceptionHandler::class] as [handler] in config/exception.php\n";
+
         static::installByRelation();
-        
-        $config_file = config_path() . '/bootstrap.php';
-        $config = include $config_file;
-        if (!in_array(\tpext\TpextWebman::class, $config ?? [])) {
-            $config_file_content = file_get_contents($config_file);
-            $config_file_content = preg_replace('/\];/', "    tpext\TpextWebman::class,\n];", $config_file_content);
-            file_put_contents($config_file, $config_file_content);
-        }
     }
 
     /**
@@ -36,14 +40,17 @@ class Install
      */
     public static function uninstall()
     {
-        $config_file = config_path() . '/bootstrap.php';
-        $config = include $config_file;
-        if (in_array(\tpext\TpextWebman::class, $config ?? [])) {
-            $config_file = config_path() . '/bootstrap.php';
-            $config_file_content = file_get_contents($config_file);
-            $config_file_content = preg_replace('/ {0,4}tpext\\\\TpextWebman::class,?\r?\n?/', '', $config_file_content);
-            file_put_contents($config_file, $config_file_content);
-        }
+        $appConfig = file_get_contents(config_path() . '/app.php');
+
+        file_put_contents(config_path() . '/app.php', preg_replace('/([\'\"]request_class[\'\"]\s*=>\s*)[\w\\\]+::class/', '$1\\support\\Request::class', $appConfig));
+
+        echo "revert [\\support\\Request::class] as [request_class] in config/app.php\n";
+
+        $exceptionConfig = file_get_contents(config_path() . '/exception.php');
+
+        file_put_contents(config_path() . '/exception.php', preg_replace('/([\'\"][\'\"]\s*=>\s*)[\w\\\]+Handler::class/', '$1\\support\\exception\\Handler::class', $exceptionConfig));
+
+        echo "revert [\\support\\exception\\Handler::class] as [handler] in config/exception.php\n";
 
         self::uninstallByRelation();
     }
@@ -61,7 +68,6 @@ class Install
                     mkdir($parent_dir, 0777, true);
                 }
             }
-            //symlink(__DIR__ . "/$source", base_path()."/$dest");
             copy_dir(__DIR__ . "/$source", base_path() . "/$dest");
             echo "Create $dest
 ";

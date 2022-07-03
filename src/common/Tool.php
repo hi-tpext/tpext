@@ -123,6 +123,10 @@ class Tool
 
             foreach (static::$autoload_psr4 as $namespace => $paths) {
 
+                if (empty($namespace)) {
+                    continue;
+                }
+
                 if (false !== strpos(strtolower($class), strtolower($namespace))) {
                     return [$namespace, $paths[0]];
                 }

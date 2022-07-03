@@ -10,7 +10,6 @@ use think\helper\Str;
 
 class RouteLoader
 {
-
     public function load($focusWrite = false)
     {
         $bindModules = ExtLoader::getBindModules();
@@ -42,7 +41,7 @@ class RouteLoader
      */
     protected function witeToFile($routesGroup, $focusWrite)
     {
-        $routeFile = config_path() . '/plugin/tpext/route.php';
+        $routeFile = config_path() . '/plugin/tpext/core/route.php';
 
         if (is_file($routeFile) && time() - filemtime($routeFile) < 60 && !$focusWrite) {
             return;
@@ -78,11 +77,9 @@ class RouteLoader
             $lines[] = '';
         }
 
-        if (!is_dir(config_path() . '/plugin/tpext/')) {
-            mkdir(config_path() . '/plugin/tpext/', '0777', true);
+        if (!is_dir(config_path() . '/plugin/tpext/core/')) {
+            mkdir(config_path() . '/plugin/tpext/core/', '0777', true);
         }
-
-        $routeFile = config_path() . '/plugin/tpext/route.php';
 
         file_put_contents($routeFile, implode(PHP_EOL, $lines));
     }

@@ -2,12 +2,14 @@
 
 namespace think;
 
+use Complex\Functions;
+use Webman\App;
 use think\Validate;
-use support\Response;
 use tpext\think\View;
+use Webman\Http\Response;
 use tpext\common\TpextCore;
 use think\exception\ValidateException;
-use Webman\App;
+use think\exception\HttpResponseException;
 
 /**
  * 控制器基础类
@@ -16,14 +18,62 @@ abstract class Controller
 {
     protected $vars  = [];
 
+    /**
+     * 是否批量验证
+     * @var bool
+     */
+    protected $batchValidate = false;
+
     // 初始化,兼容tp框架
     protected function initialize()
     {
+        //子类重写此方法
     }
 
-    public function beforeAction()
+    protected function destroyBuilder()
     {
+        if (isset($this->table)) {
+            $this->table = null;
+        }
+        if (isset($this->form)) {
+            $this->form = null;
+        }
+        if (isset($this->search)) {
+            $this->search = null;
+        }
+        if (isset($this->dataModel)) {
+            $this->dataModel = null;
+        }
+        if (isset($this->isExporting)) {
+            $this->isExporting = false;
+        }
+        if (isset($this->isEdit)) {
+            $this->isExporting = false;
+        }
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function _tpextinit($request)
+    {
+        $request->decode();
         $this->initialize();
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param Request $request
+     * @param Response $response
+     * @return void
+     */
+    public function _tpextdeinit($request, $response)
+    {
+        $this->destroyBuilder();
     }
 
     /**
@@ -79,9 +129,39 @@ abstract class Controller
      */
     protected function fetch(string $template = '', $vars = [])
     {
+        if (empty($template)) {
+            $template = basename(request()->controller) . DIRECTORY_SEPARATOR . request()->action;
+        }
+
+        if ('' == pathinfo($template, PATHINFO_EXTENSION)) {
+            // 获取模板文件名
+            $template = $this->parseTemplate($template);
+        }
+
         $view = new View($template, array_merge($this->vars, $vars));
 
         return new Response(200, [], $view->getContent());
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @param string $template
+     * @return string
+     */
+    private function parseTemplate(string $template)
+    {
+        $class = get_called_class();
+        $reflect = new \ReflectionClass($class);      //所要查询的类名 
+        $file = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $reflect->getFileName());
+        $arr = explode('controller', $file);
+
+        if (strpos($template, '/') === false && strpos($template, '\\') === false) {
+            $template = strtolower(rtrim($arr[1], '.php')) . DIRECTORY_SEPARATOR . $template;
+        }
+
+        $viewPath = $arr[0] . 'view' . DIRECTORY_SEPARATOR;
+        return $viewPath . ltrim($template, DIRECTORY_SEPARATOR) . '.html';
     }
 
     /**
@@ -131,8 +211,8 @@ abstract class Controller
      */
     protected function success($msg = '', $url = null, $data = '', $wait = 3, $header = array())
     {
-        if (is_null($url) && isset($_SERVER["HTTP_REFERER"])) {
-            $url = $_SERVER["HTTP_REFERER"];
+        if (is_null($url) && $referer = request()->header('REFERER')) {
+            $url = $referer;
         } elseif ('' !== $url) {
             $url = (string) $url;
             $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : url($url)->__toString();
@@ -146,14 +226,18 @@ abstract class Controller
             'wait' => $wait,
         ];
 
+        $response = null;
+
         if ($this->getResponseType() == 'json') {
-            return json($result);
+            $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE));
         } else {
             $rootPath = TpextCore::getInstance()->getRoot();
             $tplPath = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
             $view = new View($tplPath, $result);
-            $this->send(new Response(200, $header, $view->getContent()));
+            $response = new Response(200, $header, $view->getContent());
         }
+
+        throw new HttpResponseException($response);
     }
 
     /**
@@ -168,8 +252,10 @@ abstract class Controller
      */
     protected function error($msg = '', $url = null, $data = '', $wait = 3, $header = array())
     {
+        $type = $this->getResponseType();
+
         if (is_null($url)) {
-            $url = $this->app['request']->isAjax() ? '' : 'javascript:history.back(-1);';
+            $url = $type == 'json' ? '' : 'javascript:history.back(-1);';
         } elseif ('' !== $url) {
             $url = (string) $url;
             $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : url($url)->__toString();
@@ -183,14 +269,21 @@ abstract class Controller
             'wait' => $wait,
         ];
 
-        if ($this->getResponseType() == 'json') {
-            return json($result);
+        $response = null;
+
+        trace('getResponseType');
+        trace($this->getResponseType());
+
+        if ($type == 'json') {
+            $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE));
         } else {
             $rootPath = TpextCore::getInstance()->getRoot();
             $tplPath = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
             $view = new View($tplPath, $result);
-            $this->send(new Response(200, $header, $view->getContent()));
+            $response = new Response(200, $header, $view->getContent());
         }
+
+        throw new HttpResponseException($response);
     }
 
     /**
@@ -212,17 +305,37 @@ abstract class Controller
             'data' => $data,
         ];
 
+        $response = null;
+
         if ($this->getResponseType() == 'json') {
-            return json($result);
+            $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE));
         } else {
             $rootPath = TpextCore::getInstance()->getRoot();
             $tplPath = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
             $view = new View($tplPath, $result);
-            $this->send(new Response(200, $header, $view->getContent()));
+            $response = new Response(200, $header, $view->getContent());
         }
+
+        throw new HttpResponseException($response);
     }
 
+    /**
+     * URL重定向
+     * @access protected
+     * @param  string         $url 跳转的URL表达式
+     * @param  array|integer  $params 其它URL参数
+     * @param  integer        $code http code
+     * @return void
+     */
+    protected function redirect($url, $params = [], $code = 302)
+    {
+        $response = new Response($code, ['Location' => $url . ($params ? '?' . http_build_query($params) : '')]);
+        if (!empty($headers)) {
+            $response->withHeaders($headers);
+        }
 
+        $this->send($response);
+    }
 
     /**
      * Undocumented function
@@ -243,24 +356,6 @@ abstract class Controller
             return;
         }
         $connection->close($response);
-    }
-
-    /**
-     * URL重定向
-     * @access protected
-     * @param  string         $url 跳转的URL表达式
-     * @param  array|integer  $params 其它URL参数
-     * @param  integer        $code http code
-     * @return void
-     */
-    protected function redirect($url, $params = [], $code = 302)
-    {
-        $response = new Response($code, ['Location' => $url . ($params ? '?' . http_build_query($params) : '')]);
-        if (!empty($headers)) {
-            $response->withHeaders($headers);
-        }
-
-        $this->send($response);
     }
 
     /**

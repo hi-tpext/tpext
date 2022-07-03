@@ -2,9 +2,6 @@
 
 namespace think\route;
 
-/**
- * 控制器基础类
- */
 class Url
 {
     protected $url;

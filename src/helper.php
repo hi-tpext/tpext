@@ -1,7 +1,18 @@
 <?php
+// +----------------------------------------------------------------------
+// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2006~2021 http://thinkphp.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+// +----------------------------------------------------------------------
+// | Author: liu21st <liu21st@gmail.com>
+// +----------------------------------------------------------------------
 
 use think\facade\Log;
 use think\route\Url;
+use Webman\Http\Response;
+use think\Request;
 
 if (!function_exists('trace')) {
 
@@ -13,19 +24,42 @@ if (!function_exists('trace')) {
 
 if (!function_exists('input')) {
 
-    function input($name, $default = null)
+    /**
+     * 获取输入数据 支持默认值和过滤
+     * @param string    $key 获取的变量名
+     * @param mixed     $default 默认值
+     * @param string    $filter 过滤方法
+     * @return mixed
+     */
+    function input($key = '', $default = null, $filter = '')
     {
-        if ($pos = strpos($name, '.')) {
-            // 指定参数来源
-            $method = substr($name, 0, $pos);
-            if (in_array($method, ['get', 'post', 'file'])) {
-                $name = substr($name, $pos + 1);
-
-                return request()->$method($name, $default);
-            }
+        if (0 === strpos($key, '?')) {
+            $key = substr($key, 1);
+            $has = true;
         }
 
-        return request()->input($name, $default);
+        if ($pos = strpos($key, '.')) {
+            // 指定参数来源
+            $method = substr($key, 0, $pos);
+            if (in_array($method, ['get', 'post', 'put', 'patch', 'delete', 'param', 'request', 'session', 'cookie', 'server', 'header', 'file'])) {
+                $key = substr($key, $pos + 1);
+
+                if ('server' == $method) {
+                    $method = 'header';
+                }
+            } else {
+                $method = 'param';
+            }
+        } else {
+            // 默认为自动判断
+            $method = 'param';
+        }
+
+        if (isset($has)) {
+            return request()->has($key, $method, $default);
+        } else {
+            return request()->$method($key, $default, $filter);
+        }
     }
 }
 
@@ -57,10 +91,36 @@ if (!function_exists('url')) {
             $arr2 = [$arr1[0], $arr1[1], $arr1[2]];
         }
 
-        $url = '/' . implode('/', $arr2);
+        $url = strtolower('/' . implode('/', $arr2));
 
         $url = (count($vars) > 0 ? $url . '?' . http_build_query($vars) : $url) . ($suffix ? '.html' : '');
 
         return new Url($url);
+    }
+}
+
+if (!function_exists('download')) {
+    /**
+     * @param string $filename 要下载的文件
+     * @param string $name     显示文件名
+     * @return Response
+     */
+    function download(string $filename, string $name)
+    {
+        $response = new Response;
+        $response->download($filename, $name);
+
+        return $response;
+    }
+}
+
+
+if (!function_exists('tprequest')) {
+    /**
+     * @return Request
+     */
+    function tpRequest()
+    {
+        return request();
     }
 }

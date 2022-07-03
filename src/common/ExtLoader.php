@@ -157,6 +157,10 @@ class ExtLoader
         if (!isset(self::$watches[$name])) {
             self::$watches[$name] = [];
         }
+        if (is_string($class) && class_exists($class)) {
+            $inctance = new $class;
+            $class = [$inctance, 'handle'];
+        }
         self::$watches[$name][] = [$class, $desc, $first];
         Event::on($name, $class);
     }
@@ -171,7 +175,7 @@ class ExtLoader
      */
     public static function trigger($name, $params = null, $once = false)
     {
-        Event::emit($name, $params, $once);
+        Event::emit($name, $params);
     }
 
     /**
@@ -186,7 +190,7 @@ class ExtLoader
 
     public static function bindExtensions()
     {
-        if (!config('app_debug')) {
+        if (!config('debug')) {
             self::$modules = Cache::get('tpext_modules') ?: [];
             self::$resources = Cache::get('tpext_resources') ?: [];
             self::$bindModules = Cache::get('tpext_bind_modules') ?: [];
@@ -253,10 +257,6 @@ class ExtLoader
         self::trigger('tpext_find_extensions');
 
         $classMap = self::$classMap;
-
-        $routeLoader = new RouteLoader;
-
-        $routesGroup = [];
 
         foreach ($classMap as $declare) {
 
@@ -335,6 +335,11 @@ class ExtLoader
         return true;
     }
 
+    public static function isWebman()
+    {
+        return true;
+    }
+
     public static function getInstalled($reget = false)
     {
 
@@ -389,9 +394,9 @@ class ExtLoader
      */
     public static function clearCache($clearInstance = false)
     {
-        Cache::set('tpext_modules', null);
-        Cache::set('tpext_resources', null);
-        Cache::set('tpext_bind_modules', null);
+        Cache::delete('tpext_modules');
+        Cache::delete('tpext_resources');
+        Cache::delete('tpext_bind_modules');
 
         if ($clearInstance) {
             self::$modules = [];

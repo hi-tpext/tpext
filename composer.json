@@ -17,7 +17,6 @@
         "php": ">=7.2",
         "topthink/think-template": "^2.0",
         "webman/think-cache": "^1.0",
-        "webman/action-hook": "^1.0",
         "webman/think-orm": "^1.0",
         "gregwar/captcha": "^1.0"
     },
