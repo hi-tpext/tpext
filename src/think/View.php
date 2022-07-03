@@ -1,6 +1,6 @@
 <?php
 
-namespace tpext\common;
+namespace tpext\think;
 
 use think\Response;
 use think\Template;
@@ -27,12 +27,8 @@ class View extends Response
         $this->data = $data;
         $this->vars = $vars;
 
-        if (ExtLoader::isTP51()) {
-            $this->app = app();
-            $this->engine = new Template($this->app);
-        } else {
-            $this->engine = new Template;
-        }
+        $this->app = app();
+        $this->engine = new Template($this->app);
     }
 
     protected function output($data = '')
@@ -65,9 +61,7 @@ class View extends Response
             self::$shareVars[$name] = $value;
         }
 
-        if (class_exists('\\think\\facade\\View')) {
-            \think\facade\View::assign($name, $value);
-        }
+        \think\facade\View::assign($name, $value);
     }
 
     public function clear()
