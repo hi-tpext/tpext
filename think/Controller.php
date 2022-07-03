@@ -1,14 +1,15 @@
 <?php
-declare (strict_types = 1);
+
+declare(strict_types=1);
 
 namespace think;
 
 use think\App;
 use think\exception\ValidateException;
 use think\Response;
-use think\response\Redirect;
 use think\Validate;
 use tpext\common\TpextCore;
+use think\exception\HttpResponseException;
 
 /**
  * 控制器基础类
@@ -61,7 +62,8 @@ abstract class Controller
 
     // 初始化
     protected function initialize()
-    {}
+    {
+    }
 
     /**
      * 验证数据
@@ -158,8 +160,8 @@ abstract class Controller
      */
     protected function success($msg = '', $url = null, $data = '', $wait = 3, array $header = [])
     {
-        if (is_null($url) && isset($_SERVER["HTTP_REFERER"])) {
-            $url = $_SERVER["HTTP_REFERER"];
+        if (is_null($url) && $referer = request()->header('REFERER')) {
+            $url = $referer;
         } elseif ('' !== $url) {
             $url = (string) $url;
             $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : url($url)->__toString();
@@ -175,7 +177,7 @@ abstract class Controller
 
         $response = null;
 
-        if ($this->app->request->isAjax()) {
+        if ($this->getResponseType() == 'json') {
             $response = json($result);
         } else {
             $rootPath = TpextCore::getInstance()->getRoot();
@@ -183,9 +185,8 @@ abstract class Controller
             $response = view($tplPath, $result);
         }
         $response->header($header);
-        $response->send();
-        $this->app->http->end($response);
-        exit;
+
+        throw new HttpResponseException($response);
     }
 
     /**
@@ -200,9 +201,11 @@ abstract class Controller
      */
     protected function error($msg = '', $url = null, $data = '', $wait = 3, array $header = [])
     {
+        $type = $this->getResponseType();
+
         if (is_null($url)) {
-            $url = $this->app['request']->isAjax() ? '' : 'javascript:history.back(-1);';
-        } elseif ('' !== $url) {
+            $url = $type == 'json' ? '' : 'javascript:history.back(-1);';
+        } else if ('' !== $url) {
             $url = (string) $url;
             $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : url($url)->__toString();
         }
@@ -217,7 +220,7 @@ abstract class Controller
 
         $response = null;
 
-        if ($this->app->request->isAjax()) {
+        if ($type == 'json') {
             $response = json($result);
         } else {
             $rootPath = TpextCore::getInstance()->getRoot();
@@ -225,9 +228,8 @@ abstract class Controller
             $response = view($tplPath, $result);
         }
         $response->header($header);
-        $response->send();
-        $this->app->http->end($response);
-        exit;
+
+        throw new HttpResponseException($response);
     }
 
     /**
@@ -252,9 +254,7 @@ abstract class Controller
         $type = $type ?: $this->getResponseType();
         $response = Response::create($result, $type)->header($header);
 
-        $response->send();
-        $this->app->http->end($response);
-        exit;
+        throw new HttpResponseException($response);
     }
 
     /**
@@ -294,7 +294,6 @@ abstract class Controller
         }
 
         $isAjax = $this->app['request']->isAjax();
-        $config = $this->app['config'];
 
         return $isAjax ? 'json' : 'html';
     }

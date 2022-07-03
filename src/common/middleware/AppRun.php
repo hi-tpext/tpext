@@ -46,9 +46,6 @@ class AppRun
     public function __construct(App $app)
     {
         $this->app = $app;
-        $this->name = $this->app->http->getName();
-        $this->path = $this->app->http->getPath();
-        $this->request = $app->request;
     }
 
     /**
@@ -60,6 +57,10 @@ class AppRun
      */
     public function handle($request, Closure $next)
     {
+        $this->name = $this->app->http->getName();
+        $this->path = $this->app->http->getPath();
+        $this->request = $this->app->request;
+
         if (!$this->parseModule()) {
             return $next($request);
         }
@@ -316,9 +317,9 @@ class AppRun
 
                 foreach ($bindModule as $mod) {
 
-                    if (!empty($mod['controlers']) && in_array($controller, $mod['controlers'])) {
+                    if (!empty($mod['controllers']) && in_array($controller, $mod['controllers'])) {
 
-                        $mod = $this->checkAction($mod, $module, $controller, $action, $ext, $mod['classname']);
+                        $mod = $this->checkAction($mod, $module, $controller, $action, $ext);
 
                         if ($mod != null) {
 
@@ -333,12 +334,12 @@ class AppRun
         return $matchMod;
     }
 
-    private function checkAction($mod, $module, $controller, $action, $ext = true, $className = '')
+    private function checkAction($mod, $module, $controller, $action, $ext = true)
     {
         $namespaceMap = $mod['namespace_map'];
 
         if (empty($namespaceMap) || count($namespaceMap) != 2) {
-            $namespaceMap = Tool::getNameSpaceMap($className);
+            $namespaceMap = Tool::getNameSpaceMap($mod['classname']);
         }
 
         if (empty($namespaceMap)) {

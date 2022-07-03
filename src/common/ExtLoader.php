@@ -2,12 +2,13 @@
 
 namespace tpext\common;
 
-use think\App;
 use think\facade\Db;
-use think\facade\Event;
-use think\facade\Hook;
-use think\helper\Str;
+use think\App;
 use think\Loader;
+use think\helper\Str;
+use think\facade\Hook;
+use think\facade\Cache;
+use think\facade\Event;
 use tpext\common\model\Extension as ExtensionModel;
 
 class ExtLoader
@@ -197,9 +198,9 @@ class ExtLoader
     public static function bindExtensions()
     {
         if (!config('app_debug')) {
-            self::$modules = cache('tpext_modules') ?: [];
-            self::$resources = cache('tpext_resources') ?: [];
-            self::$bindModules = cache('tpext_bind_modules') ?: [];
+            self::$modules = Cache::get('tpext_modules') ?: [];
+            self::$resources = Cache::get('tpext_resources') ?: [];
+            self::$bindModules = Cache::get('tpext_bind_modules') ?: [];
 
             foreach (self::$modules as $k => $m) {
                 if (!class_exists($k, false)) {
@@ -228,9 +229,9 @@ class ExtLoader
 
         if (empty(self::$modules)) {
             self::findExtensions($enabled);
-            cache('tpext_modules', self::$modules);
-            cache('tpext_resources', self::$resources);
-            cache('tpext_bind_modules', self::$bindModules);
+            Cache::set('tpext_modules', self::$modules);
+            Cache::set('tpext_resources', self::$resources);
+            Cache::set('tpext_bind_modules', self::$bindModules);
         }
 
         foreach (self::$modules as $k => $m) {
@@ -314,7 +315,9 @@ class ExtLoader
                             }, $controllers);
 
                             self::$bindModules[strtolower($key)][] = [
-                                'name' => $name, 'controlers' => $controllers,
+                                'name' => $name,
+                                'controllers' => $controllers,
+                                'controlers' => $controllers, //兼容
                                 'namespace_map' => $instance->getNameSpaceMap(),
                                 'classname' => $declare,
                             ];
@@ -344,6 +347,11 @@ class ExtLoader
         return self::getTpVer() == 6;
     }
 
+    public static function isWebman()
+    {
+        return false;
+    }
+
     public static function getInstalled($reget = false)
     {
 
@@ -370,14 +378,14 @@ class ExtLoader
         $isTable = Db::query("SHOW TABLES LIKE '{$tableName}'");
 
         if (empty($isTable)) {
-            cache('tpext_installed_extensions', null);
+            Cache::set('tpext_installed_extensions', null);
 
             TpextCore::getInstance()->install();
 
             return [];
         }
 
-        $data = cache('tpext_installed_extensions');
+        $data = Cache::get('tpext_installed_extensions');
 
         if (!$reget && $data) {
             return $data;
@@ -385,7 +393,7 @@ class ExtLoader
 
         $list = ExtensionModel::where(['install' => 1])->select();
 
-        cache('tpext_installed_extensions', $list);
+        Cache::set('tpext_installed_extensions', $list);
 
         return $list;
     }
@@ -398,9 +406,9 @@ class ExtLoader
      */
     public static function clearCache($clearInstance = false)
     {
-        cache('tpext_modules', null);
-        cache('tpext_resources', null);
-        cache('tpext_bind_modules', null);
+        Cache::delete('tpext_modules');
+        Cache::delete('tpext_resources');
+        Cache::delete('tpext_bind_modules');
 
         if ($clearInstance) {
             self::$modules = [];

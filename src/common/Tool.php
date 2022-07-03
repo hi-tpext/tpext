@@ -4,6 +4,7 @@ namespace tpext\common;
 
 use think\facade\Db;
 use think\facade\Log;
+use tpext\think\App;
 
 class Tool
 {
@@ -59,9 +60,7 @@ class Tool
     {
         $dirs = ['', 'assets', $dirName, ''];
 
-        $scriptName = $_SERVER['SCRIPT_FILENAME'];
-
-        $assetsDir = realpath(dirname($scriptName)) . implode(DIRECTORY_SEPARATOR, $dirs);
+        $assetsDir = App::getPublicPath() . implode(DIRECTORY_SEPARATOR, $dirs);
 
         if (is_dir($assetsDir)) {
             static::deleteDir($assetsDir);
@@ -97,9 +96,7 @@ class Tool
     {
         $dirs = ['', 'assets', $dirName, ''];
 
-        $scriptName = $_SERVER['SCRIPT_FILENAME'];
-
-        $assetsDir = realpath(dirname($scriptName)) . implode(DIRECTORY_SEPARATOR, $dirs);
+        $assetsDir = App::getPublicPath() . implode(DIRECTORY_SEPARATOR, $dirs);
 
         if (is_dir($assetsDir)) {
 
@@ -115,7 +112,7 @@ class Tool
     {
         if (empty(static::$autoload_psr4)) {
 
-            $composerPath = app()->getRootPath() . 'vendor' . DIRECTORY_SEPARATOR . 'composer' . DIRECTORY_SEPARATOR;
+            $composerPath = App::getRootPath() . 'vendor' . DIRECTORY_SEPARATOR . 'composer' . DIRECTORY_SEPARATOR;
 
             if (is_file($composerPath . 'autoload_psr4.php')) {
                 static::$autoload_psr4 = require $composerPath . 'autoload_psr4.php';
@@ -126,6 +123,10 @@ class Tool
 
             foreach (static::$autoload_psr4 as $namespace => $paths) {
 
+                if (empty($namespace)) {
+                    continue;
+                }
+                
                 if (false !== strpos(strtolower($class), strtolower($namespace))) {
                     return [$namespace, $paths[0]];
                 }
@@ -134,8 +135,7 @@ class Tool
 
         $fitst = strstr($class, '\\', true);
 
-        return [$fitst, app()->getRootPath() . 'extend' . DIRECTORY_SEPARATOR . $fitst];
-
+        return [$fitst, App::getRootPath() . 'extend' . DIRECTORY_SEPARATOR . $fitst];
     }
 
     public static function executeSqlFile($file, &$errors = [])

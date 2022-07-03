@@ -3,6 +3,8 @@
 namespace tpext\common\model;
 
 use think\Model;
+use tpext\think\App;
+use think\facade\Cache;
 use tpext\common\ExtLoader;
 
 class WebConfig extends Model
@@ -11,14 +13,14 @@ class WebConfig extends Model
 
     public static function clearCache($configKey)
     {
-        cache('web_config_' . $configKey, null);
+        Cache::set('web_config_' . $configKey, null);
         ExtLoader::trigger('clear_cache_web_config_' . $configKey);
         ExtLoader::trigger('clear_cache_web_config', $configKey);
     }
 
     public static function config($configKey, $reget = false)
     {
-        $cache = cache('web_config_' . $configKey);
+        $cache = Cache::get('web_config_' . $configKey);
 
         if ($cache && !$reget) {
             return $cache;
@@ -31,7 +33,7 @@ class WebConfig extends Model
 
         $config = json_decode($theConfig['config'], 1);
 
-        $rootPath = app()->getRootPath();
+        $rootPath = App::getRootPath();
         $filePath = $rootPath . str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $theConfig['file']);
 
         if (!is_file($filePath)) {
@@ -53,7 +55,7 @@ class WebConfig extends Model
             $values[$key] = $config[$key] ?? $val;
         }
         if (!empty($values)) {
-            cache('web_config_' . $configKey, $values);
+            Cache::set('web_config_' . $configKey, $values);
         }
 
         return $values;
