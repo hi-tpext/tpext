@@ -391,9 +391,9 @@ class ExtLoader
      */
     public static function clearCache($clearInstance = false)
     {
-        Cache::delete('tpext_modules');
-        Cache::delete('tpext_resources');
-        Cache::delete('tpext_bind_modules');
+        Cache::set('tpext_modules', null);
+        Cache::set('tpext_resources', null);
+        Cache::set('tpext_bind_modules', null);
 
         if ($clearInstance) {
             self::$modules = [];
