@@ -27,154 +27,68 @@ class Request extends \support\Request
      * @var array
      */
     protected $request = [];
+    /**
+     * 是否合并Param
+     * @var bool
+     */
+    protected $mergeParam = false;
+    /**
+     * 当前请求参数
+     * @var array
+     */
+    protected $param = [];
+
+    protected $routeParam = null;
 
     public function decode()
     {
-        $recv_buffer = $this->_buffer;
-        /**
-         * This file is part of workerman.
-         *
-         * Licensed under The MIT License
-         * For full copyright and license information, please see the MIT-LICENSE.txt
-         * Redistributions of files must retain the above copyright notice.
-         *
-         * @author    walkor<walkor@workerman.net>
-         * @copyright walkor<walkor@workerman.net>
-         * @link      http://www.workerman.net/
-         * @license   http://www.opensource.org/licenses/mit-license.php MIT License
-         */
-
         $_POST = $_GET = $_COOKIE = $_REQUEST = $_SESSION = $_FILES = array();
-        $GLOBALS['HTTP_RAW_POST_DATA'] = '';
+
+        $_GET = parent::get() ?: [];
+        $_COOKIE = parent::cookie() ?: [];
+        $_SESSION = parent::session()->all() ?: [];
+
+        $httpHost = parent::header('Host');
+        $httpArr = explode(':', $httpHost);
+
         $microtime = \microtime(true);
-        // $_SERVER
+
         $_SERVER = array(
-            'QUERY_STRING'         => '',
-            'REQUEST_METHOD'       => '',
-            'REQUEST_URI'          => '',
-            'SERVER_PROTOCOL'      => '',
+            'QUERY_STRING'         => parent::queryString(),
+            'REQUEST_METHOD'       => strtoupper(parent::method()),
+            'REQUEST_URI'          => parent::uri(),
+            'SERVER_PROTOCOL'      => 'HTTP/' . parent::parseProtocolVersion(),
             'SERVER_SOFTWARE'      => 'workerman/' . Worker::VERSION,
-            'SERVER_NAME'          => '',
-            'HTTP_HOST'            => '',
-            'HTTP_USER_AGENT'      => '',
-            'HTTP_ACCEPT'          => '',
-            'HTTP_ACCEPT_LANGUAGE' => '',
-            'HTTP_ACCEPT_ENCODING' => '',
-            'HTTP_COOKIE'          => '',
-            'HTTP_CONNECTION'      => '',
-            'CONTENT_TYPE'         => '',
-            'REMOTE_ADDR'          => '',
-            'REMOTE_PORT'          => '0',
+            'SERVER_NAME'          => $httpArr[0],
+            'SERVER_PORT'          => $httpArr[1] ?? 80,
+            'HTTP_HOST'            => $httpHost,
+            'HTTP_USER_AGENT'      => parent::header('User-Agent'),
+            'HTTP_ACCEPT'          => parent::header('Accept', ''),
+            'HTTP_ACCEPT_LANGUAGE' => parent::header('Accept-Language', ''),
+            'HTTP_ACCEPT_ENCODING' => parent::header('Accept-Encoding', ''),
+            'HTTP_COOKIE'          => parent::header('Cookie', ''),
+            'HTTP_CONNECTION'      => parent::header('Connection', ''),
+            'CONTENT_TYPE'         => parent::header('content-type', ''),
+            'CONTENT_LENGTH'       => parent::header('Content-Length', ''),
+            'REMOTE_ADDR'          => $this->connection->getRemoteIp(),
+            'REMOTE_PORT'          => $this->connection->getRemotePort(),
             'REQUEST_TIME'         => (int)$microtime,
             'REQUEST_TIME_FLOAT'   => $microtime //compatible php5.4
         );
 
-        // Parse headers.
-        list($http_header, $http_body) = \explode("\r\n\r\n", $recv_buffer, 2);
-        $header_data = \explode("\r\n", $http_header);
-
-        list($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_SERVER['SERVER_PROTOCOL']) = \explode(
-            ' ',
-            $header_data[0]
-        );
-
-        $http_post_boundary = '';
-        unset($header_data[0]);
-        foreach ($header_data as $content) {
-            // \r\n\r\n
-            if (empty($content)) {
-                continue;
-            }
-            list($key, $value)       = \explode(':', $content, 2);
-            $key                     = \str_replace('-', '_', strtoupper($key));
-            $value                   = \trim($value);
-            $_SERVER['HTTP_' . $key] = $value;
-            switch ($key) {
-                    // HTTP_HOST
-                case 'HOST':
-                    $tmp                    = \explode(':', $value);
-                    $_SERVER['SERVER_NAME'] = $tmp[0];
-                    if (isset($tmp[1])) {
-                        $_SERVER['SERVER_PORT'] = $tmp[1];
-                    }
-                    break;
-                    // cookie
-                case 'COOKIE':
-                    \parse_str(\str_replace('; ', '&', $_SERVER['HTTP_COOKIE']), $_COOKIE);
-                    break;
-                    // content-type
-                case 'CONTENT_TYPE':
-                    if (!\preg_match('/boundary="?(\S+)"?/', $value, $match)) {
-                        if ($pos = \strpos($value, ';')) {
-                            $_SERVER['CONTENT_TYPE'] = \substr($value, 0, $pos);
-                        } else {
-                            $_SERVER['CONTENT_TYPE'] = $value;
-                        }
-                    } else {
-                        $_SERVER['CONTENT_TYPE'] = 'multipart/form-data';
-                        $http_post_boundary      = '--' . $match[1];
-                    }
-                    break;
-                case 'CONTENT_LENGTH':
-                    $_SERVER['CONTENT_LENGTH'] = $value;
-                    break;
-            }
+        if ($_SERVER['REQUEST_METHOD'] != 'GET') {
+            parent::parsePost();
+            $_POST = parent::post() ?: [];
         }
 
-        // Parse $_POST.
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SERVER['CONTENT_TYPE']) {
-            switch ($_SERVER['CONTENT_TYPE']) {
-                case 'multipart/form-data':
-                    // self::parseUploadFiles($http_post_boundary);
-                    break;
-                case 'application/json':
-                    $_POST = \json_decode($http_body, true);
-                    break;
-                case 'application/x-www-form-urlencoded':
-                    \parse_str($http_body, $_POST);
-                    break;
-            }
-        }
+        $GLOBALS['HTTP_RAW_REQUEST_DATA'] = $GLOBALS['HTTP_RAW_POST_DATA'] = $this->rawBody();
 
-        // Parse other HTTP action parameters
-        if ($_SERVER['REQUEST_METHOD'] !== 'GET' && $_SERVER['REQUEST_METHOD'] !== "POST") {
-            $data = array();
-            if ($_SERVER['CONTENT_TYPE'] === "application/x-www-form-urlencoded") {
-                \parse_str($http_body, $data);
-            } elseif ($_SERVER['CONTENT_TYPE'] === "application/json") {
-                $data = \json_decode($http_body, true);
-            }
-            $_REQUEST = \array_merge($_REQUEST, $data);
-        }
-
-        // HTTP_RAW_REQUEST_DATA HTTP_RAW_POST_DATA
-        $GLOBALS['HTTP_RAW_REQUEST_DATA'] = $GLOBALS['HTTP_RAW_POST_DATA'] = $http_body;
-
-        // QUERY_STRING
-        $_SERVER['QUERY_STRING'] = \parse_url($_SERVER['REQUEST_URI'], \PHP_URL_QUERY);
-        if ($_SERVER['QUERY_STRING']) {
-            // $GET
-            \parse_str($_SERVER['QUERY_STRING'], $_GET);
-        } else {
-            $_SERVER['QUERY_STRING'] = '';
-        }
-
-        if (\is_array($_POST)) {
-            // REQUEST
-            $_REQUEST = \array_merge($_GET, $_POST, $_REQUEST);
-        } else {
-            // REQUEST
-            $_REQUEST = \array_merge($_GET, $_REQUEST);
-        }
+        $_REQUEST = \array_merge($_GET, $_POST);
 
         $this->server = $_SERVER;
         $this->request = $_REQUEST;
-
-        // REMOTE_ADDR REMOTE_PORT
-        $_SERVER['REMOTE_ADDR'] = $this->connection->getRemoteIp();
-        $_SERVER['REMOTE_PORT'] = $this->connection->getRemotePort();
     }
-    
+
     /**
      * Get method.
      *
@@ -394,21 +308,24 @@ class Request extends \support\Request
      */
     public function param($name = '', $default = null, $filter = '')
     {
-        if (!isset($this->_data['post'])) {
-            $this->parsePost();
-        }
+        if (empty($this->mergeParam)) {
 
-        if (!isset($this->_data['get'])) {
-            $this->parseGet();
-        }
+            $method = $this->method(true);
 
-        $data = $this->_data['post'] + $this->_data['get'];
+            if ($method == 'POST') {
+                $this->param = array_merge(parent::post(null, []), parent::get(null, []));
+            } else {
+                $this->param = parent::get(null, []);
+            }
+
+            $this->mergeParam = true;
+        }
 
         if (is_array($name)) {
-            return $this->_only($name, $data, $filter);
+            return $this->_only($name, $this->param, $filter);
         }
 
-        return $this->_input($data, $name, $default, $filter);
+        return $this->_input($$this->param, $name, $default, $filter);
     }
 
     /**
@@ -444,6 +361,31 @@ class Request extends \support\Request
         }
 
         return $this->server[$name] ?? $default;
+    }
+
+    /**
+     * 获取路由参数
+     * @access public
+     * @param  string|array $name 变量名
+     * @param  mixed        $default 默认值
+     * @param  string|array $filter 过滤方法
+     * @return mixed
+     */
+    public function route($name = '', $default = null, $filter = '')
+    {
+        if (!parent::$route) {
+            return $default;
+        }
+
+        if (is_null($this->routeParam)) {
+            $this->routeParam = $this->route->param();
+        }
+
+        if (is_array($name)) {
+            return $this->_only($name, $this->routeParam, $filter);
+        }
+
+        return $this->_input($this->routeParam, $name, $default, $filter);
     }
 
     protected function filterData($data, $filter, $name, $default)
@@ -552,32 +494,9 @@ class Request extends \support\Request
      * @param  string        $type 变量类型
      * @return mixed
      */
-    public function only($name, $type = 'param')
+    public function only(array $name, $data = 'param', $filter = '')
     {
-        $param = $this->$type();
-
-        if (is_string($name)) {
-            $name = explode(',', $name);
-        }
-
-        $item = [];
-        foreach ($name as $key => $val) {
-
-            if (is_int($key)) {
-                $default = null;
-                $key     = $val;
-            } else {
-                $default = $val;
-            }
-
-            if (isset($param[$key])) {
-                $item[$key] = $param[$key];
-            } elseif (isset($default)) {
-                $item[$key] = $default;
-            }
-        }
-
-        return $item;
+        return $this->_only($name, $data, $filter);
     }
 
     protected function _input(array $data = [], $name = '', $default = null, $filter = '')
@@ -613,6 +532,37 @@ class Request extends \support\Request
         }
 
         return $data;
+    }
+
+    /**
+     * 获取指定的参数
+     * @access public
+     * @param  array        $name 变量名
+     * @param  mixed        $data 数据或者变量类型
+     * @param  string|array $filter 过滤方法
+     * @return array
+     */
+    public function _only(array $name, $data = 'param', $filter = ''): array
+    {
+        $data = is_array($data) ? $data : $this->$data();
+
+        $item = [];
+        foreach ($name as $key => $val) {
+
+            if (is_int($key)) {
+                $default = null;
+                $key     = $val;
+                if (!isset($data[$key])) {
+                    continue;
+                }
+            } else {
+                $default = $val;
+            }
+
+            $item[$key] = $this->filterData($data[$key] ?? $default, $filter, $key, $default);
+        }
+
+        return $item;
     }
 
     /**

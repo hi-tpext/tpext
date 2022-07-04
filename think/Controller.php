@@ -2,7 +2,6 @@
 
 namespace think;
 
-use Complex\Functions;
 use Webman\App;
 use think\Validate;
 use tpext\think\View;
