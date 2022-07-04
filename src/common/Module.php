@@ -67,6 +67,11 @@ class Module extends Extension
             ExtLoader::trigger('tpext_menus', ['create', $this->getId(), $this->menus]);
         }
 
+        if (!empty($this->modules)) {
+            $routeLoader = new RouteLoader;
+            $routeLoader->load(true);
+        }
+
         return $success;
     }
 
@@ -83,6 +88,11 @@ class Module extends Extension
         if ($success && !empty($this->menus)) {
 
             ExtLoader::trigger('tpext_menus', ['delete', $this->getId(), $this->menus]);
+        }
+
+        if (!empty($this->modules)) {
+            $routeLoader = new RouteLoader;
+            $routeLoader->load(true);
         }
 
         return $success;

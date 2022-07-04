@@ -56,6 +56,16 @@ class WebConfig extends Model
         }
         if (!empty($values)) {
             Cache::set('web_config_' . $configKey, $values);
+
+            $extensions = ExtLoader::getExtensions();
+
+            foreach ($extensions as $key => $instance) {
+
+                if ($instance->getId() == $configKey) {
+                    $instance->setConfig($values);
+                    break;
+                }
+            }
         }
 
         return $values;
