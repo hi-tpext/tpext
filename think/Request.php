@@ -77,7 +77,6 @@ class Request extends \support\Request
         );
 
         if ($_SERVER['REQUEST_METHOD'] != 'GET') {
-            parent::parsePost();
             $_POST = parent::post() ?: [];
         }
 
