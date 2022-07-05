@@ -60,11 +60,50 @@ abstract class Controller
         if (isset($this->dataModel)) {
             $this->dataModel = null;
         }
-        if (isset($this->isExporting)) {
-            $this->isExporting = false;
+        if (isset($this->pageTitle)) {
+            $this->addText = '添加';
+            $this->editText = '编辑';
+            $this->viewText = '查看';
+            $this->enableField = 'enable';
+            $this->pk = 'id';
+            $this->isEdit = false;
         }
-        if (isset($this->isEdit)) {
+        if (isset($this->indexText)) {
+            $this->indexText = '列表';
+            $this->pagesize = 14;
+            $this->sortOrder = 'id desc';
+            $this->useSearch = true;
             $this->isExporting = false;
+
+            $this->indexWith = [];
+            $this->postAllowFields = [];
+            $this->delNotAllowed = [];
+        }
+        if (isset($this->treeModel) && isset($this->treeIdField)) {
+            $this->treeScope = [];
+            $this->treeRootid = 0;
+            $this->treeRootText = '全部';
+            $this->treeType = 'ztree';
+            $this->treeTextField = '';
+            $this->treeIdField = 'id';
+            $this->treeParentIdField = 'parent_id';
+            $this->treeKey = '';
+            $this->treeExpandAll = true;
+            $this->treeModel;
+        }
+        if (isset($this->selectIdField) && isset($this->selectTextField)) {
+            $this->selectScope = [];
+            $this->selectSearch = '';
+            $this->selectTextField = '';
+            $this->selectIdField = '';
+            $this->selectFields = '*';
+            $this->selectOrder = '';
+            $this->selectPagesize = 20;
+            $this->selectWith = [];
+        }
+        if (isset($this->exportOnly) || isset($this->exportExcept)) {
+            $this->exportOnly = [];
+            $this->exportExcept = [];
         }
     }
 
