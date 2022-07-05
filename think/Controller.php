@@ -23,10 +23,27 @@ abstract class Controller
      */
     protected $batchValidate = false;
 
+    protected static $dispatchJumpTemplate = '';
+
     // 初始化,兼容tp框架
     protected function initialize()
     {
         //子类重写此方法
+    }
+
+    public static function setDispatchJumpTemplate($template)
+    {
+        self::$dispatchJumpTemplate = $template;
+    }
+
+    public static function getDispatchJumpTemplate()
+    {
+        if (!self::$dispatchJumpTemplate) {
+            $rootPath = TpextCore::getInstance()->getRoot();
+            self::$dispatchJumpTemplate = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
+        }
+
+        return self::$dispatchJumpTemplate;
     }
 
     protected function destroyBuilder()
@@ -61,6 +78,7 @@ abstract class Controller
     {
         $request->decode();
         $this->initialize();
+        self::$dispatchJumpTemplate = '';
     }
 
     /**
@@ -230,9 +248,7 @@ abstract class Controller
         if ($this->getResponseType() == 'json') {
             $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE));
         } else {
-            $rootPath = TpextCore::getInstance()->getRoot();
-            $tplPath = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
-            $view = new View($tplPath, $result);
+            $view = new View(self::getDispatchJumpTemplate(), $result);
             $response = new Response(200, $header, $view->getContent());
         }
 
@@ -276,9 +292,7 @@ abstract class Controller
         if ($type == 'json') {
             $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE));
         } else {
-            $rootPath = TpextCore::getInstance()->getRoot();
-            $tplPath = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
-            $view = new View($tplPath, $result);
+            $view = new View(self::getDispatchJumpTemplate(), $result);
             $response = new Response(200, $header, $view->getContent());
         }
 
@@ -309,9 +323,8 @@ abstract class Controller
         if ($this->getResponseType() == 'json') {
             $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE));
         } else {
-            $rootPath = TpextCore::getInstance()->getRoot();
-            $tplPath = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
-            $view = new View($tplPath, $result);
+
+            $view = new View(self::getDispatchJumpTemplate(), $result);
             $response = new Response(200, $header, $view->getContent());
         }
 
