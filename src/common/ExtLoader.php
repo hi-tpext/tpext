@@ -338,22 +338,17 @@ class ExtLoader
 
     public static function getInstalled($reget = false)
     {
+        $config = config('thinkorm.connections.mysql', []);
 
-        $type = Db::getConfig('default', 'mysql');
-
-        $connections = Db::getConfig('connections');
-
-        $config = $connections[$type] ?? [];
-
-        if (empty($config) || empty($config['database'])) {
+        if (empty($config['database']) || empty($config['username']) || empty($config['password'])) {
             return [];
         }
 
-        if ($config['database'] == '' && $config['username'] == 'root' && $config['password'] == '') {
+        if ($config['database'] == 'test' && $config['username'] == 'root' && $config['password'] == '123456') {
             return [];
         }
 
-        if ($config['database'] == 'test' && $config['username'] == 'username' && $config['password'] == 'password') {
+        if ($config['database'] == 'database' && $config['username'] == 'username' && $config['password'] == 'password') {
             return [];
         }
 

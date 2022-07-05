@@ -6,6 +6,7 @@ use think\Model;
 use tpext\think\App;
 use think\facade\Cache;
 use tpext\common\ExtLoader;
+use think\db\exception\DbException;
 
 class WebConfig extends Model
 {
@@ -27,8 +28,14 @@ class WebConfig extends Model
             return $cache;
         }
 
-        $theConfig = static::where(['key' => $configKey])->find();
-        if (!$theConfig) {
+        $theConfig = [];
+
+        try {
+            $theConfig = static::where(['key' => $configKey])->find();
+            if (!$theConfig) {
+                return [];
+            }
+        } catch (DbException $e) {
             return [];
         }
 
