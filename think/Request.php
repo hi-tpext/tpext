@@ -325,7 +325,7 @@ class Request extends \support\Request
             return $this->_only($name, $this->param, $filter);
         }
 
-        return $this->_input($$this->param, $name, $default, $filter);
+        return $this->_input($this->param, $name, $default, $filter);
     }
 
     /**

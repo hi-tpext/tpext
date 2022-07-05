@@ -240,10 +240,6 @@ class ExtLoader
                 self::trigger('tpext_extension_loaded_' . $k);
             }
         }
-
-        $routeLoader = new RouteLoader;
-
-        $routeLoader->load();
     }
 
     /**
@@ -403,5 +399,20 @@ class ExtLoader
             self::$resources = [];
             self::$bindModules = [];
         }
+    }
+
+    /**
+     * 平滑重启webman
+     *
+     * @param string $desc
+     * @return void
+     */
+    public static function reloadWebman($desc = '')
+    {
+        if ($desc) {
+            echo $desc . "\n";
+        }
+
+        RouteLoader::load(true); //以重新生成路由的方式触发重启
     }
 }

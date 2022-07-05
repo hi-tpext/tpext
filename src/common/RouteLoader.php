@@ -10,17 +10,19 @@ use think\helper\Str;
 
 class RouteLoader
 {
-    public function load($focusWrite = false)
+    public static function load($focusWrite = false)
     {
         $bindModules = ExtLoader::getBindModules();
 
+        $routesGroup = [];
+        
         foreach ($bindModules as $key => $moduleInfo) {
 
             foreach ($moduleInfo as $mod) {
 
                 foreach ($mod['controllers'] as $controller) {
 
-                    $routes = $this->matchModule($mod, $key, $controller);
+                    $routes = self::matchModule($mod, $key, $controller);
 
                     if (!empty($routes)) {
                         $routesGroup[$key][$controller] = $routes;
@@ -29,7 +31,7 @@ class RouteLoader
             }
         }
 
-        $this->witeToFile($routesGroup, $focusWrite);
+        self::witeToFile($routesGroup, $focusWrite);
     }
 
     /**
@@ -39,11 +41,11 @@ class RouteLoader
      * @param boolean $focusWrite
      * @return void
      */
-    protected function witeToFile($routesGroup, $focusWrite)
+    protected static function witeToFile($routesGroup, $focusWrite)
     {
         $routeFile = config_path() . '/plugin/tpext/core/route.php';
 
-        if (is_file($routeFile) && time() - filemtime($routeFile) < 5 && !$focusWrite) {
+        if (is_file($routeFile) && time() - filemtime($routeFile) < 300 && !$focusWrite) {
             return;
         }
 
@@ -92,7 +94,7 @@ class RouteLoader
      * @param string $controller
      * @return array
      */
-    public function matchModule($mod, $module, $controller)
+    public static function matchModule($mod, $module, $controller)
     {
         $namespaceMap = $mod['namespace_map'];
 
@@ -116,13 +118,13 @@ class RouteLoader
 
         $reflectionAppClass = null;
 
-        $appClassExists = $this->appClassExists($module, $controller);
+        $appClassExists = self::appClassExists($module, $controller);
 
         if ($appClassExists) {
             $reflectionAppClass = new \ReflectionClass($appClassExists);
         }
 
-        $methods = $this->getMethods($reflectionClass);
+        $methods = self::getMethods($reflectionClass);
 
         $routes = [];
 
@@ -151,7 +153,7 @@ class RouteLoader
         return $routes;
     }
 
-    public function appClassExists($module, $controller)
+    public static function appClassExists($module, $controller)
     {
         $suffix = config('app.controller_suffix', '');
 
@@ -170,11 +172,11 @@ class RouteLoader
         return false;
     }
 
-    private function getMethods($reflection)
+    protected static function getMethods($reflection)
     {
         $methods = [];
         foreach ($reflection->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->class == $reflection->getName() && !in_array($method->name, ['__construct', '_initialize', 'initialize'])) {
+            if ($method->class == $reflection->getName() && !in_array(strtolower($method->name), ['_tpextinit', '_tpextdeinit', '__construct', '_initialize', 'initialize'])) {
                 $methods[] = $method;
             }
         }

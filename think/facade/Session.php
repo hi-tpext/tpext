@@ -29,11 +29,7 @@ class Session
      */
     public static function getInstance()
     {
-        if (!self::$instance) {
-            self::$instance = request()->session();
-        }
-
-        return self::$instance;
+        return request()->session();
     }
 
     /**

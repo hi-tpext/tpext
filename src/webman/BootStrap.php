@@ -3,6 +3,7 @@
 namespace tpext\webman;
 
 use tpext\common\ExtLoader;
+use tpext\common\RouteLoader;
 
 class BootStrap implements \Webman\Bootstrap
 {
@@ -13,7 +14,10 @@ class BootStrap implements \Webman\Bootstrap
         }
 
         ExtLoader::bindExtensions();
+        RouteLoader::load();
+
         ExtLoader::trigger('tpext_modules_loaded');
+        
         static::composer();
     }
 

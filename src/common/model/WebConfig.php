@@ -16,6 +16,7 @@ class WebConfig extends Model
         Cache::set('web_config_' . $configKey, null);
         ExtLoader::trigger('clear_cache_web_config_' . $configKey);
         ExtLoader::trigger('clear_cache_web_config', $configKey);
+        ExtLoader::reloadWebman($configKey . ' config updated, reload.'); //触发平滑重启
     }
 
     public static function config($configKey, $reget = false)
@@ -56,16 +57,6 @@ class WebConfig extends Model
         }
         if (!empty($values)) {
             Cache::set('web_config_' . $configKey, $values);
-
-            $extensions = ExtLoader::getExtensions();
-
-            foreach ($extensions as $key => $instance) {
-
-                if ($instance->getId() == $configKey) {
-                    $instance->setConfig($values);
-                    break;
-                }
-            }
         }
 
         return $values;

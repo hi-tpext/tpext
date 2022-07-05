@@ -2,9 +2,6 @@
 
 namespace tpext\common;
 
-use think\facade\Request;
-use think\facade\View;
-
 class Module extends Extension
 {
     public static $current = '';
@@ -67,11 +64,6 @@ class Module extends Extension
             ExtLoader::trigger('tpext_menus', ['create', $this->getId(), $this->menus]);
         }
 
-        if (!empty($this->modules)) {
-            $routeLoader = new RouteLoader;
-            $routeLoader->load(true);
-        }
-
         return $success;
     }
 
@@ -88,11 +80,6 @@ class Module extends Extension
         if ($success && !empty($this->menus)) {
 
             ExtLoader::trigger('tpext_menus', ['delete', $this->getId(), $this->menus]);
-        }
-
-        if (!empty($this->modules)) {
-            $routeLoader = new RouteLoader;
-            $routeLoader->load(true);
         }
 
         return $success;
@@ -116,21 +103,6 @@ class Module extends Extension
 
     public function pubblish()
     {
-        $name = $this->assetsDirName();
-
-        $base_file = Request::baseFile();
-
-        $base_dir = substr($base_file, 0, strripos($base_file, '/') + 1);
-
-        $PUBLIC_PATH = $base_dir;
-
-        View::config(['tpl_replace_string' => [
-            '__ASSETS__' => $PUBLIC_PATH . 'assets',
-            '__M_NAME__' => $name,
-            '__MODULE__' => $PUBLIC_PATH . 'assets/' . $name,
-            strtoupper('__' . $name . '__') => $PUBLIC_PATH . 'assets/' . $name,
-        ]]);
-
-        static::$current = $this->getId();
+        
     }
 }
