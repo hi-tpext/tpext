@@ -337,6 +337,8 @@ abstract class Extension
      */
     public function install()
     {
+        $this->errors = [];
+        
         $sqlFile = $this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql';
 
         $success = true;
@@ -409,6 +411,8 @@ abstract class Extension
      */
     public function uninstall($runSql = true)
     {
+        $this->errors = [];
+
         $sqlFile = $this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'uninstall.sql';
 
         $success = true;
@@ -440,6 +444,8 @@ abstract class Extension
      */
     public function upgrade()
     {
+        $this->errors = [];
+
         $ekey = get_called_class();
 
         $extension = ExtensionModel::where(['key' => $ekey])->find();
