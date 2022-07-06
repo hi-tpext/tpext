@@ -55,9 +55,9 @@ if (!function_exists('input')) {
         }
 
         if (isset($has)) {
-            return request()->has($key, $method, $default);
+            return tpRequest()->has($key, $method, $default);
         } else {
-            return request()->$method($key, $default, $filter);
+            return tpRequest()->$method($key, $default, $filter);
         }
     }
 }
@@ -114,7 +114,7 @@ if (!function_exists('download')) {
 }
 
 
-if (!function_exists('tprequest')) {
+if (!function_exists('tpRequest')) {
     /**
      * @return Request
      */
