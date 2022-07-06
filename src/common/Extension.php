@@ -397,8 +397,6 @@ abstract class Extension
         ExtLoader::clearCache(true);
         ExtLoader::getInstalled(true);
         ExtLoader::bindExtensions();
-        RouteLoader::load(true); //重新生成路由，触发重启
-        echo 'reload for extension [' . $this->getName() . "]\n";
 
         return $success;
     }
@@ -431,8 +429,6 @@ abstract class Extension
         ExtLoader::clearCache(true);
         ExtLoader::getInstalled(true);
         ExtLoader::bindExtensions();
-        RouteLoader::load(true); //重新生成路由，触发重启
-        echo 'reload for extension [' . $this->getName() . "]\n";
 
         return $success;
     }
@@ -475,8 +471,6 @@ abstract class Extension
         ExtLoader::clearCache(true);
         ExtLoader::getInstalled(true);
         ExtLoader::bindExtensions();
-        RouteLoader::load(true); //重新生成路由，触发重启
-        echo 'reload for extension [' . $this->getName() . "]\n";
 
         return true;
     }
@@ -564,8 +558,9 @@ abstract class Extension
      */
     public function enabled($state)
     {
-        ExtLoader::clearCache();
+        ExtLoader::clearCache(true);
         ExtLoader::getInstalled(true);
+        ExtLoader::bindExtensions();
 
         return true;
     }

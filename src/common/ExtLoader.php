@@ -404,10 +404,30 @@ class ExtLoader
      */
     public static function reloadWebman($desc = '')
     {
+        $appFile = config_path() . '/plugin/tpext/core/app.php';
+
+        if (!is_dir(config_path() . '/plugin/tpext/core/')) {
+            mkdir(config_path() . '/plugin/tpext/core/', '0777', true);
+        }
+
+        $lines = [];
+
+        $lines[] = '<?php';
+        $lines[] = '';
+        $lines[] = '/**';
+        $lines[] = ' *tpext 自动生成，请不要手动修改.';
+        $lines[] = ' *时间:' . date('Y-m-d H:i:s');
+        $lines[] = ' */';
+        $lines[] = '';
+        $lines[] = 'return [';
+        $lines[] = '    \'enable\' => true,';
+        $lines[] = '];';
+        $lines[] = '';
+
+        file_put_contents($appFile, implode(PHP_EOL, $lines));
+
         if ($desc) {
             echo $desc . "\n";
         }
-
-        RouteLoader::load(true); //以重新生成路由的方式触发重启
     }
 }

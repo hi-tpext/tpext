@@ -64,6 +64,11 @@ class Module extends Extension
             ExtLoader::trigger('tpext_menus', ['create', $this->getId(), $this->menus]);
         }
 
+        if ($success && !empty($this->modules)) {
+            RouteLoader::load(true); //重新生成路由，触发重启
+            echo 'reload for module [' . $this->getName() . "]\n";
+        }
+
         return $success;
     }
 
@@ -82,6 +87,23 @@ class Module extends Extension
             ExtLoader::trigger('tpext_menus', ['delete', $this->getId(), $this->menus]);
         }
 
+        if ($success && !empty($this->modules)) {
+            RouteLoader::load(true); //重新生成路由，触发重启
+            echo 'reload for module [' . $this->getName() . "]\n";
+        }
+
+        return $success;
+    }
+
+    public function upgrade()
+    {
+        $success = parent::upgrade();
+
+        if ($success && !empty($this->modules)) {
+            RouteLoader::load(true); //重新生成路由，触发重启
+            echo 'reload for module [' . $this->getName() . "]\n";
+        }
+
         return $success;
     }
 
@@ -93,16 +115,22 @@ class Module extends Extension
      */
     public function enabled($state)
     {
-        if (!empty($this->menus)) {
+        $success = parent::enabled($state);
+
+        if ($success && !empty($this->menus)) {
 
             ExtLoader::trigger('tpext_menus', [$state ? 'enable' : 'disable', $this->getId(), $this->menus]);
         }
 
-        return parent::enabled($state);
+        if ($success && !empty($this->modules)) {
+            RouteLoader::load(true); //重新生成路由，触发重启
+            echo 'reload for module [' . $this->getName() . "]\n";
+        }
+
+        return $success;
     }
 
     public function pubblish()
     {
-        
     }
 }
