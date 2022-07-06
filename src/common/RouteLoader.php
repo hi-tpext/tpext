@@ -45,7 +45,7 @@ class RouteLoader
     {
         $routeFile = config_path() . '/plugin/tpext/core/route.php';
 
-        if (is_file($routeFile) && time() - filemtime($routeFile) < 300 && !$focusWrite) {
+        if (is_file($routeFile) && time() - filemtime($routeFile) < 120 && !$focusWrite) {
             return;
         }
 
