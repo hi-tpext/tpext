@@ -25,12 +25,6 @@ class Install
 
         echo "use [\\think\\Request::class] as [request_class] in config/app.php\n";
 
-        $exceptionConfig = file_get_contents(config_path() . '/exception.php');
-
-        file_put_contents(config_path() . '/exception.php', preg_replace('/([\'\"][\'\"]\s*=>\s*)[\w\\\]+Handler::class/', '$1\\think\\exception\\ExceptionHandler::class', $exceptionConfig));
-
-        echo "use [\\think\\exception\\ExceptionHandler::class] as [handler] in config/exception.php\n";
-
         static::installByRelation();
     }
 
@@ -45,12 +39,6 @@ class Install
         file_put_contents(config_path() . '/app.php', preg_replace('/([\'\"]request_class[\'\"]\s*=>\s*)[\w\\\]+::class/', '$1\\support\\Request::class', $appConfig));
 
         echo "revert [\\support\\Request::class] as [request_class] in config/app.php\n";
-
-        $exceptionConfig = file_get_contents(config_path() . '/exception.php');
-
-        file_put_contents(config_path() . '/exception.php', preg_replace('/([\'\"][\'\"]\s*=>\s*)[\w\\\]+Handler::class/', '$1\\support\\exception\\Handler::class', $exceptionConfig));
-
-        echo "revert [\\support\\exception\\Handler::class] as [handler] in config/exception.php\n";
 
         self::uninstallByRelation();
     }
