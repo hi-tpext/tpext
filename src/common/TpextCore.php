@@ -12,5 +12,5 @@ class TpextCore extends Module
 
     protected $description = '扩展核心支持';
 
-    protected $__root__ = __DIR__ . '/../../';
+    protected $root = __DIR__ . '/../../';
 }
