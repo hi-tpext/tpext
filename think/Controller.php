@@ -132,39 +132,9 @@ abstract class Controller
      */
     protected function fetch(string $template = '', $vars = [])
     {
-        if (empty($template)) {
-            $template = basename(request()->controller) . DIRECTORY_SEPARATOR . request()->action;
-        }
-
-        if ('' == pathinfo($template, PATHINFO_EXTENSION)) {
-            // 获取模板文件名
-            $template = $this->parseTemplate($template);
-        }
-
         $view = new View($template, array_merge($this->vars, $vars));
 
         return new Response(200, [], $view->getContent());
-    }
-
-    /**
-     * Undocumented function
-     *
-     * @param string $template
-     * @return string
-     */
-    private function parseTemplate(string $template)
-    {
-        $class = get_called_class();
-        $reflect = new \ReflectionClass($class);      //所要查询的类名 
-        $file = str_replace(['\\', '/'], DIRECTORY_SEPARATOR, $reflect->getFileName());
-        $arr = explode('controller', $file);
-
-        if (strpos($template, '/') === false && strpos($template, '\\') === false) {
-            $template = strtolower(rtrim($arr[1], '.php')) . DIRECTORY_SEPARATOR . $template;
-        }
-
-        $viewPath = $arr[0] . 'view' . DIRECTORY_SEPARATOR;
-        return $viewPath . ltrim($template, DIRECTORY_SEPARATOR) . '.html';
     }
 
     /**
