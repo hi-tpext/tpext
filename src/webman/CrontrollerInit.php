@@ -38,16 +38,17 @@ class CrontrollerInit implements MiddlewareInterface
 
             $response = $next($request);
 
-            if (($exception = $response->exception()) && ($exception instanceof HttpResponseException)) {
-                return $exception->getResponse();
-            }
-
             if (method_exists($instance, '_tpextdeinit')) {
                 $deinitResp = $instance->_tpextdeinit($request, $response);
                 if ($deinitResp && $deinitResp instanceof Response) {
                     return $deinitResp;
                 }
             }
+
+            if (($exception = $response->exception()) && ($exception instanceof HttpResponseException)) {
+                return $exception->getResponse();
+            }
+
             return $response;
         }
 

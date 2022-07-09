@@ -57,14 +57,14 @@ abstract class Controller
      * Undocumented function
      *
      * @param Request $request
-     * @return void
+     * @return void|Response
      */
     public function _tpextinit($request)
     {
         $this->request = $request;
         $this->request->decode();
+        $this->destroyBuilder();
         $this->initialize();
-        self::$dispatchJumpTemplate = '';
     }
 
     /**
@@ -72,11 +72,16 @@ abstract class Controller
      *
      * @param Request $request
      * @param Response $response
-     * @return void
+     * @return void|Response
      */
     public function _tpextdeinit($request, $response)
     {
         $this->destroyBuilder();
+        $this->request = null;
+        self::$dispatchJumpTemplate = '';
+        $this->batchValidate = false;
+        $this->vars = [];
+        View::clearShareVars();
     }
 
     /**

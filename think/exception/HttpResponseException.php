@@ -13,11 +13,11 @@ declare (strict_types = 1);
 namespace think\exception;
 
 use Webman\Http\Response;
-
+use support\exception\BusinessException;
 /**
  * HTTP响应异常
  */
-class HttpResponseException extends \RuntimeException
+class HttpResponseException extends BusinessException
 {
     /**
      * @var Response
