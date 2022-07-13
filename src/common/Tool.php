@@ -18,7 +18,7 @@ class Tool
         }
 
         if (!is_dir($src)) {
-            throw new \InvalidArgumentException('传入的不是一个目录:' . $src);
+            trace('传入的不是一个目录:' . $src);
             return false;
         }
 

@@ -10,13 +10,24 @@ abstract class Extension
 {
     protected static $extensions = [];
 
-    protected $version = '1.0.1';
-
     protected $__root__ = null;
 
     protected $__ID__ = null;
 
-    protected $root = null;
+    protected $__config__ = null;
+
+    protected $__config_path__ = null;
+
+    protected $errors = [];
+
+    /***以下为需要设置的字段***/
+
+    /**
+     * 版本号，不必每次调整都修改。一般在[assets]静态资源、[data]数据脚本更新后修改版本号。
+     *
+     * @var string
+     */
+    protected $version = '1.0.1';
 
     /**
      * 扩展包类型:extend|composer
@@ -54,6 +65,13 @@ abstract class Extension
     protected $description = '未填写';
 
     /**
+     * 扩展根目录
+     *
+     * @var string
+     */
+    protected $root = null; // 请设置 如: __DIR__ . '/../../'
+
+    /**
      * css\js资源路径
      * @var string
      */
@@ -65,10 +83,6 @@ abstract class Extension
      * @var array
      */
     protected $namespaceMap = [];
-
-    protected $config = null;
-
-    protected $errors = [];
 
     /**
      * 版本列表，列出所有存在过的版本，即使没有升级脚本也要列出
@@ -137,6 +151,16 @@ abstract class Extension
 
     final public function getNameSpaceMap()
     {
+        if (empty($this->namespaceMap)) {
+            if ($this->isExtend()) {
+                $path = $this->getRoot();
+                $namespace = trim(str_replace(App::getRootPath() . 'extend', '', $path), DIRECTORY_SEPARATOR);
+                $this->namespaceMap = [str_replace('/', '\\', $namespace), $path];
+            } else {
+                $this->namespaceMap = Tool::getNameSpaceMap(get_called_class());
+            }
+        }
+
         return $this->namespaceMap;
     }
 
@@ -246,11 +270,17 @@ abstract class Extension
      */
     public function configPath()
     {
-        if ($this->isComposer()) { //默认约定，composer包的配置文件放在扩展src/目录下
-            return $this->getRoot() . 'src' . DIRECTORY_SEPARATOR . 'config.php';
+        if (!$this->__config_path__) {
+            if (is_file($this->getRoot() . 'config.php')) {
+                $this->__config_path__ = $this->getRoot() . 'config.php';
+            } else {
+                //composer包，可能为src目录下
+                //建议composer包取消src目录，代码直接放在扩展根目录，可以同时支持composer和extend两种模式
+                $this->__config_path__ = $this->getRoot() . 'src' . DIRECTORY_SEPARATOR . 'config.php';
+            }
         }
 
-        return $this->getRoot() . 'config.php'; //默认约定，extend包的配置文件放在扩展根目录下
+        return $this->__config_path__;
     }
 
     /**
@@ -284,20 +314,20 @@ abstract class Extension
      */
     final public function getConfig()
     {
-        if ($this->config === null) {
+        if ($this->__config__ === null) {
 
             $defaultConfig = $this->defaultConfig();
 
-            $this->config = $defaultConfig;
+            $this->__config__ = $defaultConfig;
 
             $saved = WebConfig::config($this->getId());
 
             if (!empty($saved)) {
-                $this->config =  array_merge($this->config, $saved);
+                $this->__config__ =  array_merge($this->__config__, $saved);
             }
         }
 
-        return $this->config;
+        return $this->__config__;
     }
 
     /**
@@ -325,9 +355,9 @@ abstract class Extension
      */
     final public function setConfig($data = [])
     {
-        $this->config = array_merge($this->getConfig(), $data);
+        $this->__config__ = array_merge($this->getConfig(), $data);
 
-        return $this->config;
+        return $this->__config__;
     }
 
     /**
