@@ -247,9 +247,6 @@ abstract class Controller
 
         $response = null;
 
-        trace('getResponseType');
-        trace($this->getResponseType());
-
         if ($type == 'json') {
             $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE));
         } else {
