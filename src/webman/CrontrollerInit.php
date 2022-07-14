@@ -65,45 +65,4 @@ class CrontrollerInit implements MiddlewareInterface
 
         return $next($request);
     }
-
-    /**
-     * 操作错误跳转的快捷方法
-     * @access protected
-     * @param  mixed     $msg 提示信息
-     * @param  string    $url 跳转的URL地址
-     * @param  mixed     $data 返回的数据
-     * @param  integer   $wait 跳转等待时间
-     * @param  array     $header 发送的Header信息
-     * @return void
-     */
-    protected function error($msg = '', $url = null, $data = '', $wait = 3, $header = array())
-    {
-        $type = $this->getResponseType();
-
-        if (is_null($url)) {
-            $url = $type == 'json' ? '' : 'javascript:history.back(-1);';
-        } elseif ('' !== $url) {
-            $url = (string) $url;
-            $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : url($url)->__toString();
-        }
-
-        $result = [
-            'code' => 0,
-            'msg' => $msg,
-            'data' => $data,
-            'url' => $url,
-            'wait' => $wait,
-        ];
-
-        $response = null;
-
-        if ($type == 'json') {
-            $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE));
-        } else {
-            $view = new View(self::getDispatchJumpTemplate(), $result);
-            $response = new Response(200, $header, $view->getContent());
-        }
-
-        throw new HttpResponseException($response);
-    }
 }
