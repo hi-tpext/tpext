@@ -16,13 +16,6 @@ use Workerman\Protocols\Http\Session as BaseSession;
 class Session
 {
     /**
-     * Undocumented variable
-     *
-     * @var BaseSession
-     */
-    protected static  $instance;
-
-    /**
      * Undocumented function
      *
      * @return BaseSession

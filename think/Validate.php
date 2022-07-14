@@ -225,6 +225,8 @@ class Validate
      */
     public function __construct()
     {
+        $this->lang = new Lang();
+        
         if (!empty(static::$maker)) {
             foreach (static::$maker as $maker) {
                 call_user_func($maker, $this);
