@@ -117,6 +117,7 @@ class Request extends \support\Request
 
             if (isset($this->_data['post']['_method'])) {
                 $method = strtolower($this->_data['post']['_method']);
+                unset($this->_data['post']['_method']);
                 if (in_array($method, ['put', 'patch', 'delete'])) {
                     $this->method = strtoupper($method);
                 }
