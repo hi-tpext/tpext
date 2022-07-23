@@ -80,7 +80,7 @@ class RouteLoader
         }
 
         if (!is_dir(config_path() . '/plugin/tpext/core/')) {
-            mkdir(config_path() . '/plugin/tpext/core/', '0777', true);
+            mkdir(config_path() . '/plugin/tpext/core/', 0755, true);
         }
 
         file_put_contents($routeFile, implode(PHP_EOL, $lines));
