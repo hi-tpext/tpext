@@ -13,7 +13,7 @@ namespace think;
 
 use Workerman\Worker;
 
-class Request extends \support\Request
+class Request extends \Webman\Http\Request
 {
     protected $method = '';
 
@@ -39,6 +39,8 @@ class Request extends \support\Request
     protected $param = [];
 
     protected $routeParam = null;
+
+    protected $controllerName = '';
 
     public function decode()
     {
@@ -86,6 +88,20 @@ class Request extends \support\Request
 
         $this->server = $_SERVER;
         $this->request = $_REQUEST;
+
+        if ($this->route) {
+            $path = strtolower($this->route->getPath());
+            $explode = explode('/', trim($path, '/'));
+            $this->app = $explode[0] ?: 'index';
+            $this->controllerName  = $explode[1] ?? 'index';
+            $this->action  = $explode[2] ?? 'index';
+        } else {
+            $path = strtolower($this->path());
+            $explode = explode('/', trim($path, '/'));
+            $this->app = $explode[0] ?: 'index';
+            $this->controllerName  = $explode[1] ?? 'index';
+            $this->action  = $explode[2] ?? 'index';
+        }
     }
 
     /**
@@ -751,5 +767,41 @@ class Request extends \support\Request
     {
         $this->_data['post'] = array_merge($this->post(), $post);
         return $this;
+    }
+
+    /**
+     * 设置当前的操作名
+     * @access public
+     * @param  string $action 操作名
+     * @return $this
+     */
+    public function setAction(string $action)
+    {
+        $this->action = $action;
+        return $this;
+    }
+
+    /**
+     * 获取当前的控制器名
+     * @access public
+     * @param  bool $convert 转换为小写
+     * @return string
+     */
+    public function controller(bool $convert = false): string
+    {
+        $name = $this->controllerName ?: '';
+        return $convert ? strtolower($name) : $name;
+    }
+
+    /**
+     * 获取当前的操作名
+     * @access public
+     * @param  bool $convert 转换为小写
+     * @return string
+     */
+    public function action(bool $convert = false): string
+    {
+        $name = $this->action ?: '';
+        return $convert ? strtolower($name) : $name;
     }
 }

@@ -140,16 +140,16 @@ class View
 
         if ($request->route) {
             $requestPath = strtolower($request->route->getPath());
-            $explode = explode('/', ltrim($requestPath, '/'));
-            $module = !empty($explode[0]) ? $explode[0] : 'index';
-            $controller  = !empty($explode[1]) ? $explode[1] : 'index';
-            $action  = !empty($explode[2]) ? $explode[2] : 'index';
+            $explode = explode('/', trim($requestPath, '/'));
+            $module = $explode[0] ?: 'index';
+            $controller  = $explode[1] ?? 'index';
+            $action  = $explode[2] ?? 'index';
         } else {
             $requestPath = strtolower($request->path());
-            $explode = explode('/', ltrim($requestPath, '/'));
-            $module = !empty($explode[0]) ? $explode[0] : 'index';
-            $controller  = !empty($explode[1]) ? $explode[1] : 'index';
-            $action  = !empty($explode[2]) ? $explode[2] : 'index';
+            $explode = explode('/', trim($requestPath, '/'));
+            $module = $explode[0] ?: 'index';
+            $controller  = $explode[1] ?? 'index';
+            $action  = $explode[2] ?? 'index';
         }
 
         // 获取视图根目录

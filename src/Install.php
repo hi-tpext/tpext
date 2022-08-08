@@ -21,9 +21,15 @@ class Install
     {
         $appConfig = file_get_contents(config_path() . '/app.php');
 
-        file_put_contents(config_path() . '/app.php', preg_replace('/([\'\"]request_class[\'\"]\s*=>\s*)[\w\\\]+::class/', '$1\\think\\Request::class', $appConfig));
+        file_put_contents(config_path() . '/app.php', preg_replace('/([\'\"]request_class[\'\"]\s*=>\s*)[:\w\\\]+/i', '$1Request::class', $appConfig));
 
-        echo "use [\\think\\Request::class] as [request_class] in config/app.php\n";
+        echo "use [support\\Request::class] as [request_class] in config/app.php\n";
+
+        $request = file_get_contents(base_path() . '/support/Request.php');
+
+        file_put_contents(base_path() . '/support/Request.php', preg_replace('/(class\s+Request\s+extends\s+)[\w\\\]+/i', '$1\\think\\Request', $request));
+
+        echo "let [support\\Request] extends [\\think\\Request::class] in support/Request.php\n";
 
         static::installByRelation();
     }
@@ -34,11 +40,17 @@ class Install
      */
     public static function uninstall()
     {
-        $appConfig = file_get_contents(config_path() . '/app.php');
+        $appConfig = file_get_contents(base_path() . '/app.php');
 
-        file_put_contents(config_path() . '/app.php', preg_replace('/([\'\"]request_class[\'\"]\s*=>\s*)[\w\\\]+::class/', '$1\\support\\Request::class', $appConfig));
+        file_put_contents(base_path() . '/app.php', preg_replace('/(class\s+Request\s+extends\s+)[:\w\\\]+/i', '$1Request::class', $appConfig));
 
-        echo "revert [\\support\\Request::class] as [request_class] in config/app.php\n";
+        echo "use [support\\Request::class] as [request_class] in config/app.php\n";
+
+        $request = file_get_contents(base_path() . '/support/Request.php');
+
+        file_put_contents(base_path() . '/support/Request.php', preg_replace('/(class\s+Request\s+extends\s+)[\w\\\]+/i', '$1\\Webman\\Http\\Request', $request));
+
+        echo "let [support\\Request] extends [Webman\\Http\\Request::class] in support/Request.php\n";
 
         self::uninstallByRelation();
     }
