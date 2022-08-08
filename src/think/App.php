@@ -71,6 +71,6 @@ class App
      */
     public static function getDefaultLang()
     {
-        return config('lang.default_lang');
+        return config('lang.default_lang', 'zh-cn');
     }
 }

@@ -155,9 +155,7 @@ class RouteLoader
 
     public static function appClassExists($module, $controller)
     {
-        $suffix = config('app.controller_suffix', '');
-
-        $controller_class = "app\\{$module}\\controller\\$controller{$suffix}";
+        $controller_class = "app\\{$module}\\controller\\$controller";
 
         if (class_exists($controller_class)) {
             return $controller_class;
