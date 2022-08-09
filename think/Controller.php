@@ -3,8 +3,9 @@
 namespace think;
 
 use Webman\App;
-use think\Validate;
 use think\Request;
+use think\Validate;
+use think\helper\Str;
 use tpext\think\View;
 use Webman\Http\Response;
 use tpext\common\TpextCore;
@@ -64,7 +65,7 @@ abstract class Controller
         $this->request = $request;
         $this->request->decode();
         $this->destroyBuilder();
-        
+
         try {
             return $this->initialize();
         } catch (HttpResponseException $exception) {
@@ -109,7 +110,7 @@ abstract class Controller
                 // 支持场景
                 [$validate, $scene] = explode('.', $validate);
             }
-            $class = false !== strpos($validate, '\\') ? $validate : $this->app->parseClass('validate', $validate);
+            $class = false !== strpos($validate, '\\') ? $validate : $this->parseClass('validate', $validate);
             $v = new $class();
             if (!empty($scene)) {
                 $v->scene($scene);
@@ -130,7 +131,30 @@ abstract class Controller
         return true;
     }
 
-    /** tp5兼容 **/
+    /**
+     * 解析应用类的类名
+     * @access public
+     * @param string $layer 层名 controller model ...
+     * @param string $name  类名
+     * @return string
+     */
+    public function parseClass(string $layer, string $name): string
+    {
+        $name  = str_replace(['/', '.'], '\\', $name);
+        $array = explode('\\', $name);
+        $class = Str::studly(array_pop($array));
+        $path  = $array ? implode('\\', $array) . '\\' : '';
+
+        $arr = explode('controller', get_called_class());
+
+        if (class_exists($arr[0] . $layer . '\\' . $path . $class)) {
+            return $arr[0] . $layer . '\\' . $path . $class;
+        }
+
+        return 'app\\common\\' . $layer . '\\' . $path . $class;
+    }
+
+    /** tp兼容 **/
 
     /**
      * 渲染模板输出
