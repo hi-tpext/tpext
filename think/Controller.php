@@ -64,7 +64,12 @@ abstract class Controller
         $this->request = $request;
         $this->request->decode();
         $this->destroyBuilder();
-        $this->initialize();
+        
+        try {
+            return $this->initialize();
+        } catch (HttpResponseException $exception) {
+            return $exception->getResponse();
+        }
     }
 
     /**
