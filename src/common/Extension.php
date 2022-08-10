@@ -421,7 +421,7 @@ abstract class Extension
                 }
             }
         }
-        $this->copyAssets();
+        $this->copyAssets(true);
         ExtLoader::clearCache();
         ExtLoader::getInstalled(true);
 
@@ -489,7 +489,7 @@ abstract class Extension
 
         ExtensionModel::where(['key' => $ekey])->update(['version' => $this->version]);
 
-        $this->copyAssets();
+        $this->copyAssets(true);
         ExtLoader::clearCache();
         ExtLoader::getInstalled(true);
 
