@@ -17,6 +17,10 @@ use think\exception\HttpResponseException;
  */
 abstract class Controller
 {
+    protected $initializeResult = null;
+
+    protected $controller_reuse = false;
+
     protected $vars  = [];
 
     /**
@@ -33,7 +37,28 @@ abstract class Controller
 
     protected static $dispatchJumpTemplate = '';
 
-    // 初始化,兼容tp框架
+    public function __construct()
+    {
+        $this->controller_reuse = config('app.controller_reuse', true);
+
+        if ($this->controller_reuse) {
+            //
+        } else {
+            $this->request = tpRequest();
+            $this->request->decode();
+            try {
+                $this->initializeResult = $this->initialize();
+            } catch (HttpResponseException $exception) {
+                $this->initializeResult = $exception->getResponse();
+            }
+        }
+    }
+
+    /**
+     * 初始化,兼容tp框架
+     *
+     * @return void|Response
+     */
     protected function initialize()
     {
         //子类重写此方法
@@ -62,14 +87,17 @@ abstract class Controller
      */
     public function _tpextinit($request)
     {
-        $this->request = $request;
-        $this->request->decode();
-        $this->destroyBuilder();
-
-        try {
-            return $this->initialize();
-        } catch (HttpResponseException $exception) {
-            return $exception->getResponse();
+        if ($this->controller_reuse) {
+            $this->destroyBuilder();
+            $this->request = $request;
+            $this->request->decode();
+            try {
+                return $this->initialize();
+            } catch (HttpResponseException $exception) {
+                return $exception->getResponse();
+            }
+        } else {
+            return $this->initializeResult;
         }
     }
 
@@ -82,7 +110,10 @@ abstract class Controller
      */
     public function _tpextdeinit($request, $response)
     {
-        $this->destroyBuilder();
+        if ($this->controller_reuse) {
+            $this->destroyBuilder();
+        }
+
         $this->request = null;
         self::$dispatchJumpTemplate = '';
         $this->batchValidate = false;
