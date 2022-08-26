@@ -17,13 +17,6 @@ class View
     /**
      * Undocumented variable
      *
-     * @var \Webman\App\App;
-     */
-    protected $app;
-
-    /**
-     * Undocumented variable
-     *
      * @var Template
      */
     protected $engine;
