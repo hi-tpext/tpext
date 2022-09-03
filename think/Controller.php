@@ -17,9 +17,7 @@ use think\exception\HttpResponseException;
  */
 abstract class Controller
 {
-    protected $initializeResult = null;
-
-    protected $controller_reuse = false;
+    protected static $initializeResult = null;
 
     protected $vars  = [];
 
@@ -39,18 +37,12 @@ abstract class Controller
 
     public function __construct()
     {
-        $this->controller_reuse = config('app.controller_reuse', true);
+        $controller_reuse = config('app.controller_reuse', true);
 
-        if ($this->controller_reuse) {
-            //
-        } else {
+        if (!$controller_reuse) {
             $this->request = tpRequest();
             $this->request->decode();
-            try {
-                $this->initializeResult = $this->initialize();
-            } catch (HttpResponseException $exception) {
-                $this->initializeResult = $exception->getResponse();
-            }
+            self::$initializeResult = $this->initialize();
         }
     }
 
@@ -62,6 +54,11 @@ abstract class Controller
     protected function initialize()
     {
         //子类重写此方法
+    }
+
+    public static function getInitializeResult()
+    {
+        return self::$initializeResult;
     }
 
     public static function setDispatchJumpTemplate($template)
@@ -87,17 +84,13 @@ abstract class Controller
      */
     public function _tpextinit($request)
     {
-        if ($this->controller_reuse) {
-            $this->destroyBuilder();
-            $this->request = $request;
-            $this->request->decode();
-            try {
-                return $this->initialize();
-            } catch (HttpResponseException $exception) {
-                return $exception->getResponse();
-            }
-        } else {
-            return $this->initializeResult;
+        $this->destroyBuilder();
+        $this->request = $request;
+        $this->request->decode();
+        try {
+            return $this->initialize();
+        } catch (HttpResponseException $exception) {
+            return $exception->getResponse();
         }
     }
 
@@ -110,15 +103,11 @@ abstract class Controller
      */
     public function _tpextdeinit($request, $response)
     {
-        if ($this->controller_reuse) {
-            $this->destroyBuilder();
-        }
-
+        $this->destroyBuilder();
         $this->request = null;
         self::$dispatchJumpTemplate = '';
         $this->batchValidate = false;
         $this->vars = [];
-        View::clearShareVars();
     }
 
     /**
@@ -247,7 +236,7 @@ abstract class Controller
      * @param  array     $header 发送的Header信息
      * @return void
      */
-    protected function success($msg = '', $url = null, $data = '', $wait = 3, $header = array())
+    protected function success($msg = '', $url = null, $data = '', $wait = 3, $header = [])
     {
         if (is_null($url) && $referer = request()->header('REFERER')) {
             $url = $referer;
@@ -267,7 +256,7 @@ abstract class Controller
         $response = null;
 
         if ($this->getResponseType() == 'json') {
-            $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE));
+            $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         } else {
             $view = new View(self::getDispatchJumpTemplate(), $result);
             $response = new Response(200, $header, $view->getContent());
@@ -286,7 +275,7 @@ abstract class Controller
      * @param  array     $header 发送的Header信息
      * @return void
      */
-    protected function error($msg = '', $url = null, $data = '', $wait = 3, $header = array())
+    protected function error($msg = '', $url = null, $data = '', $wait = 3, $header = [])
     {
         $type = $this->getResponseType();
 
@@ -308,7 +297,7 @@ abstract class Controller
         $response = null;
 
         if ($type == 'json') {
-            $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE));
+            $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         } else {
             $view = new View(self::getDispatchJumpTemplate(), $result);
             $response = new Response(200, $header, $view->getContent());
@@ -339,7 +328,7 @@ abstract class Controller
         $response = null;
 
         if ($this->getResponseType() == 'json') {
-            $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE));
+            $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         } else {
 
             $view = new View(self::getDispatchJumpTemplate(), $result);
