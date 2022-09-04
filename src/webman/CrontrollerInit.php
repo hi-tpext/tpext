@@ -11,6 +11,7 @@ use Webman\Http\Response;
 use tpext\common\TpextCore;
 use Webman\MiddlewareInterface;
 use tpext\builder\common\Builder;
+use support\exception\BusinessException;
 use think\exception\HttpResponseException;
 
 /**
@@ -30,19 +31,21 @@ class CrontrollerInit implements MiddlewareInterface
                 return $exception->getResponse();
             }
 
-            if ($request->expectsJson()) {
-                $json = ['code' => 0, 'msg' => config('app.debug', true) ? '[' . $exception->getFile() . '#' . $exception->getLine() . ']' . $exception->getMessage() : 'Server internal error'];
-                return new Response(
-                    200,
-                    ['Content-Type' => 'application/json'],
-                    json_encode($json, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
-                );
-            } else {
-                return new Response(
-                    200,
-                    [],
-                    $this->renderExceptionContent($exception)
-                );
+            if (!($exception instanceof BusinessException)) {
+                if ($request->expectsJson()) {
+                    $json = ['code' => 0, 'msg' => config('app.debug', true) ? '[' . $exception->getFile() . '#' . $exception->getLine() . ']' . $exception->getMessage() : 'Server internal error'];
+                    return new Response(
+                        200,
+                        ['Content-Type' => 'application/json'],
+                        json_encode($json, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+                    );
+                } else {
+                    return new Response(
+                        200,
+                        [],
+                        $this->renderExceptionContent($exception)
+                    );
+                }
             }
         }
 
