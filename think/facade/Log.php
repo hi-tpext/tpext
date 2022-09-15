@@ -12,10 +12,6 @@ declare(strict_types=1);
 
 namespace think\facade;
 
-use think\Facade;
-use think\log\Channel;
-use think\log\ChannelSet;
-
 /**
  * @see \think\Log
  * @package think\facade
