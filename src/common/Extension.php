@@ -473,13 +473,8 @@ abstract class Extension
             return false;
         }
 
-        if ($extension['version'] == $this->version) {
-            $this->errors[] = new \Exception('新旧版本号一样');
-            return false;
-        }
-
-        if (version_compare($extension['version'], $this->version) == 1) {
-            $this->errors[] = new \Exception('新版本号低于原版本号' . "原：{$extension['version']},新：{$this->version}");
+        if (version_compare($extension['version'], $this->version) >= 0) {
+            $this->errors[] = new \Exception('新版本号不高于原版本号，' . "原：{$extension['version']}新：{$this->version}");
             return false;
         }
 
