@@ -30,14 +30,14 @@ class View
         'tpl_cache'     => true,
     ];
 
-    public function __construct($data = '', $vars = [])
+    public function __construct($data = '', $vars = [], $config = [])
     {
         $this->data = $data;
         $this->vars = $vars;
 
         $this->config['cache_path'] = App::getRuntimePath() . 'temp' . DIRECTORY_SEPARATOR;
 
-        $this->engine = new Template($this->config);
+        $this->engine = new Template(array_merge($this->config, $config));
         // $this->engine->setCache($this->app->cache);
     }
 
