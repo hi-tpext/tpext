@@ -37,7 +37,7 @@ class View extends Response
         'tpl_cache'     => true,
     ];
 
-    public function __construct($data = '', $vars = [])
+    public function __construct($data = '', $vars = [], $config = [])
     {
         $this->data = $data;
         $this->vars = $vars;
@@ -47,7 +47,7 @@ class View extends Response
         $this->config['cache_path'] = $this->app->getRuntimePath() . 'temp' . DIRECTORY_SEPARATOR;
         $this->config['view_path'] = $this->app->getAppPath() . 'view' . DIRECTORY_SEPARATOR;
 
-        $this->engine = new Template($this->config);
+        $this->engine = new Template(array_merge($this->config, $config));
         $this->engine->setCache($this->app->cache);
     }
 
