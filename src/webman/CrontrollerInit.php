@@ -49,6 +49,9 @@ class CrontrollerInit implements MiddlewareInterface
             }
         }
 
+        //php.ini中max_execution_time的值对cli环境无效，但可以在程序中是可以被修改并生效
+        @set_time_limit(0); //清除某些第三方库可能会设置超时不为0值对cli环境的影响
+
         return $response;
     }
 
