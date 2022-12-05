@@ -274,8 +274,6 @@ class AppRun
 
             $this->app->http->name('');
 
-            $this->app->config->set(['app_map' => [$url[0] => $url[0]]]);
-
             $this->app->request->setRoot('/' . $url[0]);
 
             $this->app->request->setPathinfo($url[0] . '/' . (strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : ''));
