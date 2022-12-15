@@ -178,7 +178,7 @@ abstract class Extension
     {
         $class = get_called_class();
 
-        if (!isset(self::$extensions[$class]) || !self::$extensions[$class] instanceof $class) {
+        if (!isset(self::$extensions[$class])) {
             $nstance = new static();
             $nstance->created();
             self::$extensions[$class] = $nstance;
