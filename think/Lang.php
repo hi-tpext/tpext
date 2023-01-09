@@ -8,7 +8,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace think;
 
@@ -68,11 +68,6 @@ class Lang
     {
         $this->config = array_merge($this->config, array_change_key_case($config));
         $this->range  = $this->config['default_lang'];
-
-        // 加载系统语言包
-        $this->load([
-            __DIR__ . DIRECTORY_SEPARATOR . 'lang' . DIRECTORY_SEPARATOR . $this->range . '.php',
-        ]);
     }
 
     /**
@@ -114,6 +109,33 @@ class Lang
     public function defaultLangSet()
     {
         return $this->config['default_lang'];
+    }
+
+    /**
+     * 切换语言
+     * @access public
+     * @param string $langset 语言
+     * @return void
+     */
+    public function switchLangSet(string $langset)
+    {
+        if (empty($langset)) {
+            return;
+        }
+
+        $this->setLangSet($langset);
+
+        // 加载系统语言包
+        $this->load([
+            __DIR__ . DIRECTORY_SEPARATOR . 'lang' . DIRECTORY_SEPARATOR . $this->range . '.php',
+        ]);
+
+        // 加载扩展（自定义）语言包
+        $list = $this->config['extend_list'];
+
+        if (isset($list[$langset])) {
+            $this->load($list[$langset]);
+        }
     }
 
     /**
@@ -207,6 +229,10 @@ class Lang
     public function get(string $name = null, array $vars = [], string $range = '')
     {
         $range = $range ?: $this->range;
+
+        if (!isset($this->lang[$range])) {
+            $this->switchLangSet($range);
+        }
 
         // 空参数返回所有定义
         if (is_null($name)) {
