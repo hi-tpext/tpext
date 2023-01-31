@@ -155,13 +155,7 @@ class RouteLoader
 
     public static function appClassExists($module, $controller)
     {
-        $controller_class = "app\\{$module}\\controller\\$controller";
-
-        if (class_exists($controller_class)) {
-            return $controller_class;
-        }
-
-        $controller_class = Str::studly($controller_class);
+        $controller_class = "app\\{$module}\\controller\\" . Str::studly($controller);
 
         if (class_exists($controller_class)) {
             return $controller_class;
