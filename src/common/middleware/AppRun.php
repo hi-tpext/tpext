@@ -78,7 +78,6 @@ class AppRun
         $module_bind = '';
 
         if ($this->name || ($scriptName && !in_array($scriptName, ['index', 'router', 'think']))) {
-
         } else {
             // 自动多应用识别
             $this->app->http->setBind(false);
@@ -167,94 +166,15 @@ class AppRun
 
         $result = explode('|', $url);
 
-        $extension = isset($result[0]) ? $result[0] : '';
+        $module = strip_tags(isset($result[0]) && !empty($result[0]) ? strtolower($result[0]) : config('app.default_app'));
+        $controller = strip_tags(isset($result[1]) && !empty($result[1]) ? $result[1] : config('route.default_controller'));
+        $action = strip_tags(isset($result[2]) && !empty($result[2]) ? $result[2] : config('route.default_action'));
 
-        $module = isset($result[1]) && !empty($result[1]) ? $result[1] : '';
+        $controller = Str::studly($controller);
 
-        $controller = isset($result[2]) && !empty($result[2]) ? $result[2] : '';
+        $matchMod = $this->matchModule($module, $controller, $action, false);
 
-        $action = isset($result[3]) && !empty($result[3]) ? $result[3] : '';
-
-        $extra = isset($result[4]) && !empty($result[4]) ? $result[4] : '';
-
-        $matchMod = null;
-
-        if (empty($module)) {
-            $module = config('route.default_controller');
-
-            $controller = config('route.default_action');
-
-            $url = [$extension, $module, $controller];
-        } else if (empty($controller)) {
-            $controller = config('route.default_action');
-
-            $url = [$extension, $module, $controller];
-        } else {
-            $url = $result;
-        }
-
-        if ($extension == 'ext' || ($bind && $module == 'ext')) {
-            //http://localhost/ext/home/hello/say/name/2334
-
-            if ($bind && $controller == $bind) {
-                unset($url[0]);
-
-                $url = array_values($url);
-
-                $matchMod = $this->matchModule($controller, $action, $extra, false);
-            } else {
-                $matchMod = $this->matchModule($module, $controller, $action, false);
-            }
-
-            array_shift($url);
-
-        } else {
-            $modules = ExtLoader::getModules();
-
-            foreach ($modules as $name => $intance) {
-
-                if (!class_exists($name)) {
-                    continue;
-                }
-
-                $name = $intance->getName();
-
-                if ($name == $extension || strtolower(preg_replace('/\W/', '', $name)) == $extension
-                    || ($bind && ($name == $module || strtolower(preg_replace('/\W/', '', $name)) == $module))) {
-
-                    //http://localhost/tpexthelloworldmodule/home/hello/say/name/2334
-                    if ($bind && $controller == $bind) {
-                        unset($url[0]);
-
-                        $url = array_values($url);
-
-                        $matchMod = $this->matchModule($controller, $action, $extra, true);
-                        if ($matchMod) {
-                            $this->app->request->setPathinfo("{$controller}/{$action}/{$extra}");
-                        }
-
-                    } else {
-                        $matchMod = $this->matchModule($module, $controller, $action, true);
-                        if ($matchMod) {
-                            $this->app->request->setPathinfo("{$module}/{$controller}/{$action}");
-                        }
-                    }
-
-                    array_shift($url);
-
-                    break;
-                }
-            }
-
-            if (!$matchMod) {
-
-                //http://localhost/home/hello/say/name/2334
-
-                $matchMod = $this->matchModule($extension, $module, $controller, false);
-            }
-        }
-
-        if (strtolower($url[0]) == 'admin') {
+        if ($module == 'admin') {
             $this->app->middleware->add(\think\middleware\SessionInit::class, 'app');
         }
 
@@ -262,27 +182,29 @@ class AppRun
 
             $path = $this->app->request->pathinfo();
 
-            $this->app->setAppPath($matchMod['rootPath'] . DIRECTORY_SEPARATOR . $url[0]);
+            $this->app->setAppPath($matchMod['rootPath'] . DIRECTORY_SEPARATOR . $module);
 
-            $this->app->http->path($matchMod['rootPath'] . DIRECTORY_SEPARATOR . $url[0]);
+            $this->app->http->path($matchMod['rootPath'] . DIRECTORY_SEPARATOR . $module);
 
             if (is_file($matchMod['rootPath'] . DIRECTORY_SEPARATOR . 'common.php')) {
                 include_once $matchMod['rootPath'] . DIRECTORY_SEPARATOR . 'common.php';
             }
 
-            $this->app->config->set(['app_namespace' => $matchMod['namespace'] . '\\' . strtolower($url[0])], 'app');
+            $this->app->config->set(['app_namespace' => $matchMod['namespace'] . '\\' . strtolower($module)], 'app');
 
             $this->app->http->name('');
 
-            $this->app->request->setRoot('/' . $url[0]);
+            $this->app->request->setRoot('/' . $module);
 
-            $this->app->request->setPathinfo($url[0] . '/' . (strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : ''));
+            $this->request->setController(Str::studly($controller))->setAction($action);
+
+            $this->app->request->setPathinfo($module . '/' . (strpos($path, '/') ? ltrim(strstr($path, '/'), '/') : ''));
 
             $instance = $matchMod['classname']::getInstance();
 
             $instance->extInit($matchMod);
 
-            ExtLoader::trigger('tpext_match_module', [$matchMod, $url[0]]);
+            ExtLoader::trigger('tpext_match_module', [$matchMod, $module]);
 
             return true;
         } else {
@@ -292,12 +214,6 @@ class AppRun
 
     private function matchModule($module, $controller, $action, $ext = true)
     {
-        $controller = $controller ? $controller : config('route.empty_controller');
-
-        $controller = Str::studly($controller);
-
-        $action = $action ? $action : config('route.default_action');
-
         $bindModules = ExtLoader::getBindModules();
 
         $matchMod = null;
@@ -352,7 +268,7 @@ class AppRun
 
         $url_controller_layer = 'controller';
 
-        $class = '\\' . $module . '\\' . $url_controller_layer . '\\' . Str::studly($controller);
+        $class = '\\' . $module . '\\' . $url_controller_layer . '\\' . $controller;
 
         if (!class_exists($namespace . $class)) {
             return null;
