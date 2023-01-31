@@ -5,10 +5,8 @@ namespace tpext\common;
 use think\Db;
 use think\App;
 use think\Loader;
-use think\helper\Str;
 use think\facade\Hook;
 use think\facade\Cache;
-use think\facade\Event;
 use tpext\common\model\Extension as ExtensionModel;
 
 class ExtLoader
@@ -161,11 +159,7 @@ class ExtLoader
             self::$watches[$name] = [];
         }
         self::$watches[$name][] = [$class, $desc, $first];
-        if (self::isTP51()) {
-            Hook::add($name, $class, $first);
-        } else {
-            Event::listen($name, $class, $first);
-        }
+        Hook::add($name, $class, $first);
     }
 
     /**
@@ -178,11 +172,7 @@ class ExtLoader
      */
     public static function trigger($name, $params = null, $once = false)
     {
-        if (self::isTP51()) {
-            Hook::listen($name, $params, $once);
-        } else {
-            Event::trigger($name, $params, $once);
-        }
+        Hook::listen($name, $params, $once);
     }
 
     /**
@@ -307,11 +297,7 @@ class ExtLoader
                         foreach ($mods as $key => $controllers) {
 
                             $controllers = array_map(function ($val) {
-                                if (self::getTpVer() == 5) {
-                                    return Loader::parseName($val);
-                                } else {
-                                    return Str::studly($val);
-                                }
+                                return Loader::parseName($val, 1);
                             }, $controllers);
 
                             self::$bindModules[strtolower($key)][] = [

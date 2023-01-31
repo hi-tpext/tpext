@@ -5,9 +5,9 @@ namespace tpext\common\behavior;
 use think\facade\App;
 use think\facade\Route;
 use think\Loader;
-use think\route\dispatch\Url;
 use tpext\common\ExtLoader;
 use tpext\common\Tool;
+use think\route\dispatch\Url as UrlDispatch;
 
 /**
  * for tp5
@@ -19,14 +19,18 @@ class AppDispatch
     {
         $dispatch = App::routeCheck();
 
-        if ($dispatch instanceof Url) {
+        if ($dispatch instanceof UrlDispatch) {
 
             $url = $dispatch->getDispatch();
 
             if (is_string($url)) {
 
                 $this->cherckModule($url, $dispatch);
+            } else {
+                App::dispatch($dispatch->init());
             }
+        } else {
+            App::dispatch($dispatch->init());
         }
     }
 
@@ -47,98 +51,33 @@ class AppDispatch
 
         $result = explode('|', $url);
 
-        $extension = isset($result[0]) ? $result[0] : '';
+        if (count($result) <= 3) {
+            $module = isset($result[0]) && !empty($result[0]) ? $result[0] : config('default_module');
+            $controller = isset($result[1]) && !empty($result[1]) ? $result[1] : config('default_controller');
+            $action = isset($result[2]) && !empty($result[2]) ? $result[2] : config('default_action');
 
-        $module = isset($result[1]) && !empty($result[1]) ? $result[1] : '';
-
-        $controller = isset($result[2]) && !empty($result[2]) ? $result[2] : '';
-
-        $action = isset($result[3]) && !empty($result[3]) ? $result[3] : '';
-
-        $extra = isset($result[4]) && !empty($result[4]) ? $result[4] : '';
-
-        $matchMod = null;
-
-        if (empty($module)) {
-            $module = config('default_controller');
-
-            $controller = config('default_action');
-
-            $url = [$extension, $module, $controller];
-        } else if (empty($controller)) {
-            $controller = config('default_action');
-
-            $url = [$extension, $module, $controller];
+            $result = [$module, $controller, $action];
         } else {
-            $url = $result;
+            [$module, $controller, $action] = $result;
         }
 
-        if ($extension == 'ext' || ($bind && $module == 'ext')) {
-            //http://localhost/ext/home/hello/say/name/2334
+        $module = strip_tags($module);
+        $controller = Loader::parseName(strip_tags($controller), 1);
+        $action = strip_tags($action);
 
-            if ($bind && $controller == $bind) {
-                unset($url[0]);
-
-                $url = array_values($url);
-
-                $matchMod = $this->matchModule($controller, $action, $extra, false);
-            } else {
-                $matchMod = $this->matchModule($module, $controller, $action, false);
-            }
-
-            array_shift($url);
-
-        } else {
-            $modules = ExtLoader::getModules();
-
-            foreach ($modules as $name => $intance) {
-
-                if (!class_exists($name)) {
-                    continue;
-                }
-
-                $name = $intance->getName();
-
-                if ($name == $extension || strtolower(preg_replace('/\W/', '', $name)) == $extension
-                    || ($bind && ($name == $module || strtolower(preg_replace('/\W/', '', $name)) == $module))) {
-
-                    //http://localhost/tpexthelloworldmodule/home/hello/say/name/2334
-                    if ($bind && $controller == $bind) {
-                        unset($url[0]);
-
-                        $url = array_values($url);
-
-                        $matchMod = $this->matchModule($controller, $action, $extra, true);
-                    } else {
-                        $matchMod = $this->matchModule($module, $controller, $action, true);
-                    }
-
-                    array_shift($url);
-
-                    break;
-                }
-            }
-
-            if (!$matchMod) {
-
-                //http://localhost/home/hello/say/name/2334
-
-                $matchMod = $this->matchModule($extension, $module, $controller, false);
-            }
-        }
+        $matchMod = $this->matchModule($module, $controller, $action, false);
 
         if ($matchMod) {
 
-            $pathinfo_depr = config('app.pathinfo_depr');
-
             if ($bind) {
-                array_shift($url);
-                $urlDispatch = implode($pathinfo_depr, $url);
-            } else {
-                $urlDispatch = implode($pathinfo_depr, $url);
+                array_shift($result);
             }
 
-            $newDispatch = Route::check($urlDispatch, false);
+            $urlDispatch = implode('|', $result);
+
+            $newDispatch  = new UrlDispatch(app('request'), Route::getGroup(), $urlDispatch, [
+                'auto_search' => true,
+            ]);
 
             App::path($matchMod['rootPath']);
 
@@ -150,7 +89,7 @@ class AppDispatch
 
             $instance->extInit($matchMod);
 
-            ExtLoader::trigger('tpext_match_module', [$matchMod, $url[0]]);
+            ExtLoader::trigger('tpext_match_module', [$matchMod, $module]);
 
             App::dispatch($newDispatch->init());
         } else {
@@ -160,12 +99,6 @@ class AppDispatch
 
     private function matchModule($module, $controller, $action, $ext = true)
     {
-        $controller = $controller ? $controller : config('app.empty_controller');
-
-        $controller = Loader::parseName($controller);
-
-        $action = $action ? $action : config('app.default_action');
-
         $bindModules = ExtLoader::getBindModules();
 
         $matchMod = null;
@@ -220,7 +153,7 @@ class AppDispatch
 
         $url_controller_layer = 'controller';
 
-        $class = '\\' . $module . '\\' . $url_controller_layer . '\\' . Loader::parseName($controller, 1);
+        $class = '\\' . $module . '\\' . $url_controller_layer . '\\' . $controller;
 
         if (!class_exists($namespace . $class)) {
             return null;
