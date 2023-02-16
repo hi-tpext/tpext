@@ -510,9 +510,9 @@ class Request extends \Webman\Http\Request
      * @param  string        $type 变量类型
      * @return mixed
      */
-    public function only(array $name, $data = 'param', $filter = '')
+    public function only(array $name): array
     {
-        return $this->_only($name, $data, $filter);
+        return $this->_only($name, $this->param());
     }
 
     protected function _input(array $data = [], $name = '', $default = null, $filter = '')
@@ -720,10 +720,11 @@ class Request extends \Webman\Http\Request
      * @param  bool $complete 是否包含完整域名
      * @return string
      */
-    public function url(bool $complete = false)
+    public function url(): string
     {
-        return $complete ? parent::fullUrl() : parent::url();
+        return parent::url();
     }
+    
     /**
      * 当前请求 HTTP_CONTENT_TYPE
      * @access public
