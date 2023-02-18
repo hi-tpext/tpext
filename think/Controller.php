@@ -2,7 +2,6 @@
 
 namespace think;
 
-use Webman\App;
 use think\Request;
 use think\Validate;
 use think\helper\Str;
@@ -344,37 +343,18 @@ abstract class Controller
      * @param  string         $url 跳转的URL表达式
      * @param  array|integer  $params 其它URL参数
      * @param  integer        $code http code
+     * @param  array          $header 其它header参数
      * @return void
      */
-    protected function redirect($url, $params = [], $code = 302)
+    protected function redirect($url, $params = [], $code = 302, $header = [])
     {
         $response = new Response($code, ['Location' => $url . ($params ? '?' . http_build_query($params) : '')]);
-        if (!empty($headers)) {
-            $response->withHeaders($headers);
+        
+        if (!empty($header)) {
+            $response->withHeaders($header);
         }
 
-        $this->send($response);
-    }
-
-    /**
-     * Undocumented function
-     *
-     * @param Response $response
-     * @return void
-     */
-    protected function send($response)
-    {
-        $request = App::request();
-        $connection = App::connection();
-
-        $keep_alive = $request->header('connection');
-        if (($keep_alive === null && $request->protocolVersion() === '1.1')
-            || $keep_alive === 'keep-alive' || $keep_alive === 'Keep-Alive'
-        ) {
-            $connection->send($response);
-            return;
-        }
-        $connection->close($response);
+        throw new HttpResponseException($response);
     }
 
     /**
