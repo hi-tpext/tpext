@@ -3,7 +3,6 @@
 namespace tpext\think;
 
 use think\Template;
-use Webman\Http\Response;
 use think\helper\Str;
 
 class View
@@ -12,7 +11,12 @@ class View
     protected $vars = [];
     protected $content = null;
     protected $isContent = false;
-    protected $response = null;
+
+    /**
+     * 原始数据
+     * @var mixed
+     */
+    protected $data = [];
 
     /**
      * Undocumented variable
@@ -44,7 +48,7 @@ class View
     /**
      * 获取输出数据
      * @access public
-     * @return Response
+     * @return string
      */
     public function getContent()
     {
@@ -162,7 +166,7 @@ class View
                 $path = App::getRootPath() . $view_dir . DIRECTORY_SEPARATOR . $app . DIRECTORY_SEPARATOR;
             }
 
-            $this->template->view_path = $path;
+            $this->engine->view_path = $path;
         } else {
             $path = App::getRootPath()  . 'app' . DIRECTORY_SEPARATOR . $module . DIRECTORY_SEPARATOR . $view_dir . DIRECTORY_SEPARATOR;
         }

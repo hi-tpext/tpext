@@ -376,6 +376,11 @@ abstract class Controller
      */
     protected function destroyBuilder()
     {
+        if(method_exists($this,'_destroyBuilder'))
+        {
+            $this->_destroyBuilder();
+            return;
+        }
         if (isset($this->table)) {
             $this->table = null;
         }
@@ -404,6 +409,7 @@ abstract class Controller
             $this->isExporting = false;
 
             $this->indexWith = [];
+            $this->indexFieldsExcept = [];
             $this->postAllowFields = [];
             $this->delNotAllowed = [];
         }
