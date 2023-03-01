@@ -153,7 +153,7 @@ class View extends Response
                 $path = $this->app->getRootPath() . $view . DIRECTORY_SEPARATOR . $app . DIRECTORY_SEPARATOR;
             }
 
-            $this->template->view_path = $path;
+            $this->engine->view_path = $path;
         } else {
             $path = $this->config['view_path'];
         }
