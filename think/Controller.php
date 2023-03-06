@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace think;
 
 use think\App;
+use think\Container;
 use think\exception\ValidateException;
 use think\Response;
 use think\Validate;
@@ -277,9 +278,7 @@ abstract class Controller
 
         $response->code($code);
 
-        $response->send();
-        $this->app->http->end($response);
-        exit;
+        throw new HttpResponseException($response);
     }
 
     /**
