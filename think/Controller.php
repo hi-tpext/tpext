@@ -364,9 +364,9 @@ abstract class Controller
      */
     protected function getResponseType()
     {
-        $isAjax = request()->isAjax();
+        $isJson = request()->expectsJson();
 
-        return $isAjax ? 'json' : 'html';
+        return $isJson ? 'json' : 'html';
     }
 
     /**
