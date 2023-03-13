@@ -17,7 +17,6 @@ use support\Log as baseLog;
 /**
  * 日志管理类
  * @package think
- * @mixin Channel
  */
 class Log
 {
