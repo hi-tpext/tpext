@@ -363,6 +363,16 @@ abstract class Extension
     /**
      * Undocumented function
      *
+     * @return void
+     */
+    final public function clearConfig()
+    {
+        $this->__config__ = null;
+    }
+
+    /**
+     * Undocumented function
+     *
      * @return boolean
      */
     public function install()

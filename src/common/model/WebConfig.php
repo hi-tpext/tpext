@@ -18,6 +18,14 @@ class WebConfig extends Model
         ExtLoader::trigger('clear_cache_web_config_' . $configKey);
         ExtLoader::trigger('clear_cache_web_config', $configKey);
         ExtLoader::reloadWebman($configKey . ' config updated, reload.'); //触发平滑重启
+
+        $extensions = ExtLoader::getExtensions();
+        foreach ($extensions as $key => $instance) {
+            if ($instance->getId() == $configKey) {
+                $instance->clearConfig();
+                break;
+            }
+        }
     }
 
     public static function config($configKey, $reget = false)
