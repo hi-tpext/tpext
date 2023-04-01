@@ -507,7 +507,6 @@ class Request extends \Webman\Http\Request
      * 获取指定的参数
      * @access public
      * @param  string|array  $name 变量名
-     * @param  string        $type 变量类型
      * @return mixed
      */
     public function only(array $name): array
@@ -717,7 +716,6 @@ class Request extends \Webman\Http\Request
     /**
      * 获取当前完整URL 包括QUERY_STRING
      * @access public
-     * @param  bool $complete 是否包含完整域名
      * @return string
      */
     public function url(): string
