@@ -2,8 +2,11 @@
 
 namespace tpext\webman;
 
+use think\Validate;
+use think\facade\Lang;
 use tpext\common\ExtLoader;
 use tpext\common\RouteLoader;
+use tpext\common\TpextCore;
 
 class BootStrap implements \Webman\Bootstrap
 {
@@ -13,11 +16,17 @@ class BootStrap implements \Webman\Bootstrap
             return;
         }
 
+        Validate::maker(function (Validate $validate) {
+            $validate->setLang(Lang::getInstance());
+        });
+
+        Lang::load(TpextCore::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['think', 'lang', 'zh-cn.php']));
+
         ExtLoader::bindExtensions();
         RouteLoader::load();
 
         ExtLoader::trigger('tpext_modules_loaded');
-        
+
         static::composer();
     }
 

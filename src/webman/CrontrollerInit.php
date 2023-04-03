@@ -10,7 +10,6 @@ use Webman\Http\Request;
 use Webman\Http\Response;
 use tpext\common\TpextCore;
 use Webman\MiddlewareInterface;
-use tpext\builder\common\Builder;
 use support\exception\BusinessException;
 use think\exception\HttpResponseException;
 
@@ -22,8 +21,6 @@ class CrontrollerInit implements MiddlewareInterface
 {
     public function process(Request $request, callable $next): Response
     {
-        Builder::destroyInstance();
-
         $response = $this->getResponse($request, $next);
 
         if ($exception = $response->exception()) {
