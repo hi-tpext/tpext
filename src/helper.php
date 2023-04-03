@@ -73,12 +73,13 @@ if (!function_exists('url')) {
      */
     function url($url = '', $vars = [], $suffix = false)
     {
-        $url = ltrim($url, '/');
-        $path = ltrim(request()->path(), '/');
+        $url = trim($url, '/');
+        $path = trim(request()->path(), '/');
 
         $arr1 = explode('/', $url);
         $arr2 = explode('/', $path);
 
+		$arr2[0] = !empty($arr2[0]) ? $arr2[0] : 'index';
         $arr2[1] = !empty($arr2[1]) ? $arr2[1] : 'index';
         $arr2[2] = !empty($arr2[2]) ? $arr2[2] : 'index';
 
