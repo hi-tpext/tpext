@@ -4,6 +4,7 @@ namespace tpext\webman;
 
 use Throwable;
 use think\Controller;
+use think\facade\Validate;
 use tpext\think\View;
 use support\Container;
 use Webman\Http\Request;
@@ -21,6 +22,7 @@ class CrontrollerInit implements MiddlewareInterface
 {
     public function process(Request $request, callable $next): Response
     {
+        Validate::destroyInstance();
         $response = $this->getResponse($request, $next);
 
         if ($exception = $response->exception()) {
@@ -48,7 +50,7 @@ class CrontrollerInit implements MiddlewareInterface
 
         //php.ini中max_execution_time的值对cli环境无效，但可以在程序中是可以被修改并生效
         @set_time_limit(0); //清除某些第三方库可能会设置超时不为0值对cli环境的影响
-
+        Validate::destroyInstance();
         return $response;
     }
 

@@ -121,6 +121,7 @@ abstract class Controller
      */
     protected function validate(array $data, $validate, array $message = [], bool $batch = false)
     {
+        $v = null;
         if (is_array($validate)) {
             $v = new Validate();
             $v->rule($validate);
@@ -181,7 +182,7 @@ abstract class Controller
      * @param array    $vars     模板变量
      * @param int      $code     状态码
      * @param callable $filter   内容过滤
-     * @return View
+     * @return Response
      */
     protected function fetch(string $template = '', $vars = [])
     {
@@ -196,7 +197,7 @@ abstract class Controller
      * @param array    $vars    模板变量
      * @param int      $code    状态码
      * @param callable $filter  内容过滤
-     * @return View
+     * @return Response
      */
     protected function display(string $content, $vars = [])
     {
@@ -241,7 +242,7 @@ abstract class Controller
             $url = $referer;
         } elseif ('' !== $url) {
             $url = (string) $url;
-            $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : url($url)->__toString();
+            $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : (string)url($url);
         }
 
         $result = [
@@ -282,7 +283,7 @@ abstract class Controller
             $url = $type == 'json' ? '' : 'javascript:history.back(-1);';
         } elseif ('' !== $url) {
             $url = (string) $url;
-            $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : url($url)->__toString();
+            $url = (strpos($url, '://') || 0 === strpos($url, '/')) ? $url : (string)url($url);
         }
 
         $result = [
@@ -349,7 +350,7 @@ abstract class Controller
     protected function redirect($url, $params = [], $code = 302, $header = [])
     {
         $response = new Response($code, ['Location' => $url . ($params ? '?' . http_build_query($params) : '')]);
-        
+
         if (!empty($header)) {
             $response->withHeaders($header);
         }
@@ -364,7 +365,7 @@ abstract class Controller
      */
     protected function getResponseType()
     {
-        $isJson = request()->expectsJson();
+        $isJson = tpRequest()->expectsJson();
 
         return $isJson ? 'json' : 'html';
     }
@@ -376,68 +377,9 @@ abstract class Controller
      */
     protected function destroyBuilder()
     {
-        if(method_exists($this,'_destroyBuilder'))
-        {
-            $this->_destroyBuilder();
-            return;
-        }
-        if (isset($this->table)) {
-            $this->table = null;
-        }
-        if (isset($this->form)) {
-            $this->form = null;
-        }
-        if (isset($this->search)) {
-            $this->search = null;
-        }
-        if (isset($this->dataModel)) {
-            $this->dataModel = null;
-        }
-        if (isset($this->pageTitle)) {
-            $this->addText = '添加';
-            $this->editText = '编辑';
-            $this->viewText = '查看';
-            $this->enableField = 'enable';
-            $this->pk = 'id';
-            $this->isEdit = false;
-        }
-        if (isset($this->indexText)) {
-            $this->indexText = '列表';
-            $this->pagesize = 14;
-            $this->sortOrder = 'id desc';
-            $this->useSearch = true;
-            $this->isExporting = false;
-
-            $this->indexWith = [];
-            $this->indexFieldsExcept = [];
-            $this->postAllowFields = [];
-            $this->delNotAllowed = [];
-        }
-        if (isset($this->treeModel) && isset($this->treeIdField)) {
-            $this->treeScope = [];
-            $this->treeRootid = 0;
-            $this->treeRootText = '全部';
-            $this->treeType = 'ztree';
-            $this->treeTextField = '';
-            $this->treeIdField = 'id';
-            $this->treeParentIdField = 'parent_id';
-            $this->treeKey = '';
-            $this->treeExpandAll = true;
-            $this->treeModel;
-        }
-        if (isset($this->selectIdField) && isset($this->selectTextField)) {
-            $this->selectScope = [];
-            $this->selectSearch = '';
-            $this->selectTextField = '';
-            $this->selectIdField = '';
-            $this->selectFields = '*';
-            $this->selectOrder = '';
-            $this->selectPagesize = 20;
-            $this->selectWith = [];
-        }
-        if (isset($this->exportOnly) || isset($this->exportExcept)) {
-            $this->exportOnly = [];
-            $this->exportExcept = [];
+        if (method_exists($this, '_destroyBuilder')) {
+            $func = "_destroyBuilder";
+            $this->$func();
         }
     }
 }
