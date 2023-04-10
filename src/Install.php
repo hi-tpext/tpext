@@ -10,7 +10,9 @@ class Install
      * @var array
      */
     protected static $pathRelation = array(
-        'webman/config' => 'config/plugin/tpext/core',
+        'webman/config/app.php' => 'config/plugin/tpext/core/app.php',
+        'webman/config/bootstrap.php' => 'config/plugin/tpext/core/bootstrap.php',
+        'webman/config/middleware.php' => 'config/plugin/tpext/core/middleware.php',
     );
 
     /**
@@ -67,6 +69,9 @@ class Install
                 if (!is_dir($parent_dir)) {
                     mkdir($parent_dir, 0755, true);
                 }
+            }
+            if ($source == 'webman/config/app.php' && is_file(base_path() . "/$dest")) {
+                continue;
             }
             copy_dir(__DIR__ . "/$source", base_path() . "/$dest");
             echo "Create $dest

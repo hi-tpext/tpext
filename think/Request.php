@@ -355,7 +355,7 @@ class Request extends \Webman\Http\Request
     public function request($name = '', $default = null, $filter = '')
     {
         if (is_array($name)) {
-            return $this->only($name, $this->request, $filter);
+            return $this->_only($name, $this->request, $filter);
         }
 
         return $this->_input($this->request, $name, $default, $filter);

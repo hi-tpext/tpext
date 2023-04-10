@@ -3,10 +3,11 @@
 namespace tpext\webman;
 
 use think\Validate;
+use tpext\think\App;
 use think\facade\Lang;
 use tpext\common\ExtLoader;
-use tpext\common\RouteLoader;
 use tpext\common\TpextCore;
+use tpext\common\RouteLoader;
 
 class BootStrap implements \Webman\Bootstrap
 {
@@ -20,7 +21,7 @@ class BootStrap implements \Webman\Bootstrap
             $validate->setLang(Lang::getInstance());
         });
 
-        Lang::load(TpextCore::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['think', 'lang', 'zh-cn.php']));
+        Lang::load(TpextCore::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['think', 'lang', App::getDefaultLang() . '.php']));
 
         ExtLoader::bindExtensions();
         RouteLoader::load();
@@ -64,7 +65,7 @@ class BootStrap implements \Webman\Bootstrap
             return;
         }
 
-        echo '注册扩展目录:extend/成功,composer.json文件已修改' . "\n";
+        echo 'regist path [/extend] succeeded, composer.json was updated' . "\n";
 
         file_put_contents(base_path() . '/composer.json', json_encode($json, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
     }

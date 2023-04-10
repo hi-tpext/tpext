@@ -142,15 +142,6 @@ class Lang
             $this->lang[$range] = [];
         }
 
-        $key = $file . $range;
-        $filemtime = filemtime($file);
-
-        if (isset($this->loadedlangFiles[$key]) && $this->loadedlangFiles[$key] == $filemtime) {
-            return $this->lang[$range];
-        }
-
-        $this->loadedlangFiles[$key] == $filemtime;
-
         $lang = [];
 
         foreach ((array) $file as $name) {
@@ -175,6 +166,14 @@ class Lang
      */
     protected function parse(string $file): array
     {
+        $filemtime = filemtime($file);
+
+        if (isset($this->loadedlangFiles[$file]) && $this->loadedlangFiles[$file] == $filemtime) {
+            return [];
+        }
+
+        $this->loadedlangFiles[$file] = $filemtime;
+
         $type = pathinfo($file, PATHINFO_EXTENSION);
 
         switch ($type) {
