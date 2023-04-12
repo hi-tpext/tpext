@@ -11,6 +11,7 @@ class Install
      */
     protected static $pathRelation = array(
         'webman/config/app.php' => 'config/plugin/tpext/core/app.php',
+        'webman/config/lang.php' => 'config/plugin/tpext/core/lang.php',
         'webman/config/bootstrap.php' => 'config/plugin/tpext/core/bootstrap.php',
         'webman/config/middleware.php' => 'config/plugin/tpext/core/middleware.php',
     );
