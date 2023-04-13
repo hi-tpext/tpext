@@ -71,7 +71,9 @@ class Install
                     mkdir($parent_dir, 0755, true);
                 }
             }
-            if ($source == 'webman/config/app.php' && is_file(base_path() . "/$dest")) {
+            if (($source == 'webman/config/app.php' || $source == 'webman/config/lang.php')
+                && is_file(base_path() . "/$dest")
+            ) {
                 continue;
             }
             copy_dir(__DIR__ . "/$source", base_path() . "/$dest");

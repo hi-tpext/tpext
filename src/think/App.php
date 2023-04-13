@@ -71,6 +71,6 @@ class App
      */
     public static function getDefaultLang()
     {
-        return config('plugin.tpext.core.lang.default_lang', 'en');
+        return config('plugin.tpext.core.lang.default_lang', 'zh-cn');
     }
 }
