@@ -15,7 +15,7 @@ class RouteLoader
         $bindModules = ExtLoader::getBindModules();
 
         $routesGroup = [];
-        
+
         foreach ($bindModules as $key => $moduleInfo) {
 
             foreach ($moduleInfo as $mod) {
@@ -103,7 +103,7 @@ class RouteLoader
         }
 
         if (empty($namespaceMap)) {
-            return;
+            return [];
         }
 
         $namespace = rtrim($namespaceMap[0], '\\');
@@ -111,7 +111,7 @@ class RouteLoader
         $class = '\\' . $module . '\\controller\\' . Str::studly($controller);
 
         if (!class_exists($namespace . $class)) {
-            return;
+            return [];
         }
 
         $reflectionClass = new \ReflectionClass($namespace . $class);
