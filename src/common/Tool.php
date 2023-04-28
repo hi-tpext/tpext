@@ -8,7 +8,6 @@ use tpext\think\App;
 
 class Tool
 {
-
     public static $autoload_psr4 = [];
 
     public static function copyDir($src = '', $dst = '')
@@ -171,7 +170,7 @@ class Tool
             try {
                 Db::execute($sql);
                 $success += 1;
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 Log::error($e->__toString());
                 $errors[] = $e;
             }
