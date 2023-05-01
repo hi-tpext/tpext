@@ -97,6 +97,34 @@ abstract class Extension
     ];
 
     /**
+     * 数据库表保护，禁止代码生成以及修改表结构
+     *
+     * @var array 
+     */
+    protected $protectedTables = [];
+
+    /**
+     * Undocumented function
+     *
+     * @return array
+     */
+    final public function getProtectedTables()
+    {
+        if (empty($this->protectedTables)) {
+            $sqlFile = $this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql';
+            if (is_file($sqlFile)) {
+                $content = file_get_contents($sqlFile);
+                preg_match_all('/CREATE TABLE IF NOT EXISTS `(\w+)`/is', $content, $matches);
+                $this->protectedTables = isset($matches[1]) && count($matches[1]) > 0 ? $matches[1] : ['_empty_'];
+            } else {
+                $this->protectedTables = ['_empty_'];
+            }
+        }
+
+        return $this->protectedTables;
+    }
+
+    /**
      * 获取扩展包类型:extend|composer
      *
      * @return string
