@@ -9,10 +9,17 @@
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
 
-use think\facade\Log;
-use think\route\Url;
-use Webman\Http\Response;
 use think\Request;
+use think\route\Url;
+use think\facade\Log;
+use Webman\Http\Response;
+use tpext\common\ExtLoader;
+
+$classMap = [
+    'tpext\\common\\TpextCore'
+];
+
+ExtLoader::addClassMap($classMap);
 
 if (!function_exists('trace')) {
 
