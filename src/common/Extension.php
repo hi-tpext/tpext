@@ -10,6 +10,13 @@ abstract class Extension
 {
     protected static $extensions = [];
 
+    /**
+     * 数据库表保护，禁止代码生成以及修改表结构
+     *
+     * @var array 
+     */
+    protected static $protectedTables = [];
+
     protected $__root__ = null;
 
     protected $__ID__ = null;
@@ -95,34 +102,6 @@ abstract class Extension
         // '1.0.2' => 'upgrade-1.0.2.sql',
         // '1.0.3' => '', //如果升级不涉及数据库改动，留空
     ];
-
-    /**
-     * 数据库表保护，禁止代码生成以及修改表结构
-     *
-     * @var array 
-     */
-    protected $protectedTables = [];
-
-    /**
-     * Undocumented function
-     *
-     * @return array
-     */
-    final public function getProtectedTables()
-    {
-        if (empty($this->protectedTables)) {
-            $sqlFile = $this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql';
-            if (is_file($sqlFile)) {
-                $content = file_get_contents($sqlFile);
-                preg_match_all('/CREATE TABLE IF NOT EXISTS `(\w+)`/is', $content, $matches);
-                $this->protectedTables = isset($matches[1]) && count($matches[1]) > 0 ? $matches[1] : ['_empty_'];
-            } else {
-                $this->protectedTables = ['_empty_'];
-            }
-        }
-
-        return $this->protectedTables;
-    }
 
     /**
      * 获取扩展包类型:extend|composer
@@ -213,6 +192,29 @@ abstract class Extension
         }
 
         return self::$extensions[$class];
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return array
+     */
+    final public function getProtectedTables()
+    {
+        $class = get_called_class();
+
+        if (empty(self::$protectedTables[$class])) {
+            $sqlFile = $this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql';
+            if (is_file($sqlFile)) {
+                $content = file_get_contents($sqlFile);
+                preg_match_all('/CREATE TABLE IF NOT EXISTS `(\w+)`/is', $content, $matches);
+                self::$protectedTables[$class] = isset($matches[1]) && count($matches[1]) > 0 ? $matches[1] : ['_empty_'];
+            } else {
+                self::$protectedTables[$class] = ['_empty_'];
+            }
+        }
+        
+        return self::$protectedTables[$class];
     }
 
     final public function getRoot()
