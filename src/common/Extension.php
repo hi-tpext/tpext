@@ -207,7 +207,7 @@ abstract class Extension
             $sqlFile = $this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql';
             if (is_file($sqlFile)) {
                 $content = file_get_contents($sqlFile);
-                preg_match_all('/CREATE TABLE IF NOT EXISTS `(\w+)`/is', $content, $matches);
+                preg_match_all('/CREATE\s+TABLE(?:\s+IF\s+NOT\s+EXISTS)?\s*`(\w+)`/is', $content, $matches);
                 self::$protectedTables[$class] = isset($matches[1]) && count($matches[1]) > 0 ? $matches[1] : ['_empty_'];
             } else {
                 self::$protectedTables[$class] = ['_empty_'];
