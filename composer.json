@@ -24,7 +24,10 @@
         "psr-4": {
             "tpext\\": "src/",
             "think\\": "think/"
-        }
+        },
+        "files": [
+            "src/helper.php"
+        ]
     },
     "extra": {
         "think": {
