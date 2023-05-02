@@ -199,7 +199,7 @@ abstract class Extension
      *
      * @return array
      */
-    final public function getProtectedTables()
+    public function getProtectedTables()
     {
         $class = get_called_class();
 
