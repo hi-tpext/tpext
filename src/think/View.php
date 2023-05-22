@@ -90,6 +90,11 @@ class View
         self::$shareVars  = [];
     }
 
+    public static function getShare()
+    {
+        return self::$shareVars;
+    }
+
     public function clear()
     {
         $this->vars = [];
