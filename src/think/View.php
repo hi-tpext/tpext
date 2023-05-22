@@ -84,6 +84,11 @@ class View extends Response
         \think\facade\View::assign($name, $value);
     }
 
+    public static function getShare()
+    {
+        return self::$shareVars;
+    }
+
     public function clear()
     {
         self::$shareVars  = [];
