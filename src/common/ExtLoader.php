@@ -330,7 +330,12 @@ class ExtLoader
 
     public static function isTP60()
     {
-        return self::getTpVer() == 6;
+        return self::getTpVer() == 6 || self::getTpVer() == 8; //6和8大多数情况都兼容
+    }
+
+    public static function isTP80()
+    {
+        return self::getTpVer() == 8;
     }
 
     public static function isWebman()
