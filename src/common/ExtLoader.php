@@ -331,6 +331,11 @@ class ExtLoader
         return true;
     }
 
+    public static function isTP80()
+    {
+        return true;
+    }
+
     public static function isWebman()
     {
         return true;
