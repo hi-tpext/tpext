@@ -99,6 +99,15 @@ class AppDispatch
 
     private function matchModule($module, $controller, $action, $ext = true)
     {
+        $appClassExists = self::appClassExists($module, $controller);
+
+        if ($appClassExists) {
+            $reflectionAppClass = new \ReflectionClass($appClassExists);
+            if ($reflectionAppClass && $reflectionAppClass->hasMethod($action)) { //app目录下的模块控制器方法优先于扩展中的方法
+                return null;
+            }
+        }
+
         $bindModules = ExtLoader::getBindModules();
 
         $matchMod = null;
@@ -170,5 +179,16 @@ class AppDispatch
         $mod['rootPath'] = $rootpath;
 
         return $mod;
+    }
+
+    private static function appClassExists($module, $controller)
+    {
+        $controller_class = "app\\{$module}\\controller\\" . $controller;
+
+        if (class_exists($controller_class)) {
+            return $controller_class;
+        }
+
+        return false;
     }
 }
