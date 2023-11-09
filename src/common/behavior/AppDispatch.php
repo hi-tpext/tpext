@@ -103,6 +103,7 @@ class AppDispatch
 
         if ($appClassExists) {
             $reflectionAppClass = new \ReflectionClass($appClassExists);
+            
             if ($reflectionAppClass && $reflectionAppClass->hasMethod($action)) { //app目录下的模块控制器方法优先于扩展中的方法
                 return null;
             }
