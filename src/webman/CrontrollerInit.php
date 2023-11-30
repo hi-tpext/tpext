@@ -4,11 +4,12 @@ namespace tpext\webman;
 
 use Throwable;
 use think\Controller;
-use think\facade\Validate;
 use tpext\think\View;
 use support\Container;
 use Webman\Http\Request;
 use Webman\Http\Response;
+use think\facade\Validate;
+use tpext\common\ExtLoader;
 use tpext\common\TpextCore;
 use Webman\MiddlewareInterface;
 use support\exception\BusinessException;
@@ -23,7 +24,10 @@ class CrontrollerInit implements MiddlewareInterface
     public function process(Request $request, callable $next): Response
     {
         Validate::destroyInstance();
+        
+        ExtLoader::trigger('tpext_webman_run');
         $response = $this->getResponse($request, $next);
+        ExtLoader::trigger('tpext_webman_end');
 
         if ($exception = $response->exception()) {
             if ($exception instanceof HttpResponseException) {
@@ -66,7 +70,6 @@ class CrontrollerInit implements MiddlewareInterface
 
             $controller_reuse = config('app.controller_reuse', true);
             $response = null;
-
             if ($controller_reuse) {
                 $instance = Container::get($request->controller);
 
