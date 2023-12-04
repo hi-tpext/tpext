@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace think;
 
 use think\App;
-use think\Container;
-use think\exception\ValidateException;
 use think\Response;
 use think\Validate;
+use think\Container;
 use tpext\common\TpextCore;
+use think\exception\ValidateException;
 use think\exception\HttpResponseException;
 
 /**
@@ -46,6 +46,8 @@ abstract class Controller
      * @var \think\View
      */
     protected $view;
+
+    protected $vars  = [];
 
     /**
      * 构造方法
@@ -113,26 +115,28 @@ abstract class Controller
      * 渲染模板输出
      * @param string   $template 模板文件
      * @param array    $vars     模板变量
-     * @param int      $code     状态码
-     * @param callable $filter   内容过滤
-     * @return \think\response\View
+     * @param array  $config   模板参数
+     * @return string
      */
-    protected function fetch(string $template = '', $vars = [], $code = 200, $filter = null)
+    protected function fetch(string $template = '', $vars = [], $config = [])
     {
-        return Response::create($template, 'view', $code)->assign($vars)->filter($filter);
+        $engine = $this->app->view->engine();
+        $engine->config($config);
+        return $this->app->view->fetch($template, array_merge($this->vars, $vars));
     }
 
     /**
      * 渲染模板输出
      * @param string   $content 渲染内容
      * @param array    $vars    模板变量
-     * @param int      $code    状态码
-     * @param callable $filter  内容过滤
-     * @return \think\response\View
+     * @param array  $config   模板参数
+     * @return string
      */
-    protected function display(string $content, $vars = [], $code = 200, $filter = null)
+    protected function display(string $content, $vars = [], $config = [])
     {
-        return Response::create($content, 'view', $code)->isContent(true)->assign($vars)->filter($filter);
+        $engine = $this->app->view->engine();
+        $engine->config($config);
+        return $this->app->view->display($content, array_merge($this->vars, $vars));
     }
 
     /**
