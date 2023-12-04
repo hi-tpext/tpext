@@ -180,13 +180,12 @@ abstract class Controller
      * 渲染模板输出
      * @param string   $template 模板文件
      * @param array    $vars     模板变量
-     * @param int      $code     状态码
-     * @param callable $filter   内容过滤
+     * @param array  $config   模板参数
      * @return Response
      */
-    protected function fetch(string $template = '', $vars = [])
+    protected function fetch(string $template = '', $vars = [], $config = [])
     {
-        $view = new View($template, array_merge($this->vars, $vars));
+        $view = new View($template, array_merge($this->vars, $vars), $config);
 
         return new Response(200, [], $view->getContent());
     }
@@ -195,17 +194,14 @@ abstract class Controller
      * 渲染模板输出
      * @param string   $content 渲染内容
      * @param array    $vars    模板变量
-     * @param int      $code    状态码
-     * @param callable $filter  内容过滤
+     * @param array  $config   模板参数
      * @return Response
      */
-    protected function display(string $content, $vars = [])
+    protected function display(string $content, $vars = [], $config = [])
     {
-        $view = new View($content, array_merge($this->vars, $vars));
+        $view = new View($content, array_merge($this->vars, $vars), $config);
 
-        $view->isContent();
-
-        return new Response(200, [], $view->getContent());
+        return new Response(200, [], $view->isContent()->getContent());
     }
 
     /**
