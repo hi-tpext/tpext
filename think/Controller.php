@@ -120,8 +120,7 @@ abstract class Controller
      */
     protected function fetch(string $template = '', $vars = [], $config = [])
     {
-        $engine = $this->app->view->engine();
-        $engine->config($config);
+        $this->app->view->engine()->config($config);
         return $this->app->view->fetch($template, array_merge($this->vars, $vars));
     }
 
@@ -134,8 +133,7 @@ abstract class Controller
      */
     protected function display(string $content, $vars = [], $config = [])
     {
-        $engine = $this->app->view->engine();
-        $engine->config($config);
+        $this->app->view->engine()->config($config);
         return $this->app->view->display($content, array_merge($this->vars, $vars));
     }
 
