@@ -1,13 +1,4 @@
 <?php
-// +----------------------------------------------------------------------
-// | ThinkPHP [ WE CAN DO IT JUST THINK ]
-// +----------------------------------------------------------------------
-// | Copyright (c) 2006~2021 http://thinkphp.cn All rights reserved.
-// +----------------------------------------------------------------------
-// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
-// +----------------------------------------------------------------------
-// | Author: liu21st <liu21st@gmail.com>
-// +----------------------------------------------------------------------
 
 use think\Request;
 use think\route\Url;
@@ -29,46 +20,6 @@ if (!function_exists('trace')) {
     }
 }
 
-if (!function_exists('input')) {
-
-    /**
-     * 获取输入数据 支持默认值和过滤
-     * @param string    $key 获取的变量名
-     * @param mixed     $default 默认值
-     * @param string    $filter 过滤方法
-     * @return mixed
-     */
-    function input($key = '', $default = null, $filter = '')
-    {
-        if (0 === strpos($key, '?')) {
-            $key = substr($key, 1);
-            $has = true;
-        }
-
-        if ($pos = strpos($key, '.')) {
-            // 指定参数来源
-            $method = substr($key, 0, $pos);
-            if (in_array($method, ['get', 'post', 'put', 'patch', 'delete', 'route', 'param', 'request', 'session', 'cookie', 'server', 'header', 'file'])) {
-                $key = substr($key, $pos + 1);
-                if ('server' == $method && is_null($default)) {
-                    $default = '';
-                }
-            } else {
-                $method = 'param';
-            }
-        } else {
-            // 默认为自动判断
-            $method = 'param';
-        }
-
-        if (isset($has)) {
-            return tpRequest()->has($key, $method, $default);
-        } else {
-            return tpRequest()->$method($key, $default, $filter);
-        }
-    }
-}
-
 if (!function_exists('url')) {
 
     /**
@@ -86,7 +37,7 @@ if (!function_exists('url')) {
         $arr1 = explode('/', $url);
         $arr2 = explode('/', $path);
 
-		$arr2[0] = !empty($arr2[0]) ? $arr2[0] : 'index';
+        $arr2[0] = !empty($arr2[0]) ? $arr2[0] : 'index';
         $arr2[1] = !empty($arr2[1]) ? $arr2[1] : 'index';
         $arr2[2] = !empty($arr2[2]) ? $arr2[2] : 'index';
 
@@ -123,11 +74,56 @@ if (!function_exists('download')) {
 
 
 if (!function_exists('tpRequest')) {
+
     /**
-     * @return Request
+     * @return Request|\Webman\Http\Request|support\Request|think\facade\Request|Request|null
      */
     function tpRequest()
     {
         return request();
+    }
+}
+
+if (!function_exists('tpInput')) {
+
+    /**
+     * 获取输入数据 支持默认值和过滤
+     * (tp框架用法，用于webman等框架兼容)
+     * @param string    $key 获取的变量名
+     * @param mixed     $default 默认值
+     * @param string    $filter 过滤方法
+     * @return mixed
+     * @example 1   tpInput('get.name') 获取get参数
+     * @example 2   tpInput('post.') 获取post全部参数
+     * @example 3   tpInput('id/d', 0) 类型转换
+     */
+    function tpInput($key = '', $default = null, $filter = '')
+    {
+        if (0 === strpos($key, '?')) {
+            $key = substr($key, 1);
+            $has = true;
+        }
+
+        if ($pos = strpos($key, '.')) {
+            // 指定参数来源
+            $method = substr($key, 0, $pos);
+            if (in_array($method, ['get', 'post', 'put', 'patch', 'delete', 'route', 'param', 'request', 'session', 'cookie', 'server', 'header', 'file'])) {
+                $key = substr($key, $pos + 1);
+                if ('server' == $method && is_null($default)) {
+                    $default = '';
+                }
+            } else {
+                $method = 'param';
+            }
+        } else {
+            // 默认为自动判断
+            $method = 'param';
+        }
+
+        if (isset($has)) {
+            return tpRequest()->has($key, $method, $default);
+        } else {
+            return tpRequest()->$method($key, $default, $filter);
+        }
     }
 }
