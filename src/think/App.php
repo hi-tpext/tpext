@@ -5,7 +5,7 @@ namespace tpext\think;
 class App
 {
     /**
-     * Undocumented function
+     * 获取app目录
      *
      * @return string
      */
