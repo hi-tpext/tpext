@@ -168,11 +168,11 @@ class ExtLoader
      * @param string $name
      * @param mixed $params
      * @param boolean $once
-     * @return void
+     * @return mixed
      */
     public static function trigger($name, $params = null, $once = false)
     {
-        Event::trigger($name, $params, $once);
+        return Event::trigger($name, $params, $once);
     }
 
     /**
