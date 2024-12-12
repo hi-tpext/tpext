@@ -171,11 +171,11 @@ class ExtLoader
      * @param string $name
      * @param mixed $params
      * @param boolean $once
-     * @return void
+     * @return mixed
      */
     public static function trigger($name, $params = null, $once = false)
     {
-        Event::emit($name, $params);
+        return Event::emit($name, $params);
     }
 
     /**
@@ -308,7 +308,8 @@ class ExtLoader
                                 'controllers' => $controllers,
                                 'namespace_map' => $instance->getNameSpaceMap(),
                                 'classname' => $declare,
-                            ];;
+                            ];
+                            ;
                         }
                     }
                 }
