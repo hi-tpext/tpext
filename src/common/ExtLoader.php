@@ -309,7 +309,6 @@ class ExtLoader
                                 'namespace_map' => $instance->getNameSpaceMap(),
                                 'classname' => $declare,
                             ];
-                            ;
                         }
                     }
                 }
