@@ -170,7 +170,7 @@ class ExtLoader
      * @param boolean $once
      * @return mixed
      */
-    public static function trigger($name, $params = null, $once = false)
+    public static function trigger($name, $params = null, $once = true)
     {
         return Hook::listen($name, $params, $once);
     }
