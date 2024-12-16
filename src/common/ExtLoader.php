@@ -173,9 +173,9 @@ class ExtLoader
      * @param boolean $once
      * @return mixed
      */
-    public static function trigger($name, $params = null, $once = false)
+    public static function trigger($name, $params = null, $once = true)
     {
-        return Event::emit($name, $params);
+        return Event::emit($name, $params, $once);
     }
 
     /**
