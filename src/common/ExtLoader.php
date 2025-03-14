@@ -317,7 +317,12 @@ class ExtLoader
     public static function getTpVer()
     {
         if (empty(self::$tpVer)) {
-            self::$tpVer = strstr(App::VERSION, '.', true);
+            if(method_exists(App::class, 'version')){
+                self::$tpVer = strstr(app()->version(), '.', true);
+            }
+            else{
+                self::$tpVer = strstr(App::VERSION, '.', true);
+            }
         }
 
         return self::$tpVer;
