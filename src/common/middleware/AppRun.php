@@ -183,7 +183,7 @@ class AppRun
             $path = $this->app->request->pathinfo();
 
             $this->app->setAppPath($matchMod['rootPath'] . DIRECTORY_SEPARATOR . $module);
-            $this->app->view->config(['view_path' => $matchMod['rootPath'] . DIRECTORY_SEPARATOR . 'view' . DIRECTORY_SEPARATOR], 'app');
+            $this->app->view->config(['view_path' => $matchMod['rootPath'] . DIRECTORY_SEPARATOR . $module . DIRECTORY_SEPARATOR . 'view' . DIRECTORY_SEPARATOR]);
             $this->app->http->path($matchMod['rootPath'] . DIRECTORY_SEPARATOR . $module);
 
             if (is_file($matchMod['rootPath'] . DIRECTORY_SEPARATOR . 'common.php')) {
@@ -218,12 +218,12 @@ class AppRun
 
         if ($appClassExists) {
             $reflectionAppClass = new \ReflectionClass($appClassExists);
-            
+
             if ($reflectionAppClass && $reflectionAppClass->hasMethod($action)) { //app目录下的模块控制器方法优先于扩展中的方法
                 return null;
             }
         }
-        
+
         $bindModules = ExtLoader::getBindModules();
 
         $matchMod = null;

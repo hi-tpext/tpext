@@ -350,7 +350,6 @@ class ExtLoader
 
     public static function getInstalled($reget = false)
     {
-
         $type = Db::getConfig('default', 'mysql');
 
         $connections = Db::getConfig('connections');
