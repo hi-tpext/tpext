@@ -8,6 +8,7 @@ use think\facade\Lang;
 use tpext\common\ExtLoader;
 use tpext\common\TpextCore;
 use tpext\common\RouteLoader;
+use think\Container;
 
 class BootStrap implements \Webman\Bootstrap
 {
@@ -22,7 +23,8 @@ class BootStrap implements \Webman\Bootstrap
         });
 
         Lang::load(TpextCore::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['think', 'lang', App::getDefaultLang() . '.php']));
-
+        Container::getInstance()->bind('think\CacheManager', \Webman\ThinkCache\CacheManager::class);
+        Container::getInstance()->bind('think\DbManager', \Webman\ThinkOrm\DbManager::class);
         ExtLoader::bindExtensions();
         RouteLoader::load();
 

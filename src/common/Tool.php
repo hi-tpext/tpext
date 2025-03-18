@@ -87,7 +87,7 @@ class Tool
                 }
             }
             closedir($dir);
-            rmdir($path);
+            @rmdir($path);
         }
     }
 

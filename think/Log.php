@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 namespace think;
 
-use support\Log as baseLog;
+use support\Log as BaseLog;
 
 /**
  * 日志管理类
@@ -25,7 +25,7 @@ class Log
         if (is_array($message) || is_object($message)) {
             $message = json_encode($message);
         }
-        baseLog::log($level, $message, $context);
+        BaseLog::log($level, $message, $context);
     }
 
     public function log($level, $message, array $context = [])
@@ -33,7 +33,7 @@ class Log
         if (is_array($message) || is_object($message)) {
             $message = json_encode($message);
         }
-        baseLog::log($level, $message, $context);
+        BaseLog::log($level, $message, $context);
     }
 
     public function info($message, array $context = [])
@@ -41,7 +41,7 @@ class Log
         if (is_array($message) || is_object($message)) {
             $message = json_encode($message);
         }
-        baseLog::info($message, $context);
+        BaseLog::info($message, $context);
     }
 
     public function debug($message, array $context = [])
@@ -49,7 +49,7 @@ class Log
         if (is_array($message) || is_object($message)) {
             $message = json_encode($message);
         }
-        baseLog::info($message, $context);
+        BaseLog::info($message, $context);
     }
 
     public function sql($message, array $context = [])
@@ -57,7 +57,7 @@ class Log
         if (is_array($message) || is_object($message)) {
             $message = json_encode($message);
         }
-        baseLog::info($message, $context);
+        BaseLog::info($message, $context);
     }
 
     public function notice($message, array $context = [])
@@ -65,7 +65,7 @@ class Log
         if (is_array($message) || is_object($message)) {
             $message = json_encode($message);
         }
-        baseLog::notice($message, $context);
+        BaseLog::notice($message, $context);
     }
 
     public function warning($message, array $context = [])
@@ -73,7 +73,7 @@ class Log
         if (is_array($message) || is_object($message)) {
             $message = json_encode($message);
         }
-        baseLog::warning($message, $context);
+        BaseLog::warning($message, $context);
     }
 
     public function error($message, array $context = [])
@@ -81,7 +81,7 @@ class Log
         if (is_array($message) || is_object($message)) {
             $message = json_encode($message);
         }
-        baseLog::error($message, $context);
+        BaseLog::error($message, $context);
     }
 
     public function critical($message, array $context = [])
@@ -89,7 +89,7 @@ class Log
         if (is_array($message) || is_object($message)) {
             $message = json_encode($message);
         }
-        baseLog::critical($message, $context);
+        BaseLog::critical($message, $context);
     }
 
     public function alert($message, array $context = [])
@@ -97,7 +97,7 @@ class Log
         if (is_array($message) || is_object($message)) {
             $message = json_encode($message);
         }
-        baseLog::alert($message, $context);
+        BaseLog::alert($message, $context);
     }
     
     public function emergency($message, array $context = [])
@@ -105,6 +105,6 @@ class Log
         if (is_array($message) || is_object($message)) {
             $message = json_encode($message);
         }
-        baseLog::emergency($message, $context);
+        BaseLog::emergency($message, $context);
     }
 }

@@ -38,13 +38,9 @@ class Request extends \Webman\Http\Request
      */
     protected $param = [];
 
-    protected $routeParam = null;
-
-    protected $controllerName = '';
-
     public function decode()
     {
-        $_POST = $_GET = $_COOKIE = $_REQUEST = $_SESSION = $_FILES = array();
+        $_POST = $_GET = $_COOKIE = $_REQUEST = $_SESSION = $_FILES = [];
 
         $_GET = parent::get() ?: [];
         $_COOKIE = parent::cookie() ?: [];
@@ -55,7 +51,7 @@ class Request extends \Webman\Http\Request
 
         $microtime = \microtime(true);
 
-        $_SERVER = array(
+        $_SERVER = [
             'QUERY_STRING'         => parent::queryString(),
             'REQUEST_METHOD'       => strtoupper(parent::method()),
             'REQUEST_URI'          => parent::uri(),
@@ -76,7 +72,7 @@ class Request extends \Webman\Http\Request
             'REMOTE_PORT'          => $this->connection->getRemotePort(),
             'REQUEST_TIME'         => (int)$microtime,
             'REQUEST_TIME_FLOAT'   => $microtime //compatible php5.4
-        );
+        ];
 
         if ($_SERVER['REQUEST_METHOD'] != 'GET') {
             $_POST = parent::post() ?: [];
@@ -84,24 +80,10 @@ class Request extends \Webman\Http\Request
 
         $GLOBALS['HTTP_RAW_REQUEST_DATA'] = $GLOBALS['HTTP_RAW_POST_DATA'] = $this->rawBody();
 
-        $_REQUEST = \array_merge($_GET, $_POST);
+        $_REQUEST = array_merge($_GET, $_POST);
 
         $this->server = $_SERVER;
         $this->request = $_REQUEST;
-
-        if ($this->route) {
-            $path = strtolower($this->route->getPath());
-            $explode = explode('/', trim($path, '/'));
-            $this->app = $explode[0] ?: 'index';
-            $this->controllerName  = $explode[1] ?? 'index';
-            $this->action  = $explode[2] ?? 'index';
-        } else {
-            $path = strtolower($this->path());
-            $explode = explode('/', trim($path, '/'));
-            $this->app = $explode[0] ?: 'index';
-            $this->controllerName  = $explode[1] ?? 'index';
-            $this->action  = $explode[2] ?? 'index';
-        }
     }
 
     /**
@@ -109,13 +91,9 @@ class Request extends \Webman\Http\Request
      *
      * @return string
      */
-    public function method($origin = false)
+    public function method(): string
     {
         $method = strtoupper(parent::method());
-
-        if ($origin) {
-            return $method ?: 'GET';
-        }
 
         if ($this->method) {
             return $this->method;
@@ -141,26 +119,6 @@ class Request extends \Webman\Http\Request
         }
 
         return $this->method;
-    }
-
-    /**
-     * 是否为GET请求
-     * @access public
-     * @return bool
-     */
-    public function isGet(): bool
-    {
-        return $this->method() == 'GET';
-    }
-
-    /**
-     * 是否为POST请求
-     * @access public
-     * @return bool
-     */
-    public function isPost(): bool
-    {
-        return $this->method() == 'POST';
     }
 
     /**
@@ -271,87 +229,6 @@ class Request extends \Webman\Http\Request
     }
 
     /**
-     * 获取GET参数
-     * @access public
-     * @param  string|array $name 变量名
-     * @param  mixed        $default 默认值
-     * @param  string|array $filter 过滤方法
-     * @return mixed
-     */
-    public function get($name = '', $default = null, $filter = '')
-    {
-        if (!isset($this->_data['get'])) {
-            $this->parseGet();
-        }
-
-        if (is_array($name)) {
-            return $this->_only($name, $this->_data['get'], $filter);
-        }
-
-        return $this->_input($this->_data['get'], $name, $default, $filter);
-    }
-
-    /**
-     * 获取POST参数
-     * @access public
-     * @param  string|array $name 变量名
-     * @param  mixed        $default 默认值
-     * @param  string|array $filter 过滤方法
-     * @return mixed
-     */
-    public function post($name = '', $default = null, $filter = '')
-    {
-        if (!isset($this->_data['post'])) {
-            $this->parsePost();
-        }
-
-        if (is_array($name)) {
-            return $this->_only($name, $this->_data['post'], $filter);
-        }
-
-        return $this->_input($this->_data['post'], $name, $default, $filter);
-    }
-
-    /**
-     * 获取PUT参数
-     * @access public
-     * @param  string|false      $name 变量名
-     * @param  mixed             $default 默认值
-     * @param  string|array      $filter 过滤方法
-     * @return mixed
-     */
-    public function put($name = '', $default = null, $filter = '')
-    {
-        return $this->post($name, $default, $filter);
-    }
-
-    /**
-     * 获取DELETE参数
-     * @access public
-     * @param  string|false      $name 变量名
-     * @param  mixed             $default 默认值
-     * @param  string|array      $filter 过滤方法
-     * @return mixed
-     */
-    public function delete($name = '', $default = null, $filter = '')
-    {
-        return $this->post($name, $default, $filter);
-    }
-
-    /**
-     * 获取PATCH参数
-     * @access public
-     * @param  string|false      $name 变量名
-     * @param  mixed             $default 默认值
-     * @param  string|array      $filter 过滤方法
-     * @return mixed
-     */
-    public function patch($name = '', $default = null, $filter = '')
-    {
-        return $this->post($name, $default, $filter);
-    }
-
-    /**
      * 获取当前请求的参数
      * @access public
      * @param  string|array $name 变量名
@@ -414,31 +291,6 @@ class Request extends \Webman\Http\Request
         }
 
         return $this->server[$name] ?? $default;
-    }
-
-    /**
-     * 获取路由参数
-     * @access public
-     * @param  string|array $name 变量名
-     * @param  mixed        $default 默认值
-     * @param  string|array $filter 过滤方法
-     * @return mixed
-     */
-    public function route($name = '', $default = null, $filter = '')
-    {
-        if (!parent::$route) {
-            return $default;
-        }
-
-        if (is_null($this->routeParam)) {
-            $this->routeParam = $this->route->param();
-        }
-
-        if (is_array($name)) {
-            return $this->_only($name, $this->routeParam, $filter);
-        }
-
-        return $this->_input($this->routeParam, $name, $default, $filter);
     }
 
     protected function filterData($data, $filter, $name, $default)
@@ -647,23 +499,23 @@ class Request extends \Webman\Http\Request
     protected function typeCast(&$data, string $type)
     {
         switch (strtolower($type)) {
-                // 数组
+            // 数组
             case 'a':
                 $data = (array) $data;
                 break;
-                // 数字
+            // 数字
             case 'd':
                 $data = (int) $data;
                 break;
-                // 浮点
+            // 浮点
             case 'f':
                 $data = (float) $data;
                 break;
-                // 布尔
+            // 布尔
             case 'b':
                 $data = (bool) $data;
                 break;
-                // 字符串
+            // 字符串
             case 's':
                 if (is_scalar($data)) {
                     $data = (string) $data;
@@ -687,47 +539,12 @@ class Request extends \Webman\Http\Request
     }
 
     /**
-     * 当前请求的资源类型
-     * @access public
-     * @return string
-     */
-    public function type(): string
-    {
-        return $this->header('accept', '');
-    }
-
-    /**
-     * 当前是否Ajax请求
-     * @access public
-     * @param  bool $ajax true 获取原始ajax请求
+     * IsAjax
      * @return bool
      */
-    public function isAjax(bool $ajax = false): bool
+    public function isAjax(): bool
     {
-        $result = parent::isAjax();
-
-        if (true === $ajax) {
-            return $result;
-        }
-
-        return $this->param('_ajax') ? true : $result;
-    }
-
-    /**
-     * 当前是否Pjax请求
-     * @access public
-     * @param  bool $pjax true 获取原始pjax请求
-     * @return bool
-     */
-    public function isPjax(bool $pjax = false): bool
-    {
-        $result = parent::isPjax();
-
-        if (true === $pjax) {
-            return $result;
-        }
-
-        return $this->param('_pajax') ? true : $result;
+        return $this->param('_ajax') ? true : parent::isAjax();
     }
 
     /**
@@ -748,16 +565,6 @@ class Request extends \Webman\Http\Request
     public function port(): int
     {
         return parent::getLocalPort();
-    }
-
-    /**
-     * 获取当前完整URL 包括QUERY_STRING
-     * @access public
-     * @return string
-     */
-    public function url(): string
-    {
-        return parent::url();
     }
 
     /**
@@ -789,7 +596,9 @@ class Request extends \Webman\Http\Request
      */
     public function withGet(array $get)
     {
-        $this->_data['get'] = array_merge($this->get(), $get);
+        foreach ($get as $key => $val) {
+            $this->setGet($key, $val);
+        }
         return $this;
     }
 
@@ -801,43 +610,9 @@ class Request extends \Webman\Http\Request
      */
     public function withPost(array $post)
     {
-        $this->_data['post'] = array_merge($this->post(), $post);
+        foreach ($post as $key => $val) {
+            $this->setPost($key, $val);
+        }
         return $this;
-    }
-
-    /**
-     * 设置当前的操作名
-     * @access public
-     * @param  string $action 操作名
-     * @return $this
-     */
-    public function setAction(string $action)
-    {
-        $this->action = $action;
-        return $this;
-    }
-
-    /**
-     * 获取当前的控制器名
-     * @access public
-     * @param  bool $convert 转换为小写
-     * @return string
-     */
-    public function controller(bool $convert = false): string
-    {
-        $name = $this->controllerName ?: '';
-        return $convert ? strtolower($name) : $name;
-    }
-
-    /**
-     * 获取当前的操作名
-     * @access public
-     * @param  bool $convert 转换为小写
-     * @return string
-     */
-    public function action(bool $convert = false): string
-    {
-        $name = $this->action ?: '';
-        return $convert ? strtolower($name) : $name;
     }
 }

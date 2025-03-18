@@ -52,7 +52,7 @@ class Lang
      * @access public
      * @param array $config
      */
-    public function __construct(array $config = [])
+    public function __construct($config = [])
     {
         $this->config = array_merge($this->config, array_change_key_case(config('plugin.tpext.core.app.lang', [])));
         $this->config = array_merge($this->config, array_change_key_case($config));
@@ -75,7 +75,7 @@ class Lang
      * @param string $lang 语言
      * @return void
      */
-    public function setLangSet(string $lang): void
+    public function setLangSet($lang): void
     {
         $this->range = $lang;
     }
@@ -106,7 +106,7 @@ class Lang
      * @param string $langset 语言
      * @return void
      */
-    public function switchLangSet(string $langset)
+    public function switchLangSet($langset)
     {
         if (empty($langset)) {
             return;
@@ -164,7 +164,7 @@ class Lang
      * @param string $file 语言文件名
      * @return array
      */
-    protected function parse(string $file): array
+    protected function parse($file): array
     {
         $filemtime = filemtime($file);
 
@@ -204,7 +204,7 @@ class Lang
      * @param string      $range 语言作用域
      * @return bool
      */
-    public function has(string $name, string $range = ''): bool
+    public function has($name,  $range = ''): bool
     {
         $range = $range ?: $this->range;
 
@@ -224,7 +224,7 @@ class Lang
      * @param string      $range 语言作用域
      * @return mixed
      */
-    public function get(string $name = null, array $vars = [], string $range = '')
+    public function get($name = null,  $vars = [],  $range = '')
     {
         $range = $range ?: $this->range;
 
