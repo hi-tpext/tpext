@@ -343,7 +343,7 @@ class ExtLoader
 
     public static function getInstalled($reget = false)
     {
-        $config = config('thinkorm.connections.mysql', []);
+        $config = config('think-orm.connections.mysql', []);
 
         if (empty($config['database']) || empty($config['username']) || empty($config['password'])) {
             return [];
