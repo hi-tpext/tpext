@@ -31,22 +31,28 @@ if (!function_exists('url')) {
      */
     function url($url = '', $vars = [], $suffix = false)
     {
-        $url = trim($url, '/');
-        $path = trim(request()->path(), '/');
+        $arr1 = explode('/', trim($url, '/'));
+        $arr2 = [];
+        //绝对路径
+        if (strpos($url, '/') === 0) {
+            $arr2[0] = !empty($arr1[0]) ? $arr1[0] : 'index';
+            $arr2[1] = !empty($arr1[1]) ? $arr1[1] : 'index';
+            $arr2[2] = !empty($arr1[2]) ? $arr1[2] : 'index';
+        } else {
+            $path = trim(request()->path(), '/');
+            $arr2 = explode('/', $path);
 
-        $arr1 = explode('/', $url);
-        $arr2 = explode('/', $path);
+            $arr2[0] = !empty($arr2[0]) ? $arr2[0] : 'index';
+            $arr2[1] = !empty($arr2[1]) ? $arr2[1] : 'index';
+            $arr2[2] = !empty($arr2[2]) ? $arr2[2] : 'index';
 
-        $arr2[0] = !empty($arr2[0]) ? $arr2[0] : 'index';
-        $arr2[1] = !empty($arr2[1]) ? $arr2[1] : 'index';
-        $arr2[2] = !empty($arr2[2]) ? $arr2[2] : 'index';
-
-        if (count($arr1) == 1) {
-            $arr2 = [$arr2[0], $arr2[1], $arr1[0]];
-        } else if (count($arr1) == 2) {
-            $arr2 = [$arr2[0], $arr1[0], $arr1[1]];
-        } else if (count($arr1) >= 3) {
-            $arr2 = [$arr1[0], $arr1[1], $arr1[2]];
+            if (count($arr1) == 1) {
+                $arr2 = [$arr2[0], $arr2[1], $arr1[0]];
+            } else if (count($arr1) == 2) {
+                $arr2 = [$arr2[0], $arr1[0], $arr1[1]];
+            } else if (count($arr1) >= 3) {
+                $arr2 = [$arr1[0], $arr1[1], $arr1[2]];
+            }
         }
 
         $url = strtolower('/' . implode('/', $arr2));
