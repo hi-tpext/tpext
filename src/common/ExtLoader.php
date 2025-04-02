@@ -198,11 +198,11 @@ class ExtLoader
             foreach ($cacheModules as $k => $m) {
                 if (is_string($m)) {
                     if (class_exists($m, false)) {
-                        self::$modules[] = $m::getInstance();
+                        self::$modules[$m] = $m::getInstance();
                     }
                 } else {//兼容旧缓存
                     if (class_exists($k, false)) {
-                        self::$modules[] = $m;
+                        self::$modules[$k] = $m;
                     }
                 }
             }
@@ -210,11 +210,11 @@ class ExtLoader
             foreach ($cacheResources as $k => $r) {
                 if (is_string($r)) {
                     if (class_exists($r, false)) {
-                        self::$resources[] = $r::getInstance();
+                        self::$resources[$r] = $r::getInstance();
                     }
                 } else {
                     if (class_exists($k, false)) {
-                        self::$resources[] = $r;
+                        self::$resources[$k] = $r;
                     }
                 }
             }
