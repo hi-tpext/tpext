@@ -389,7 +389,7 @@ class ExtLoader
 
         $list = ExtensionModel::where(['install' => 1])->select();
 
-        Cache::set('tpext_installed_extensions', $list);
+        Cache::set('tpext_installed_extensions', is_array($list) ? $list : $list->toArray());
 
         return $list;
     }

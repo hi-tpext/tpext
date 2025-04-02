@@ -285,7 +285,6 @@ class Request extends \Webman\Http\Request
      * @access public
      * @param  string|false      $name 变量名
      * @param  mixed             $default 默认值
-     * @param  string|array      $filter 过滤方法
      * @return mixed
      */
     public function delete($name = '', $default = null)
@@ -298,7 +297,6 @@ class Request extends \Webman\Http\Request
      * @access public
      * @param  string|false      $name 变量名
      * @param  mixed             $default 默认值
-     * @param  string|array      $filter 过滤方法
      * @return mixed
      */
     public function patch($name = '', $default = null)
@@ -311,7 +309,6 @@ class Request extends \Webman\Http\Request
      * @access public
      * @param  string|array $name 变量名
      * @param  mixed        $default 默认值
-     * @param  string|array $filter 过滤方法
      * @return mixed
      */
     public function param($name = '', $default = null)
@@ -341,7 +338,6 @@ class Request extends \Webman\Http\Request
      * @access public
      * @param  string|array $name 数据名称
      * @param  mixed        $default 默认值
-     * @param  string|array $filter 过滤方法
      * @return mixed
      */
     public function request($name = '', $default = null, $filter = '')
@@ -521,10 +517,9 @@ class Request extends \Webman\Http\Request
      * @access public
      * @param  array        $name 变量名
      * @param  mixed        $data 数据或者变量类型
-     * @param  string|array $filter 过滤方法
      * @return array
      */
-    public function _only(array $name, $data = 'param', $filter = ''): array
+    public function _only(array $name, $data = 'param'): array
     {
         $data = is_array($data) ? $data : $this->$data();
 
