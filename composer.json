@@ -18,7 +18,6 @@
         "workerman/webman-framework": "^2.0.1",
         "topthink/think-template": "^3.0",
         "topthink/think-validate":"^3.0",
-        "topthink/think-cache": "^3.0",
         "webman/think-cache": "^2.0",
         "webman/think-orm": "^2.0",
         "webman/event": "^1.0.2"

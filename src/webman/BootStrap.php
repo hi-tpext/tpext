@@ -22,7 +22,6 @@ class BootStrap implements \Webman\Bootstrap
             $validate->setLang(Lang::getInstance());
         });
 
-        Container::getInstance()->bind('think\CacheManager', \Webman\ThinkCache\CacheManager::class);
         Container::getInstance()->bind('think\DbManager', \Webman\ThinkOrm\DbManager::class);
         ExtLoader::bindExtensions();
         RouteLoader::load();
