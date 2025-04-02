@@ -318,12 +318,12 @@ class Request extends \Webman\Http\Request
     {
         if (empty($this->mergeParam)) {
 
-            $method = $this->method();
+            $method = strtoupper(parent::method());
 
             if ($method == 'POST') {
-                $this->param = array_merge(parent::post(null, []), parent::get(null, []));
+                $this->param = parent::all();
             } else {
-                $this->param = parent::get(null, []);
+                $this->param = parent::get();
             }
 
             $this->mergeParam = true;
