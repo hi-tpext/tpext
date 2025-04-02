@@ -22,11 +22,11 @@ class BootStrap implements \Webman\Bootstrap
             $validate->setLang(Lang::getInstance());
         });
 
-        Lang::load(TpextCore::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['think', 'lang', App::getDefaultLang() . '.php']));
         Container::getInstance()->bind('think\CacheManager', \Webman\ThinkCache\CacheManager::class);
         Container::getInstance()->bind('think\DbManager', \Webman\ThinkOrm\DbManager::class);
         ExtLoader::bindExtensions();
         RouteLoader::load();
+        Lang::load(TpextCore::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['think', 'lang', App::getDefaultLang() . '.php']));
 
         ExtLoader::trigger('tpext_modules_loaded');
 
@@ -41,34 +41,34 @@ class BootStrap implements \Webman\Bootstrap
 
         $json = json_decode(file_get_contents(base_path() . '/composer.json'), true);
 
-        $rewrite = false;
+        $forceWrite = false;
         if (empty($json['autoload'])) {
             $json['autoload'] = [
                 "psr-0" => [
                     "" => "extend/"
                 ]
             ];
-            $rewrite = true;
+            $forceWrite = true;
         } else {
             if (empty($json['autoload']['psr-0'])) {
                 $json['autoload']['psr-0'] = [
                     "" => "extend/"
                 ];
-                $rewrite = true;
+                $forceWrite = true;
             } else {
                 if (!in_array('extend/', $json['autoload']['psr-0'])) {
                     $json['autoload']['psr-0'][''] = "extend/";
-                    $rewrite = true;
+                    $forceWrite = true;
                 }
             }
         }
 
-        if (!$rewrite) {
+        if (!$forceWrite) {
             return;
         }
 
-        echo 'regist path [/extend] succeeded, composer.json was updated' . "\n";
-
         file_put_contents(base_path() . '/composer.json', json_encode($json, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+
+        echo 'regist path [/extend] succeeded, composer.json was updated' . "\n";
     }
 }

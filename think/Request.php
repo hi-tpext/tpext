@@ -105,13 +105,13 @@ class Request extends \Webman\Http\Request
 
             $this->method = 'POST';
 
-            if (!isset($this->_data['post'])) {
+            if (!isset($this->data['post'])) {
                 $this->parsePost();
             }
 
-            if (isset($this->_data['post']['_method'])) {
-                $method = strtolower($this->_data['post']['_method']);
-                unset($this->_data['post']['_method']);
+            if (isset($this->data['post']['_method'])) {
+                $method = strtolower($this->data['post']['_method']);
+                unset($this->data['post']['_method']);
                 if (in_array($method, ['put', 'patch', 'delete'])) {
                     $this->method = strtoupper($method);
                 }
@@ -229,6 +229,84 @@ class Request extends \Webman\Http\Request
     }
 
     /**
+     * Get query.
+     *
+     * @param string|null $name
+     * @param mixed $default
+     * @return mixed
+     */
+    public function get(?string $name = null, mixed $default = null): mixed
+    {
+        if (!isset($this->data['get'])) {
+            $this->parseGet();
+        }
+
+        if (is_array($name)) {
+            return $this->_only($name, $this->data['get']);
+        }
+
+        return $this->_input($this->data['get'], $name, $default);
+    }
+
+    /**
+     * Get post.
+     *
+     * @param string|null $name
+     * @param mixed $default
+     * @return mixed
+     */
+    public function post(?string $name = null, mixed $default = null): mixed
+    {
+        if (!isset($this->data['post'])) {
+            $this->parsePost();
+        }
+
+        if (is_array($name)) {
+            return $this->_only($name, $this->data['post']);
+        }
+
+        return $this->_input($this->data['post'], $name, $default);
+    }
+
+    /**
+     * 获取PUT参数
+     * @access public
+     * @param  string|false      $name 变量名
+     * @param  mixed             $default 默认值
+     * @return mixed
+     */
+    public function put($name = '', $default = null)
+    {
+        return $this->_post($name, $default);
+    }
+
+    /**
+     * 获取DELETE参数
+     * @access public
+     * @param  string|false      $name 变量名
+     * @param  mixed             $default 默认值
+     * @param  string|array      $filter 过滤方法
+     * @return mixed
+     */
+    public function delete($name = '', $default = null)
+    {
+        return $this->_post($name, $default);
+    }
+
+    /**
+     * 获取PATCH参数
+     * @access public
+     * @param  string|false      $name 变量名
+     * @param  mixed             $default 默认值
+     * @param  string|array      $filter 过滤方法
+     * @return mixed
+     */
+    public function patch($name = '', $default = null)
+    {
+        return $this->_post($name, $default);
+    }
+
+    /**
      * 获取当前请求的参数
      * @access public
      * @param  string|array $name 变量名
@@ -236,11 +314,11 @@ class Request extends \Webman\Http\Request
      * @param  string|array $filter 过滤方法
      * @return mixed
      */
-    public function param($name = '', $default = null, $filter = '')
+    public function param($name = '', $default = null)
     {
         if (empty($this->mergeParam)) {
 
-            $method = $this->method(true);
+            $method = $this->method();
 
             if ($method == 'POST') {
                 $this->param = array_merge(parent::post(null, []), parent::get(null, []));
@@ -252,10 +330,10 @@ class Request extends \Webman\Http\Request
         }
 
         if (is_array($name)) {
-            return $this->_only($name, $this->param, $filter);
+            return $this->_only($name, $this->param);
         }
 
-        return $this->_input($this->param, $name, $default, $filter);
+        return $this->_input($this->param, $name, $default);
     }
 
     /**
