@@ -188,19 +188,31 @@ class ExtLoader
     public static function bindExtensions()
     {
         if (!config('app_debug')) {
-            self::$modules = Cache::get('tpext_modules') ?: [];
-            self::$resources = Cache::get('tpext_resources') ?: [];
+            $cacheModules = Cache::get('tpext_modules') ?: [];
+            $cacheResources = Cache::get('tpext_resources') ?: [];
             self::$bindModules = Cache::get('tpext_bind_modules') ?: [];
 
-            foreach (self::$modules as $k => $m) {
-                if (!class_exists($k, false)) {
-                    unset(self::$modules[$k]);
+            foreach ($cacheModules as $k => $m) {
+                if (is_string($m)) {
+                    if (class_exists($m, false)) {
+                        self::$modules[$m] = $m::getInstance();
+                    }
+                } else {//兼容旧缓存
+                    if (class_exists($k, false)) {
+                        self::$modules[$k] = $m;
+                    }
                 }
             }
 
-            foreach (self::$resources as $k => $r) {
-                if (!class_exists($k, false)) {
-                    unset(self::$resources[$k]);
+            foreach ($cacheResources as $k => $r) {
+                if (is_string($r)) {
+                    if (class_exists($r, false)) {
+                        self::$resources[$r] = $r::getInstance();
+                    }
+                } else {
+                    if (class_exists($k, false)) {
+                        self::$resources[$k] = $r;
+                    }
                 }
             }
         }
@@ -219,8 +231,8 @@ class ExtLoader
 
         if (empty(self::$modules)) {
             self::findExtensions($enabled);
-            Cache::set('tpext_modules', self::$modules);
-            Cache::set('tpext_resources', self::$resources);
+            Cache::set('tpext_modules', array_keys(self::$modules));
+            Cache::set('tpext_resources', array_keys(self::$resources));
             Cache::set('tpext_bind_modules', self::$bindModules);
         }
 
@@ -369,7 +381,7 @@ class ExtLoader
 
         $list = ExtensionModel::where(['install' => 1])->select();
 
-        Cache::set('tpext_installed_extensions', $list);
+        Cache::set('tpext_installed_extensions', is_array($list) ? $list : $list->toArray());
 
         return $list;
     }
