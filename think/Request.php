@@ -367,20 +367,6 @@ class Request extends \Webman\Http\Request
         return $this->server[$name] ?? $default;
     }
 
-    protected function filterData($data, $filter, $name, $default)
-    {
-        // 解析过滤器
-        $filter = $this->getFilter($filter, $default);
-
-        if (is_array($data)) {
-            array_walk_recursive($data, [$this, 'filterValue'], $filter);
-        } else {
-            $this->filterValue($data, $name, $filter);
-        }
-
-        return $data;
-    }
-
     protected function getFilter($filter, $default): array
     {
         if (is_null($filter)) {
@@ -502,8 +488,6 @@ class Request extends \Webman\Http\Request
             }
         }
 
-        $data = $this->filterData($data, $filter, $name, $default);
-
         if (isset($type) && $data !== $default) {
             // 强制类型转换
             $this->typeCast($data, $type);
@@ -536,7 +520,7 @@ class Request extends \Webman\Http\Request
                 $default = $val;
             }
 
-            $item[$key] = $this->filterData($data[$key] ?? $default, $filter, $key, $default);
+            $item[$key] = $data[$key] ?? $default;
         }
 
         return $item;
