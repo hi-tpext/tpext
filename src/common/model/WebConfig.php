@@ -19,11 +19,18 @@ class WebConfig extends Model
         ExtLoader::trigger('clear_cache_web_config', $configKey);
     }
 
-    public static function config($configKey, $reget = false)
+    /**
+     * 读取配置
+     * 
+     * @param string $configKey 配置键
+     * @param boolean $forceGet 强制获取，不走缓存
+     * @return array|mixed
+     */
+    public static function config($configKey, $forceGet = false)
     {
         $cache = Cache::get('web_config_' . $configKey);
 
-        if ($cache && !$reget) {
+        if ($cache && !$forceGet) {
             return $cache;
         }
 
