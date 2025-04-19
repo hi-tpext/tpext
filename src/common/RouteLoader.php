@@ -12,6 +12,12 @@ class RouteLoader
 {
     public static function load($forceWrite = false)
     {
+        $routeFile = config_path() . '/plugin/tpext/core/route.php';
+
+        if (is_file($routeFile) && time() - filemtime($routeFile) < 60 && !$forceWrite) {
+            return;
+        }
+
         $bindModules = ExtLoader::getBindModules();
 
         $routesGroup = [];
@@ -31,24 +37,18 @@ class RouteLoader
             }
         }
 
-        self::witeToFile($routesGroup, $forceWrite);
+        self::witeToFile($routesGroup, $routeFile);
     }
 
     /**
      * Undocumented function
      *
      * @param array $routesGroup
-     * @param boolean $forceWrite
+     * @param string $routeFile
      * @return void
      */
-    protected static function witeToFile($routesGroup, $forceWrite)
+    protected static function witeToFile($routesGroup, $routeFile)
     {
-        $routeFile = config_path() . '/plugin/tpext/core/route.php';
-
-        if (is_file($routeFile) && time() - filemtime($routeFile) < 120 && !$forceWrite) {
-            return;
-        }
-
         $lines = [];
 
         $lines[] = '<?php';
