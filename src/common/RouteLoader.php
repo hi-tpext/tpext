@@ -10,7 +10,7 @@ use think\helper\Str;
 
 class RouteLoader
 {
-    public static function load($focusWrite = false)
+    public static function load($forceWrite = false)
     {
         $bindModules = ExtLoader::getBindModules();
 
@@ -31,21 +31,21 @@ class RouteLoader
             }
         }
 
-        self::witeToFile($routesGroup, $focusWrite);
+        self::witeToFile($routesGroup, $forceWrite);
     }
 
     /**
      * Undocumented function
      *
      * @param array $routesGroup
-     * @param boolean $focusWrite
+     * @param boolean $forceWrite
      * @return void
      */
-    protected static function witeToFile($routesGroup, $focusWrite)
+    protected static function witeToFile($routesGroup, $forceWrite)
     {
         $routeFile = config_path() . '/plugin/tpext/core/route.php';
 
-        if (is_file($routeFile) && time() - filemtime($routeFile) < 120 && !$focusWrite) {
+        if (is_file($routeFile) && time() - filemtime($routeFile) < 120 && !$forceWrite) {
             return;
         }
 
@@ -71,7 +71,7 @@ class RouteLoader
                     [$path, $classAction] = $info;
                     [$class, $action] = $classAction;
 
-                    $lines[] = "    Route::any('{$path}', [{$class}::class, '{$action}']);";
+                    $lines[] = "    Route::any('{$path}[.html]', [{$class}::class, '{$action}']);";
                 }
             }
             $lines[] = '});';
