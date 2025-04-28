@@ -143,11 +143,11 @@ class View
         $action = '';
 
         if ($request->route) {
-            $requestPath = strtolower($request->route->getPath());
+            $requestPath = strtolower(rtrim($request->route->getPath(),'[.html]'));
             $explode = explode('/', trim($requestPath, '/'));
             $module = $explode[0] ?: 'index';
             $controller  = $explode[1] ?? 'index';
-            $action  = rtrim($explode[2] ?? 'index', '[.html]');
+            $action  = $explode[2] ?? 'index';
         } else {
             $requestPath = strtolower($request->path());
             $explode = explode('/', trim($requestPath, '/'));
