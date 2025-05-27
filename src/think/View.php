@@ -143,7 +143,7 @@ class View
         $action = '';
 
         if ($request->route) {
-            $requestPath = strtolower(rtrim($request->route->getPath(), '[.html]'));
+            $requestPath = strtolower(str_replace('[.html]', '', $request->route->getPath()));
             $explode = explode('/', trim($requestPath, '/'));
             $module = $explode[0] ?: 'index';
             $controller  = $explode[1] ?? 'index';
