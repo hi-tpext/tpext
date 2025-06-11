@@ -200,10 +200,6 @@ class ExtLoader
                     if (class_exists($m, false)) {
                         self::$modules[$m] = $m::getInstance();
                     }
-                } else {//兼容旧缓存
-                    if (class_exists($k, false)) {
-                        self::$modules[$k] = $m;
-                    }
                 }
             }
 
@@ -211,10 +207,6 @@ class ExtLoader
                 if (is_string($r)) {
                     if (class_exists($r, false)) {
                         self::$resources[$r] = $r::getInstance();
-                    }
-                } else {
-                    if (class_exists($k, false)) {
-                        self::$resources[$k] = $r;
                     }
                 }
             }
@@ -262,6 +254,10 @@ class ExtLoader
      */
     private static function findExtensions($enabled)
     {
+        self::$bindModules = [];
+        self::$modules = [];
+        self::$resources = [];
+
         self::trigger('tpext_find_extensions');
 
         $classMap = self::$classMap;
