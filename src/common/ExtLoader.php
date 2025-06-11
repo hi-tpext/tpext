@@ -197,10 +197,6 @@ class ExtLoader
                     if (class_exists($m, false)) {
                         self::$modules[$m] = $m::getInstance();
                     }
-                } else {//兼容旧缓存
-                    if (class_exists($k, false)) {
-                        self::$modules[$k] = $m;
-                    }
                 }
             }
 
@@ -208,10 +204,6 @@ class ExtLoader
                 if (is_string($r)) {
                     if (class_exists($r, false)) {
                         self::$resources[$r] = $r::getInstance();
-                    }
-                } else {
-                    if (class_exists($k, false)) {
-                        self::$resources[$k] = $r;
                     }
                 }
             }
@@ -259,6 +251,10 @@ class ExtLoader
      */
     private static function findExtensions($enabled)
     {
+        self::$bindModules = [];
+        self::$modules = [];
+        self::$resources = [];
+
         self::trigger('tpext_find_extensions');
 
         $classMap = self::$classMap;
@@ -315,7 +311,6 @@ class ExtLoader
                             self::$bindModules[strtolower($key)][] = [
                                 'name' => $name,
                                 'controllers' => $controllers,
-                                'controlers' => $controllers, //兼容
                                 'namespace_map' => $instance->getNameSpaceMap(),
                                 'classname' => $declare,
                             ];
@@ -329,10 +324,9 @@ class ExtLoader
     public static function getTpVer()
     {
         if (empty(self::$tpVer)) {
-            if(method_exists(App::class, 'version')){
+            if (method_exists(App::class, 'version')) {
                 self::$tpVer = strstr(app()->version(), '.', true);
-            }
-            else{
+            } else {
                 self::$tpVer = strstr(App::VERSION, '.', true);
             }
         }
