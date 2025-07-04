@@ -28,6 +28,8 @@ class View extends Response
      */
     protected $engine;
 
+    protected $data = '';
+
     protected $config = [
         'auto_rule'     => 1,
         'view_dir_name' => 'view',
@@ -92,7 +94,7 @@ class View extends Response
     public function clear()
     {
         self::$shareVars  = [];
-        $this->data = [];
+        $this->data = '';
         $this->vars = [];
 
         return $this;

@@ -66,6 +66,7 @@ abstract class Controller
     // 初始化
     protected function initialize()
     {
+        //
     }
 
     /**
@@ -266,10 +267,9 @@ abstract class Controller
      * @param  string         $url 跳转的URL表达式
      * @param  array|integer  $params 其它URL参数
      * @param  integer        $code http code
-     * @param  array          $with 隐式传参
      * @return void
      */
-    protected function redirect($url, $params = [], $code = 302, $with = [])
+    protected function redirect($url, $params = [], $code = 302)
     {
         $response = Response::create($url, 'redirect', $code);
 
