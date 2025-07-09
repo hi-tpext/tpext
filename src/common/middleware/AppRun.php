@@ -75,7 +75,7 @@ class AppRun
     protected function parseModule(): bool
     {
         $scriptName = $this->getScriptName();
-        $module_bind = '';
+        $bind = '';
 
         if ($this->name || ($scriptName && !in_array($scriptName, ['index', 'router', 'think']))) {
         } else {
@@ -160,7 +160,7 @@ class AppRun
      */
     private function cherckModule($url, $bind)
     {
-        if ($bind) {
+        if ($bind && $bind != '/') {
             $url = $url ? $bind . '|' . $url : $bind;
         }
 
