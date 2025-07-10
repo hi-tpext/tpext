@@ -147,7 +147,7 @@ class RouteLoader
                 $routes[] = ["/{$controller}", [$namespace . $class, $action]];
             }
 
-            $routes[] = ["/{$controller}/{$action}", [$namespace . $class, $action]];
+            $routes[] = ["/{$controller}/{{$action}:(?i){$action}}", [$namespace . $class, $action]];
         }
 
         return $routes;
