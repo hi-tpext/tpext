@@ -16,7 +16,7 @@ class View
      * 原始数据
      * @var mixed
      */
-    protected $data = [];
+    protected $data = '';
 
     /**
      * Undocumented variable
