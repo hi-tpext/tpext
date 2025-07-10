@@ -56,6 +56,8 @@ class Install
         echo "let [support\\Request] extends [Webman\\Http\\Request] in support/Request.php\n";
 
         self::uninstallByRelation();
+
+        static::composer();
     }
 
     /**
@@ -101,5 +103,44 @@ class Install
             }
             remove_dir($path);
         }
+    }
+
+    public static function composer()
+    {
+        if (!is_dir(base_path() . '/extend/')) {
+            mkdir(base_path() . '/extend/', 0775);
+        }
+
+        $json = json_decode(file_get_contents(base_path() . '/composer.json'), true);
+
+        $rewrite = false;
+        if (empty($json['autoload'])) {
+            $json['autoload'] = [
+                "psr-0" => [
+                    "" => "extend/"
+                ]
+            ];
+            $rewrite = true;
+        } else {
+            if (empty($json['autoload']['psr-0'])) {
+                $json['autoload']['psr-0'] = [
+                    "" => "extend/"
+                ];
+                $rewrite = true;
+            } else {
+                if (!in_array('extend/', $json['autoload']['psr-0'])) {
+                    $json['autoload']['psr-0'][''] = "extend/";
+                    $rewrite = true;
+                }
+            }
+        }
+
+        if (!$rewrite) {
+            return;
+        }
+
+        echo 'regist path [/extend] succeeded, composer.json was updated' . "\n";
+
+        file_put_contents(base_path() . '/composer.json', json_encode($json, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
     }
 }

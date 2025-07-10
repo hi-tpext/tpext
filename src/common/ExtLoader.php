@@ -349,7 +349,7 @@ class ExtLoader
         return true;
     }
 
-    public static function getInstalled($reget = false)
+    public static function getInstalled($force = false)
     {
         $config = config('thinkorm.connections.mysql', []);
 
@@ -379,7 +379,7 @@ class ExtLoader
 
         $data = Cache::get('tpext_installed_extensions');
 
-        if (!$reget && $data) {
+        if (!$force && $data) {
             return $data;
         }
 
