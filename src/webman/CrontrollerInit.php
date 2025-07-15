@@ -11,7 +11,7 @@ use Webman\Http\Response;
 use tpext\common\ExtLoader;
 use tpext\common\TpextCore;
 use Webman\MiddlewareInterface;
-use support\exception\BusinessException;
+use Webman\Exception\BusinessException;
 use think\exception\HttpResponseException;
 
 /**
