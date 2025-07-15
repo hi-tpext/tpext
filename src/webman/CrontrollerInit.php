@@ -43,7 +43,7 @@ class CrontrollerInit implements MiddlewareInterface
                     return new Response(
                         200,
                         [],
-                        $this->renderExceptionContent($exception)
+                        config('app.debug', true) ? 'Server internal error' : $this->renderExceptionContent($exception)
                     );
                 }
             }
