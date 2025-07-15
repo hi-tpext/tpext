@@ -24,7 +24,7 @@ class CrontrollerInit implements MiddlewareInterface
     public function process(Request $request, callable $next): Response
     {
         Validate::destroyInstance();
-        
+
         ExtLoader::trigger('tpext_webman_run');
         $response = $this->getResponse($request, $next);
         ExtLoader::trigger('tpext_webman_end');
@@ -46,7 +46,7 @@ class CrontrollerInit implements MiddlewareInterface
                     return new Response(
                         200,
                         [],
-                        $this->renderExceptionContent($exception)
+                        config('app.debug', true) ? 'Server internal error' : $this->renderExceptionContent($exception)
                     );
                 }
             }
