@@ -7,6 +7,7 @@ use think\helper\Str;
 use think\facade\Cache;
 use Webman\Event\Event;
 use tpext\common\model\Extension as ExtensionModel;
+use Workerman\Coroutine;
 
 class ExtLoader
 {
@@ -417,30 +418,32 @@ class ExtLoader
      */
     public static function reloadWebman($desc = '')
     {
-        $appFile = config_path() . '/plugin/tpext/core/app.php';
+        Coroutine::create(function () use ($desc) {
+            $appFile = config_path() . '/plugin/tpext/core/app.php';
 
-        if (!is_dir(config_path() . '/plugin/tpext/core/')) {
-            mkdir(config_path() . '/plugin/tpext/core/', 0755, true);
-        }
+            if (!is_dir(config_path() . '/plugin/tpext/core/')) {
+                mkdir(config_path() . '/plugin/tpext/core/', 0755, true);
+            }
 
-        $lines = [];
+            $lines = [];
 
-        $lines[] = '<?php';
-        $lines[] = '';
-        $lines[] = '/**';
-        $lines[] = ' *tpext 自动生成，请不要手动修改.';
-        $lines[] = ' *时间:' . date('Y-m-d H:i:s');
-        $lines[] = ' */';
-        $lines[] = '';
-        $lines[] = 'return [';
-        $lines[] = '    \'enable\' => true,';
-        $lines[] = '];';
-        $lines[] = '';
+            $lines[] = '<?php';
+            $lines[] = '';
+            $lines[] = '/**';
+            $lines[] = ' *tpext 自动生成，请不要手动修改.';
+            $lines[] = ' *时间:' . date('Y-m-d H:i:s');
+            $lines[] = ' */';
+            $lines[] = '';
+            $lines[] = 'return [';
+            $lines[] = '    \'enable\' => true,';
+            $lines[] = '];';
+            $lines[] = '';
 
-        file_put_contents($appFile, implode(PHP_EOL, $lines));
+            file_put_contents($appFile, implode(PHP_EOL, $lines));
 
-        if ($desc) {
-            echo $desc . "\n";
-        }
+            if ($desc) {
+                echo $desc . "\n";
+            }
+        });
     }
 }

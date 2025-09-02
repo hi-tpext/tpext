@@ -3,6 +3,7 @@
 namespace tpext\common;
 
 use think\helper\Str;
+use Workerman\Coroutine;
 
 /**
  * for webman
@@ -18,26 +19,29 @@ class RouteLoader
             return;
         }
 
-        $bindModules = ExtLoader::getBindModules();
+        Coroutine::create(function () use ($routeFile) {
 
-        $routesGroup = [];
+            $bindModules = ExtLoader::getBindModules();
 
-        foreach ($bindModules as $key => $moduleInfo) {
+            $routesGroup = [];
 
-            foreach ($moduleInfo as $mod) {
+            foreach ($bindModules as $key => $moduleInfo) {
 
-                foreach ($mod['controllers'] as $controller) {
+                foreach ($moduleInfo as $mod) {
 
-                    $routes = self::matchModule($mod, $key, $controller);
+                    foreach ($mod['controllers'] as $controller) {
 
-                    if (!empty($routes)) {
-                        $routesGroup[$key][$controller] = $routes;
+                        $routes = self::matchModule($mod, $key, $controller);
+
+                        if (!empty($routes)) {
+                            $routesGroup[$key][$controller] = $routes;
+                        }
                     }
                 }
             }
-        }
 
-        self::witeToFile($routesGroup, $routeFile);
+            self::witeToFile($routesGroup, $routeFile);
+        });
     }
 
     /**
@@ -64,7 +68,7 @@ class RouteLoader
         foreach ($routesGroup as $module => $controller) {
             $lines[] = "Route::group('/{$module}', function () {";
 
-            foreach ($controller as  $infos) {
+            foreach ($controller as $infos) {
 
                 foreach ($infos as $info) {
 
@@ -84,6 +88,8 @@ class RouteLoader
         }
 
         file_put_contents($routeFile, implode(PHP_EOL, $lines));
+
+        echo "tpext make route done \n";
     }
 
     /**
