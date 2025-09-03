@@ -31,8 +31,8 @@ if (!function_exists('getTpVer')) {
     }
 }
 if (!function_exists('webConfig')) {
-    function webConfig($key, $reget = false)
+    function webConfig($key, $force = false)
     {
-        return WebConfig::config($key, $reget);
+        return WebConfig::config($key, $force);
     }
 }
