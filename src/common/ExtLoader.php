@@ -198,7 +198,7 @@ class ExtLoader
 
             foreach ($cacheModules as $k => $m) {
                 if (is_string($m)) {
-                    if (class_exists($m, false)) {
+                    if (class_exists($m)) {
                         self::$modules[$m] = $m::getInstance();
                     }
                 }
@@ -206,7 +206,7 @@ class ExtLoader
 
             foreach ($cacheResources as $k => $r) {
                 if (is_string($r)) {
-                    if (class_exists($r, false)) {
+                    if (class_exists($r)) {
                         self::$resources[$r] = $r::getInstance();
                     }
                 }
