@@ -17,7 +17,6 @@
         "php": ">=7.0.0",
         "topthink/framework": "^6.0.14|^6.1.5|^8.0",
         "topthink/think-multi-app": "^1.0",
-        "topthink/think-orm": "^2.0|^3.0",
         "topthink/think-view": "^1.0|^2.0"
     },
     "autoload": {
