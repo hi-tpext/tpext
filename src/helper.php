@@ -48,11 +48,11 @@ if (!function_exists('url')) {
             $arr2[1] = !empty($arr2[1]) ? $arr2[1] : 'index';
             $arr2[2] = !empty($arr2[2]) ? $arr2[2] : 'index';
 
-            if (count($arr1) == 1) {
-                $arr2 = [$arr2[0], $arr2[1], $arr1[0]];
-            } else if (count($arr1) == 2) {
-                $arr2 = [$arr2[0], $arr1[0], $arr1[1]];
+            $len = count($arr1);
+            for ($i = 0; $i < $len; $i += 1) {
+                array_pop($arr2);
             }
+            $arr2 = array_merge($arr2, $arr1);
         }
 
         $url = strtolower('/' . implode('/', $arr2));
