@@ -33,7 +33,7 @@ class CrontrollerInit implements MiddlewareInterface
 
             if (!($exception instanceof BusinessException)) {
                 if ($request->expectsJson()) {
-                    $json = ['code' => 0, 'msg' => config('app.debug', true) ? '[' . $exception->getFile() . '#' . $exception->getLine() . ']' . $exception->getMessage() : 'Server internal error'];
+                    $json = ['code' => 0, 'msg' => config('app.debug', true) ? '[' . str_replace(base_path(), '', $exception->getFile()) . '#' . $exception->getLine() . ']' . $exception->getMessage() : 'Server internal error'];
                     return new Response(
                         200,
                         ['Content-Type' => 'application/json'],
@@ -43,7 +43,7 @@ class CrontrollerInit implements MiddlewareInterface
                     return new Response(
                         200,
                         [],
-                        config('app.debug', true) ? 'Server internal error' : $this->renderExceptionContent($exception)
+                        config('app.debug', true) ? $this->renderExceptionContent($exception) : 'Server internal error'
                     );
                 }
             }
@@ -110,7 +110,7 @@ class CrontrollerInit implements MiddlewareInterface
         $rootPath = TpextCore::getInstance()->getRoot();
         include $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'think_exception']) . '.tpl';
 
-        return ob_get_clean();
+        return str_replace(base_path(), '', ob_get_clean());
     }
 
     /**
@@ -121,33 +121,33 @@ class CrontrollerInit implements MiddlewareInterface
     protected function convertExceptionToArray(Throwable $exception): array
     {
         // 调试模式，获取详细的错误信息
-        $traces        = [];
+        $traces = [];
         $nextException = $exception;
         do {
             $traces[] = [
-                'name'    => get_class($nextException),
-                'file'    => $nextException->getFile(),
-                'line'    => $nextException->getLine(),
-                'code'    => $nextException->getCode(),
+                'name' => get_class($nextException),
+                'file' => $nextException->getFile(),
+                'line' => $nextException->getLine(),
+                'code' => $nextException->getCode(),
                 'message' => $nextException->getMessage(),
-                'trace'   => $nextException->getTrace(),
-                'source'  => $this->getSourceCode($nextException),
+                'trace' => $nextException->getTrace(),
+                'source' => $this->getSourceCode($nextException),
             ];
         } while ($nextException = $nextException->getPrevious());
 
         $request = tpRequest();
 
         $data = [
-            'code'    => $exception->getCode(),
+            'code' => $exception->getCode(),
             'message' => $exception->getMessage(),
-            'traces'  => $traces,
-            'datas'   => [],
-            'tables'  => config('app.debug', true) ? [
-                'GET Data'            => $request->get(),
-                'POST Data'           => $request->post(),
-                'Files'               => $request->file(),
-                'Cookies'             => $request->cookie(),
-                'Session'             => $request->session()->all() ?: [],
+            'traces' => $traces,
+            'datas' => [],
+            'tables' => config('app.debug', true) ? [
+                'GET Data' => $request->get(),
+                'POST Data' => $request->post(),
+                'Files' => $request->file(),
+                'Cookies' => $request->cookie(),
+                'Session' => $request->session()->all() ?: [],
                 'Server/Request Data' => $request->server(),
             ] : [],
         ];
@@ -165,13 +165,13 @@ class CrontrollerInit implements MiddlewareInterface
     protected function getSourceCode(Throwable $exception): array
     {
         // 读取前9行和后9行
-        $line  = $exception->getLine();
+        $line = $exception->getLine();
         $first = ($line - 9 > 0) ? $line - 9 : 1;
 
         try {
             $contents = file($exception->getFile()) ?: [];
-            $source   = [
-                'first'  => $first,
+            $source = [
+                'first' => $first,
                 'source' => array_slice($contents, $first - 1, 19),
             ];
         } catch (\Exception $e) {
