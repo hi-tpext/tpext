@@ -25,11 +25,12 @@ class BootStrap implements \Webman\Bootstrap
 
         Container::getInstance()->bind('think\DbManager', \Webman\ThinkOrm\DbManager::class);
         ExtLoader::bindExtensions();
-        RouteLoader::load();
         Lang::load(TpextCore::getInstance()->getRoot() . implode(DIRECTORY_SEPARATOR, ['think', 'lang', App::getDefaultLang() . '.php']));
-
         ExtLoader::trigger('tpext_modules_loaded');
 
-        Install::composer();
+        if ($worker->id === 0) {
+            RouteLoader::load();
+            Install::composer();
+        }
     }
 }
