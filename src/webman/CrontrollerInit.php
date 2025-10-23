@@ -88,7 +88,7 @@ class CrontrollerInit implements MiddlewareInterface
 
                 $response = $next($request);
 
-                if (\is_callable($request->controller . '::getInitializeResult')) {
+                if (is_callable($request->controller . '::getInitializeResult')) {
                     $initResp = $request->controller::getInitializeResult();
                     if ($initResp && $initResp instanceof Response) {
                         return $initResp;

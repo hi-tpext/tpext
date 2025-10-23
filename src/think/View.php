@@ -4,10 +4,10 @@ namespace tpext\think;
 
 use think\Template;
 use think\helper\Str;
+use Webman\Context;
 
 class View
 {
-    protected static $shareVars = [];
     protected $vars = [];
     protected $content = null;
     protected $isContent = false;
@@ -78,21 +78,25 @@ class View
 
     public static function share($name, $value = '')
     {
+        $shareVars = static::getShare();
+
         if (is_array($name)) {
-            self::$shareVars = array_merge(self::$shareVars, $name);
+            $shareVars = array_merge($shareVars, $name);
         } else {
-            self::$shareVars[$name] = $value;
+            $shareVars[$name] = $value;
         }
+
+        Context::set(static::class . '::shareVars',  $shareVars);
     }
 
     public static function clearShareVars()
     {
-        self::$shareVars  = [];
+        Context::set(static::class . '::shareVars',  []);
     }
 
     public static function getShare()
     {
-        return self::$shareVars;
+        return Context::get(static::class . '::shareVars',  []);
     }
 
     public function clear()
@@ -107,7 +111,7 @@ class View
     {
         ob_start();
 
-        $vars = array_merge(self::$shareVars, $this->vars);
+        $vars = array_merge(static::getShare(), $this->vars);
 
         if ($this->isContent) {
             $this->engine->display($template, $vars);
@@ -136,7 +140,7 @@ class View
     private function parseTemplate(string $template)
     {
         // 分析模板文件规则
-        $request = request();
+        $request = tpRequest();
 
         $requestPath = strtolower($request->path());
         $explode = explode('/', trim($requestPath, '/'));
@@ -199,7 +203,7 @@ class View
             return $templateFile;
         }
 
-        $controllerClass = request()->controller;
+        $controllerClass = $request->controller;
 
         if (!$controllerClass) {
 

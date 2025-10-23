@@ -4,6 +4,7 @@ namespace think;
 
 use think\Request;
 use think\Validate;
+use Webman\Context;
 use think\helper\Str;
 use tpext\think\View;
 use Webman\Http\Response;
@@ -16,8 +17,6 @@ use think\exception\HttpResponseException;
  */
 abstract class Controller
 {
-    protected static $initializeResult = null;
-
     protected $vars  = [];
 
     /**
@@ -32,8 +31,6 @@ abstract class Controller
      */
     protected $batchValidate = false;
 
-    protected static $dispatchJumpTemplate = '';
-
     public function __construct()
     {
         $controller_reuse = config('app.controller_reuse', true);
@@ -41,7 +38,7 @@ abstract class Controller
         if (!$controller_reuse) {
             $this->request = tpRequest();
             $this->request->decode();
-            self::$initializeResult = $this->initialize();
+            Context::set(static::class . '::initializeResult', $this->initialize());
         }
     }
 
@@ -57,22 +54,25 @@ abstract class Controller
 
     public static function getInitializeResult()
     {
-        return self::$initializeResult;
+        return Context::get(static::class . '::initializeResult');
     }
 
     public static function setDispatchJumpTemplate($template)
     {
-        self::$dispatchJumpTemplate = $template;
+        Context::set(static::class . '::dispatchJumpTemplate',  $template);
     }
 
     public static function getDispatchJumpTemplate()
     {
-        if (!self::$dispatchJumpTemplate) {
+        $dispatchJumpTemplate = Context::get(static::class . '::dispatchJumpTemplate');
+
+        if (!$dispatchJumpTemplate) {
             $rootPath = TpextCore::getInstance()->getRoot();
-            self::$dispatchJumpTemplate = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
+            $dispatchJumpTemplate = $rootPath . implode(DIRECTORY_SEPARATOR, ['think', 'tpl', 'dispatch_jump']) . '.tpl';
+            Context::set(static::class . '::dispatchJumpTemplate',  $dispatchJumpTemplate);
         }
 
-        return self::$dispatchJumpTemplate;
+        return $dispatchJumpTemplate;
     }
 
     /**
@@ -104,7 +104,6 @@ abstract class Controller
     {
         $this->destroyBuilder();
         $this->request = null;
-        self::$dispatchJumpTemplate = '';
         $this->batchValidate = false;
         $this->vars = [];
     }
@@ -326,7 +325,6 @@ abstract class Controller
         if ($type == 'json' || $this->getResponseType() == 'json') {
             $response = new Response(200, ['Content-Type' => 'application/json'], json_encode($result, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         } else {
-
             $view = new View(self::getDispatchJumpTemplate(), $result);
             $response = new Response(200, $header, $view->getContent());
         }
