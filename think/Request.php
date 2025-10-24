@@ -121,21 +121,19 @@ class Request extends \Webman\Http\Request
             return $this->method;
         }
 
-        if ($method == 'GET') {
-            $this->method = 'GET';
-        } else if ($method == 'POST') {
+        $this->method = $method;
 
-            $this->method = 'POST';
+       if ($method == 'POST') {
 
             if (!isset($this->_data['post'])) {
                 $this->parsePost();
             }
 
             if (isset($this->_data['post']['_method'])) {
-                $method = strtolower($this->_data['post']['_method']);
+                $method = strtoupper($this->_data['post']['_method']);
                 unset($this->_data['post']['_method']);
-                if (in_array($method, ['put', 'patch', 'delete'])) {
-                    $this->method = strtoupper($method);
+                if (in_array($method, ['PUT', 'PATCH', 'DELETE'])) {
+                    $this->method = $method;
                 }
             }
         }
