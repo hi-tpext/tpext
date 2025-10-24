@@ -93,27 +93,24 @@ class Request extends \Webman\Http\Request
      */
     public function method(): string
     {
-        $method = strtoupper(parent::method());
-
         if ($this->method) {
             return $this->method;
         }
 
-        if ($method == 'GET') {
-            $this->method = 'GET';
-        } else if ($method == 'POST') {
+        $method = strtoupper(parent::method());
 
-            $this->method = 'POST';
+        $this->method = $method;
 
+        if ($method == 'POST') {
             if (!isset($this->data['post'])) {
                 $this->parsePost();
             }
 
             if (isset($this->data['post']['_method'])) {
-                $method = strtolower($this->data['post']['_method']);
+                $method = strtoupper($this->data['post']['_method']);
                 unset($this->data['post']['_method']);
-                if (in_array($method, ['put', 'patch', 'delete'])) {
-                    $this->method = strtoupper($method);
+                if (in_array($method, ['PUT', 'PATCH', 'DELETE'])) {
+                    $this->method = $method;
                 }
             }
         }
