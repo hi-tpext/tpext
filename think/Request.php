@@ -123,7 +123,7 @@ class Request extends \Webman\Http\Request
 
         $this->method = $method;
 
-       if ($method == 'POST') {
+        if ($method == 'POST') {
 
             if (!isset($this->_data['post'])) {
                 $this->parsePost();
@@ -367,6 +367,10 @@ class Request extends \Webman\Http\Request
                 $this->param = array_merge(parent::post(null, []), parent::get(null, []));
             } else {
                 $this->param = parent::get(null, []);
+            }
+
+            if ($this->route) {
+                $this->param = array_merge($this->param, $this->route->param());
             }
 
             $this->mergeParam = true;
@@ -645,23 +649,23 @@ class Request extends \Webman\Http\Request
     protected function typeCast(&$data, string $type)
     {
         switch (strtolower($type)) {
-                // 数组
+            // 数组
             case 'a':
                 $data = (array) $data;
                 break;
-                // 数字
+            // 数字
             case 'd':
                 $data = (int) $data;
                 break;
-                // 浮点
+            // 浮点
             case 'f':
                 $data = (float) $data;
                 break;
-                // 布尔
+            // 布尔
             case 'b':
                 $data = (bool) $data;
                 break;
-                // 字符串
+            // 字符串
             case 's':
                 if (is_scalar($data)) {
                     $data = (string) $data;
