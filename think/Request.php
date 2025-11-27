@@ -226,6 +226,22 @@ class Request extends \Webman\Http\Request
     }
 
     /**
+     * 获取路由参数
+     * @param string|null $name
+     * @param mixed $default
+     * @return mixed
+     */
+    public function route(?string $name = null, mixed $default = null)
+    {
+        if (!$this->route) {
+            return $default;
+        }
+        $params = $this->route->param() ?: [];
+
+        return $this->_input($params, $name, $default);
+    }
+
+    /**
      * Get query.
      *
      * @param string|null $name
@@ -318,6 +334,10 @@ class Request extends \Webman\Http\Request
                 $this->param = parent::all();
             } else {
                 $this->param = parent::get();
+            }
+
+            if ($this->route) {
+                $this->param = array_merge($this->param, $this->route->param());
             }
 
             $this->mergeParam = true;
@@ -460,7 +480,7 @@ class Request extends \Webman\Http\Request
         return $this->_only($name, $this->param());
     }
 
-    protected function _input(array $data = [], $name = '', $default = null, $filter = '')
+    protected function _input(array $data = [], $name = '', $default = null)
     {
         if (false === $name) {
             // 获取原始数据
