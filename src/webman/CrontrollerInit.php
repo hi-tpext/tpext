@@ -6,6 +6,7 @@ use Throwable;
 use think\Controller;
 use tpext\think\View;
 use support\Container;
+use think\facade\Cookie;
 use Webman\Http\Request;
 use Webman\Http\Response;
 use think\facade\Validate;
@@ -51,14 +52,34 @@ class CrontrollerInit implements MiddlewareInterface
                 }
             }
         }
-
+        $this->saveCookie($response);
         //php.ini中max_execution_time的值对cli环境无效，但可以在程序中是可以被修改并生效
         @set_time_limit(0); //清除某些第三方库可能会设置超时不为0值对cli环境的影响
         Validate::destroyInstance();
         return $response;
     }
 
-    private function getResponse(Request $request, callable $next): Response
+    protected function saveCookie(Response $response)
+    {
+        $cookies = Cookie::getCookie();
+
+        foreach ($cookies as $name => $val) {
+            [$value, $expire, $option] = $val;
+
+            $response->cookie(
+                $name,
+                $value,
+                $expire ?: null,
+                $option['path'] ?? '',
+                $option['domain'] ?? '',
+                $option['secure'] ?? false,
+                $option['httponly'] ?? false,
+                $option['samesite'] ?? ''
+            );
+        }
+    }
+
+    protected function getResponse(Request $request, callable $next): Response
     {
         if ($request->controller) {
 
