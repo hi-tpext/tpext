@@ -3,6 +3,9 @@
 use think\Request;
 use think\route\Url;
 use think\facade\Log;
+use think\facade\Cache;
+use think\facade\Cookie;
+use think\facade\Session;
 use Webman\Http\Response;
 use tpext\common\ExtLoader;
 
@@ -82,10 +85,97 @@ if (!function_exists('download')) {
 if (!function_exists('tpRequest')) {
 
     /**
-     * @return Request|\Webman\Http\Request|support\Request|think\facade\Request|Request|null
+     * @return Request|\Webman\Http\Request|support\Request|think\facade\Request|null
      */
     function tpRequest()
     {
         return request();
+    }
+}
+
+if (!function_exists('cache')) {
+    /**
+     * 缓存管理
+     * @param string|null $name    缓存名称
+     * @param mixed  $value   缓存值
+     * @param mixed  $options 缓存参数
+     * @param string $tag     缓存标签
+     * @return mixed
+     */
+    function cache(?string $name = null, $value = '', $options = null, $tag = null)
+    {
+        if (is_null($name)) {
+            return Cache::instance();
+        }
+
+        if ('' === $value) {
+            // 获取缓存
+            return 0 === strpos($name, '?') ? Cache::has(substr($name, 1)) : Cache::get($name);
+        } elseif (is_null($value)) {
+            // 删除缓存
+            return Cache::delete($name);
+        }
+
+        // 缓存数据
+        if (is_array($options)) {
+            $expire = $options['expire'] ?? null; //修复查询缓存无法设置过期时间
+        } else {
+            $expire = $options;
+        }
+
+        if (is_null($tag)) {
+            return Cache::set($name, $value, $expire);
+        } else {
+            return Cache::tag($tag)->set($name, $value, $expire);
+        }
+    }
+}
+if (!function_exists('cookie')) {
+    /**
+     * Cookie管理
+     * @param string $name   cookie名称
+     * @param mixed  $value  cookie值
+     * @param mixed  $option 参数
+     * @return mixed
+     */
+    function cookie(string $name, $value = '', $option = null)
+    {
+        if (is_null($value)) {
+            // 删除
+            Cookie::delete($name, $option ?: []);
+        } elseif ('' === $value) {
+            // 获取
+            return 0 === strpos($name, '?') ? Cookie::has(substr($name, 1)) : Cookie::get($name);
+        } else {
+            // 设置
+            return Cookie::set($name, $value, $option);
+        }
+    }
+}
+
+if (!function_exists('session')) {
+    /**
+     * Session管理
+     * @param string $name  session名称
+     * @param mixed  $value session值
+     * @return mixed
+     */
+    function session($name = '', $value = '')
+    {
+        if (is_null($name)) {
+            // 清除
+            Session::clear();
+        } elseif ('' === $name) {
+            return Session::all();
+        } elseif (is_null($value)) {
+            // 删除
+            Session::delete($name);
+        } elseif ('' === $value) {
+            // 判断或获取
+            return 0 === strpos($name, '?') ? Session::has(substr($name, 1)) : Session::get($name);
+        } else {
+            // 设置
+            Session::set($name, $value);
+        }
     }
 }
