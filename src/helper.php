@@ -93,7 +93,18 @@ if (!function_exists('tpRequest')) {
     }
 }
 
-if (!function_exists('cache')) {
+if (!function_exists('tp_request')) {
+
+    /**
+     * @return Request|\Webman\Http\Request|support\Request|think\facade\Request|null
+     */
+    function tp_request()
+    {
+        return request();
+    }
+}
+
+if (!function_exists('tp_cache')) {
     /**
      * 缓存管理
      * @param string|null $name    缓存名称
@@ -102,7 +113,7 @@ if (!function_exists('cache')) {
      * @param string $tag     缓存标签
      * @return mixed
      */
-    function cache(?string $name = null, $value = '', $options = null, $tag = null)
+    function tp_cache(?string $name = null, $value = '', $options = null, $tag = null)
     {
         if (is_null($name)) {
             return Cache::instance();
@@ -130,7 +141,23 @@ if (!function_exists('cache')) {
         }
     }
 }
-if (!function_exists('cookie')) {
+
+if (!function_exists('cache')) {
+    /**
+     * 缓存管理
+     * @param string|null $name    缓存名称
+     * @param mixed  $value   缓存值
+     * @param mixed  $options 缓存参数
+     * @param string $tag     缓存标签
+     * @return mixed
+     */
+    function cache(?string $name = null, $value = '', $options = null, $tag = null)
+    {
+        return tp_cache($name, $value, $options, $tag);
+    }
+}
+
+if (!function_exists('tp_cookie')) {
     /**
      * Cookie管理
      * @param string $name   cookie名称
@@ -138,7 +165,7 @@ if (!function_exists('cookie')) {
      * @param mixed  $option 参数
      * @return mixed
      */
-    function cookie(string $name, $value = '', $option = null)
+    function tp_cookie(string $name, $value = '', $option = null)
     {
         if (is_null($value)) {
             // 删除
@@ -153,14 +180,28 @@ if (!function_exists('cookie')) {
     }
 }
 
-if (!function_exists('session')) {
+if (!function_exists('cookie')) {
+    /**
+     * Cookie管理
+     * @param string $name   cookie名称
+     * @param mixed  $value  cookie值
+     * @param mixed  $option 参数
+     * @return mixed
+     */
+    function cookie(string $name, $value = '', $option = null)
+    {
+        return tp_cookie($name, $value, $option);
+    }
+}
+
+if (!function_exists('tp_session')) {
     /**
      * Session管理
      * @param string $name  session名称
      * @param mixed  $value session值
      * @return mixed
      */
-    function session($name = '', $value = '')
+    function tp_session($name = '', $value = '')
     {
         if (is_null($name)) {
             // 清除
@@ -177,5 +218,18 @@ if (!function_exists('session')) {
             // 设置
             Session::set($name, $value);
         }
+    }
+}
+
+if (!function_exists('session')) {
+    /**
+     * Session管理
+     * @param string $name  session名称
+     * @param mixed  $value session值
+     * @return mixed
+     */
+    function session($name = '', $value = '')
+    {
+        return tp_session($name, $value);
     }
 }
