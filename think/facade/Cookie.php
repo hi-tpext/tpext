@@ -119,7 +119,7 @@ class Cookie
      */
     public static function delete(string $name, array $option = []): void
     {
-        self::setCookie($name, '', time() - 3600, $option);
+        self::setCookie($name, '', -1, $option);
     }
 
     /**
