@@ -29,7 +29,7 @@ class CrontrollerInit implements MiddlewareInterface
 
         if ($exception = $response->exception()) {
             if ($exception instanceof HttpResponseException) {
-                return $exception->getResponse();
+                return $this->saveCookie($exception->getResponse());
             }
 
             if (!($exception instanceof BusinessException)) {
@@ -55,7 +55,7 @@ class CrontrollerInit implements MiddlewareInterface
         return $response;
     }
 
-    protected function saveCookie(Response $response)
+    protected function saveCookie(Response $response): Response
     {
         $cookies = Cookie::getCookie();
 
@@ -73,6 +73,8 @@ class CrontrollerInit implements MiddlewareInterface
                 $option['samesite'] ?? ''
             );
         }
+
+        return $response;
     }
 
     protected function getResponse(Request $request, callable $next): Response
