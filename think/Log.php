@@ -107,4 +107,12 @@ class Log
         }
         baseLog::emergency($message, $context);
     }
+
+    public function write($message, array $context = [])
+    {
+        if (is_array($message) || is_object($message)) {
+            $message = json_encode($message);
+        }
+        BaseLog::log($message, $context);
+    }
 }
