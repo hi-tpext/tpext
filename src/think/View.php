@@ -136,15 +136,23 @@ class View
     private function parseTemplate(string $template)
     {
         // 分析模板文件规则
-        $request = request();
+        $request = tpRequest();
+        $module = '';
+        $controller = '';
+        $action = '';
 
-        $requestPath = strtolower($request->path());
-        $explode = explode('/', trim($requestPath, '/'));
-        $module = $explode[0] ?: 'index';
-        $controller  = $explode[1] ?? 'index';
-        $action  = $explode[2] ?? 'index';
+        $requestPath = strtolower(str_replace('[.html]', '', $request->path()));
+        $explode = explode('/', ltrim($requestPath, '/'));
 
-        $action = str_replace('.html', '', $action);
+        if (count($explode) > 3) {
+            $module = array_shift($explode);
+            $action = array_pop($explode) ?: 'index';
+            $controller = implode('/', $explode);
+        } else {
+            $module = !empty($explode[0]) ? $explode[0] : 'index';
+            $controller = !empty($explode[1]) ? $explode[1] : 'index';
+            $action = !empty($explode[2]) ? $explode[2] : 'index';
+        }
 
         // 获取视图根目录
         if (strpos($template, '@')) {
