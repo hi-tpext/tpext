@@ -2,15 +2,10 @@
 
 namespace tpext\common;
 
+use Webman\Context;
+
 class Share
 {
-    /**
-     * Undocumented variable
-     *
-     * @var array
-     */
-    protected static $data = [];
-
     /**
      * Undocumented function
      *
@@ -20,7 +15,7 @@ class Share
      */
     public static function set($key, $value)
     {
-        static::$data[$key] = $value;
+        Context::set($key, $value);
     }
 
     /**
@@ -31,6 +26,6 @@ class Share
      */
     public static function get($key)
     {
-        return static::$data[$key] ?? null;
+        return Context::get($key);
     }
 }

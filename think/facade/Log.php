@@ -29,6 +29,8 @@ namespace think\facade;
  * @method static void info(mixed $message, array $context = []) 记录一般信息
  * @method static void debug(mixed $message, array $context = []) 记录调试信息
  * @method static void sql(mixed $message, array $context = []) 记录sql信息
+ * @method static void write(mixed $message, array $context = []) 写入日志信息
+ * @method static void channel(string $name = 'default') 切换日志通道
  */
 class Log
 {

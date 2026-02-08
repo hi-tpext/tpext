@@ -115,4 +115,9 @@ class Log
         }
         BaseLog::log($message, $context);
     }
+
+    public function channel(string $name = 'default')
+    {
+        BaseLog::channel($name);
+    }
 }
