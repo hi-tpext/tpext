@@ -16,7 +16,9 @@ use support\Log as BaseLog;
 
 /**
  * 日志管理类
+ * 仅用于迁移的短期兼容，长期使用请直接使用 webman 的日志
  * @package think
+ * 
  */
 class Log
 {
@@ -99,7 +101,7 @@ class Log
         }
         BaseLog::alert($message, $context);
     }
-    
+
     public function emergency($message, array $context = [])
     {
         if (is_array($message) || is_object($message)) {
@@ -113,11 +115,12 @@ class Log
         if (is_array($message) || is_object($message)) {
             $message = json_encode($message);
         }
-        BaseLog::log($message, $context);
+        BaseLog::info($message, $context);
     }
 
     public function channel(string $name = 'default')
     {
-        BaseLog::channel($name);
+        //返回 webman 的日志
+        return BaseLog::channel($name);
     }
 }
