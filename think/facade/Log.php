@@ -18,7 +18,6 @@ namespace think\facade;
  * @mixin \think\Log
  * @method static \think\Log record(mixed $msg, string $type = 'info', array $context = [], bool $lazy = true) 记录日志信息
  * @method static \think\Log write(mixed $msg, string $type = 'info', array $context = []) 实时写入日志信息
- * @method static Event listen($listener) 注册日志写入事件监听
  * @method static void log(string $level, mixed $message, array $context = []) 记录日志信息
  * @method static void emergency(mixed $message, array $context = []) 记录emergency信息
  * @method static void alert(mixed $message, array $context = []) 记录警报信息
@@ -30,7 +29,7 @@ namespace think\facade;
  * @method static void debug(mixed $message, array $context = []) 记录调试信息
  * @method static void sql(mixed $message, array $context = []) 记录sql信息
  * @method static void write(mixed $message, array $context = []) 写入日志信息
- * @method static void channel(string $name = 'default') 切换日志通道
+ * @method static \Monolog\Logger channel(string $name = 'default') 切换日志通道
  */
 class Log
 {
