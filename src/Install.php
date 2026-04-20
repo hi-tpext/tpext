@@ -35,6 +35,8 @@ class Install
         echo "let [support\\Request] extends [think\\Request] in support/Request.php\n";
 
         static::installByRelation();
+
+        static::composer();
     }
 
     /**
@@ -56,8 +58,6 @@ class Install
         echo "let [support\\Request] extends [Webman\\Http\\Request] in support/Request.php\n";
 
         self::uninstallByRelation();
-
-        static::composer();
     }
 
     /**

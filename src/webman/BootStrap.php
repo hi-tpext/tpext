@@ -8,7 +8,6 @@ use think\facade\Lang;
 use tpext\common\ExtLoader;
 use tpext\common\TpextCore;
 use tpext\common\RouteLoader;
-use tpext\Install;
 
 class BootStrap implements \Webman\Bootstrap
 {
@@ -28,7 +27,6 @@ class BootStrap implements \Webman\Bootstrap
 
         if ($worker->id === 0) {
             RouteLoader::load();
-            Install::composer();
         }
     }
 }

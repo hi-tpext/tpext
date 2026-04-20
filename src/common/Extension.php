@@ -467,6 +467,7 @@ abstract class Extension
         ExtLoader::clearCache(true);
         ExtLoader::getInstalled(true);
         ExtLoader::bindExtensions();
+        RouteLoader::load(true);
 
         return $success;
     }
@@ -499,6 +500,7 @@ abstract class Extension
         ExtLoader::clearCache(true);
         ExtLoader::getInstalled(true);
         ExtLoader::bindExtensions();
+        RouteLoader::load(true);
 
         return $success;
     }
