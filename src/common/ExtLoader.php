@@ -191,7 +191,7 @@ class ExtLoader
 
     public static function bindExtensions()
     {
-        if (!config('debug')) {
+        if (!config('app.debug', true)) {
             $cacheModules = Cache::get('tpext_modules') ?: [];
             $cacheResources = Cache::get('tpext_resources') ?: [];
             self::$bindModules = Cache::get('tpext_bind_modules') ?: [];
