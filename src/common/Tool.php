@@ -145,17 +145,19 @@ class Tool
             return false;
         }
 
-        $type = Db::getConfig('default', 'mysql');
+        $driver = Db::getConfig('default', 'mysql');
 
         $connections = Db::getConfig('connections');
 
-        $config = $connections[$type] ?? [];
+        $config = $connections[$driver] ?? [];
 
         if (empty($config) || empty($config['database'])) {
             return false;
         }
 
         $prefix = $config['prefix'];
+
+        $type = $config['type'];
 
         $content = preg_replace('/\r\n|\r/', "\n", $content);
 
@@ -171,12 +173,30 @@ class Tool
 
         $sqls = explode(";\n", $content);
 
-        $success = 0;
+        $allSqls = [];
+
+        $state = ['serialColumns' => [], 'pendingSyncs' => []];
 
         foreach ($sqls as $sql) {
-            if ($sql == '') {
+            if (trim($sql) == '') {
                 continue;
             }
+
+            if ($type == 'pgsql') {
+                $statements = Pgsql::mysqlToPostgresql($sql, $state);
+                array_push($allSqls, ...$statements);
+            } else {
+                $allSqls[] = $sql;
+            }
+        }
+
+        if ($type == 'pgsql') {
+            array_push($allSqls, ...Pgsql::buildSequenceSyncs($state));
+        }
+
+        $success = 0;
+
+        foreach ($allSqls as $sql) {
             try {
                 Db::execute($sql);
                 $success += 1;
