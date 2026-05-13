@@ -351,7 +351,11 @@ class ExtLoader
 
     public static function getInstalled($force = false)
     {
-        $config = config('thinkorm.connections.mysql', []);
+        $driver = Db::getConfig('default', 'mysql');
+
+        $connections = Db::getConfig('connections');
+
+        $config = $connections[$driver] ?? [];
 
         if (empty($config['database']) || empty($config['username']) || empty($config['password'])) {
             return [];
