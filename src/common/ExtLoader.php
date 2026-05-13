@@ -352,9 +352,13 @@ class ExtLoader
 
     public static function getInstalled($force = false)
     {
-        $config = config('think-orm.connections.mysql', []);
+        $driver = Db::getConfig('default', 'mysql');
 
-        if (empty($config['database']) || empty($config['username']) || empty($config['password'])) {
+        $connections = Db::getConfig('connections');
+
+        $config = $connections[$driver] ?? [];
+
+        if (empty($config) || empty($config['database'])) {
             return [];
         }
 
@@ -366,9 +370,19 @@ class ExtLoader
             return [];
         }
 
-        $tableName = $config['prefix'] . 'extension';
+        $prefix = $config['prefix'];
 
-        $isTable = Db::query("SHOW TABLES LIKE '{$tableName}'");
+        $type = $config['type'];
+
+        $tableName = $prefix . 'extension';
+
+        $sql = "SHOW TABLES LIKE '{$tableName}'";
+
+        if ($type == 'pgsql') {
+            $sql = "SELECT tablename FROM pg_tables WHERE schemaname = 'public' AND tablename = '{$tableName}'";
+        }
+
+        $isTable = Db::query($sql);
 
         if (empty($isTable)) {
             Cache::set('tpext_installed_extensions', null);
