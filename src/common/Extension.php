@@ -11,18 +11,23 @@ abstract class Extension
     protected static $extensions = [];
 
     /**
-     * 数据库表保护，禁止代码生成以及修改表结构
-     *
-     * @var array 
+     * @var string
      */
-    protected static $protectedTables = [];
-
     protected $__root__ = null;
 
+    /**
+     * @var string
+     */
     protected $__ID__ = null;
 
+    /**
+     * @var array
+     */
     protected $__config__ = null;
 
+    /**
+     * @var string
+     */
     protected $__config_path__ = null;
 
     protected $errors = [];
@@ -194,29 +199,6 @@ abstract class Extension
         return self::$extensions[$class];
     }
 
-    /**
-     * Undocumented function
-     *
-     * @return array
-     */
-    public function getProtectedTables()
-    {
-        $class = get_called_class();
-
-        if (empty(self::$protectedTables[$class])) {
-            $sqlFile = $this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql';
-            if (is_file($sqlFile)) {
-                $content = file_get_contents($sqlFile);
-                preg_match_all('/CREATE\s+TABLE(?:\s+IF\s+NOT\s+EXISTS)?\s*`(\w+)`/is', $content, $matches);
-                self::$protectedTables[$class] = isset($matches[1]) && count($matches[1]) > 0 ? $matches[1] : ['_empty_'];
-            } else {
-                self::$protectedTables[$class] = ['_empty_'];
-            }
-        }
-        
-        return self::$protectedTables[$class];
-    }
-
     final public function getRoot()
     {
         if (empty($this->__root__)) {
@@ -267,9 +249,9 @@ abstract class Extension
             file_put_contents(
                 $assetsDir . 'tpext-warning.txt',
                 '此目录是存放扩展静态资源的，' . "\n"
-                    . '不要替换文件或上传新文件到此目录及子目录，' . "\n"
-                    . '否则刷新扩展资源后文件将还原或丢失，' . "\n"
-                    . '文件建议传到根目录的`public/static`目录下。'
+                . '不要替换文件或上传新文件到此目录及子目录，' . "\n"
+                . '否则刷新扩展资源后文件将还原或丢失，' . "\n"
+                . '文件建议传到根目录的`public/static`目录下。'
             );
         }
 
@@ -353,7 +335,7 @@ abstract class Extension
             $saved = WebConfig::config($this->getId());
 
             if (!empty($saved)) {
-                $this->__config__ =  array_merge($this->__config__, $saved);
+                $this->__config__ = array_merge($this->__config__, $saved);
             }
         }
 
@@ -638,6 +620,14 @@ abstract class Extension
     public function loaded()
     {
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getProtectedTables()
+    {
+        return [];
     }
 
     /**

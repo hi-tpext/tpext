@@ -2,8 +2,10 @@
 
 namespace tpext\common;
 
+use think\facade\Lang;
 use think\facade\Request;
 use think\facade\View;
+use tpext\think\App;
 
 class Module extends Extension
 {
@@ -23,6 +25,13 @@ class Module extends Extension
     protected $menus = [];
 
     /**
+     * 数据库表保护，禁止代码生成以及修改表结构
+     *
+     * @var array 
+     */
+    protected static $protectedTables = [];
+
+    /**
      * Undocumented function
      *
      * @return array
@@ -40,6 +49,69 @@ class Module extends Extension
     public function getMenus()
     {
         return $this->menus;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return array
+     */
+    public function getProtectedTables()
+    {
+        $class = get_called_class();
+
+        if (empty(self::$protectedTables[$class])) {
+            $sqlFile = $this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql';
+            if (is_file($sqlFile)) {
+                $content = file_get_contents($sqlFile);
+                preg_match_all('/CREATE\s+TABLE(?:\s+IF\s+NOT\s+EXISTS)?\s*`(\w+)`/is', $content, $matches);
+                self::$protectedTables[$class] = isset($matches[1]) && count($matches[1]) > 0 ? $matches[1] : ['_empty_'];
+            } else {
+                self::$protectedTables[$class] = ['_empty_'];
+            }
+        }
+
+        return self::$protectedTables[$class];
+    }
+
+    /**
+     * @param string $name
+     * @param string $app
+     * @return void
+     */
+    final public function loadLang($name, $app = 'admin')
+    {
+        if (!$name) {
+            return;
+        }
+        $file = App::getRootPath() . implode(DIRECTORY_SEPARATOR, ['app', $app, 'lang', App::getDefaultLang(), $this->assetsDirName(), $name . '.php']);
+        if (!is_file($file)) {
+            $file = $this->getRoot() . implode(DIRECTORY_SEPARATOR, [$app, 'lang', App::getDefaultLang(), $name . '.php']);
+        }
+        Lang::load($file);
+    }
+
+    /**
+     * @param string $name
+     * @param string $app
+     * @return array
+     */
+    final public function getLang($name, $app = 'admin')
+    {
+        if (!$name) {
+            return [];
+        }
+
+        $file = App::getRootPath() . implode(DIRECTORY_SEPARATOR, ['app', $app, 'lang', App::getDefaultLang(), $this->assetsDirName(), $name . '.php']);
+        if (!is_file($file)) {
+            $file = $this->getRoot() . implode(DIRECTORY_SEPARATOR, [$app, 'lang', App::getDefaultLang(), $name . '.php']);
+        }
+
+        if (is_file($file)) {
+            return include $file;
+        }
+
+        return [];
     }
 
     /**
@@ -114,12 +186,14 @@ class Module extends Extension
 
         $PUBLIC_PATH = $base_dir;
 
-        View::config(['tpl_replace_string' => [
-            '__ASSETS__' => $PUBLIC_PATH . 'assets',
-            '__M_NAME__' => $name,
-            '__MODULE__' => $PUBLIC_PATH . 'assets/' . $name,
-            strtoupper('__' . $name . '__') => $PUBLIC_PATH . 'assets/' . $name,
-        ]]);
+        View::config([
+            'tpl_replace_string' => [
+                '__ASSETS__' => $PUBLIC_PATH . 'assets',
+                '__M_NAME__' => $name,
+                '__MODULE__' => $PUBLIC_PATH . 'assets/' . $name,
+                strtoupper('__' . $name . '__') => $PUBLIC_PATH . 'assets/' . $name,
+            ]
+        ]);
 
         static::$current = $this->getId();
     }
