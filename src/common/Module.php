@@ -2,6 +2,9 @@
 
 namespace tpext\common;
 
+use think\facade\Lang;
+use tpext\think\App;
+
 class Module extends Extension
 {
     public static $current = '';
@@ -37,6 +40,56 @@ class Module extends Extension
     public function getMenus()
     {
         return $this->menus;
+    }
+
+    /**
+     * @param string $name
+     * @param string $app
+     * @return void
+     */
+    final public function loadLang($name, $app = 'admin')
+    {
+        $file = $this->getLangPath($name, $app);
+
+        if ($file) {
+            Lang::load($file);
+        }
+    }
+
+    /**
+     * @param string $name
+     * @param string $app
+     * @return array
+     */
+    final public function getLang($name, $app = 'admin')
+    {
+        $file = $this->getLangPath($name, $app);
+
+        if ($file) {
+            return include $file;
+        }
+
+        return [];
+    }
+
+    /**
+     * @param string $name
+     * @param string $app
+     * @return string
+     */
+    final public function getLangPath($name, $app = 'admin')
+    {
+        if (!$name) {
+            return '';
+        }
+
+        $file = App::getRootPath() . implode(DIRECTORY_SEPARATOR, ['app', $app, 'lang', App::getDefaultLang(), $this->assetsDirName(), $name . '.php']);
+
+        if (!is_file($file)) {
+            $file = $this->getRoot() . implode(DIRECTORY_SEPARATOR, ['src', $app, 'lang', App::getDefaultLang(), $name . '.php']);
+        }
+
+        return is_file($file) ? $file : '';
     }
 
     /**
