@@ -104,7 +104,7 @@ class Module extends Extension
 
         $file = App::getRootPath() . implode(DIRECTORY_SEPARATOR, ['app', $app, 'lang', App::getDefaultLang(), $this->assetsDirName(), $name . '.php']);
         if (!is_file($file)) {
-            $file = $this->getRoot() . implode(DIRECTORY_SEPARATOR, [$app, 'lang', App::getDefaultLang(), $name . '.php']);
+            $file = $this->getRoot() . implode(DIRECTORY_SEPARATOR, ['src', $app, 'lang', App::getDefaultLang(), $name . '.php']);
         }
 
         if (is_file($file)) {
