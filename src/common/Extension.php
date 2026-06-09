@@ -2,6 +2,7 @@
 
 namespace tpext\common;
 
+use think\facade\Lang;
 use tpext\common\model\Extension as ExtensionModel;
 use tpext\common\model\WebConfig;
 use tpext\think\App;
@@ -191,9 +192,10 @@ abstract class Extension
         $class = get_called_class();
 
         if (!isset(self::$extensions[$class])) {
-            $nstance = new static();
-            $nstance->created();
-            self::$extensions[$class] = $nstance;
+            $instance = new static();
+            $instance->i18n();
+            $instance->created();
+            self::$extensions[$class] = $instance;
         }
 
         return self::$extensions[$class];
@@ -204,7 +206,7 @@ abstract class Extension
         if (empty($this->__root__)) {
 
             if (empty($this->root)) {
-                throw new \UnexpectedValueException('root未设置:' . get_called_class());
+                throw new \UnexpectedValueException('root is unset:' . get_called_class());
             }
 
             $this->__root__ = realpath($this->root) . DIRECTORY_SEPARATOR;
@@ -246,13 +248,8 @@ abstract class Extension
         $res = Tool::copyDir($src, $assetsDir);
 
         if ($res) {
-            file_put_contents(
-                $assetsDir . 'tpext-warning.txt',
-                '此目录是存放扩展静态资源的，' . "\n"
-                . '不要替换文件或上传新文件到此目录及子目录，' . "\n"
-                . '否则刷新扩展资源后文件将还原或丢失，' . "\n"
-                . '文件建议传到根目录的`public/static`目录下。'
-            );
+            $lang = TpextCore::getInstance()->getLang('common');
+            file_put_contents($assetsDir . 'tpext-warning.txt', $lang['copy_assets_alert'] ?? '');
         }
 
         $this->afterCopyAssets();
@@ -491,12 +488,13 @@ abstract class Extension
         $extension = ExtensionModel::where(['key' => $ekey])->find();
 
         if (!$extension) {
-            $this->errors[] = new \Exception('已安装扩展中未找到：' . $ekey);
+            $this->errors[] = new \Exception('Not found in the installed extensions : ' . $ekey);
             return false;
         }
 
         if (version_compare($extension['version'], $this->version) >= 0) {
-            $this->errors[] = new \Exception('新版本号不高于原版本号，' . "原：{$extension['version']}新：{$this->version}");
+            $lang = TpextCore::getInstance()->getLang('common');
+            $this->errors[] = new \Exception(($lang['lower_version_error'] ?? '') . " original{$extension['version']} new{$this->version}");
             return false;
         }
 
@@ -556,7 +554,7 @@ abstract class Extension
                     $this->errors += $errors;
                 }
             } else {
-                $this->errors[] = new \Exception('文件路径错误：' . $sqlFile);
+                $this->errors[] = new \Exception('file path error : ' . $sqlFile);
                 return false;
             }
 
@@ -566,6 +564,63 @@ abstract class Extension
         }
 
         return $success > 0;
+    }
+
+    /**
+     * @param string $name
+     * @param string $app
+     * @return void
+     */
+    final public function loadLang($name, $app = 'admin')
+    {
+        $file = $this->getLangPath($name, $app);
+
+        if ($file) {
+            Lang::load($file);
+        }
+    }
+
+    /**
+     * @param string $name
+     * @param string $app
+     * @return array
+     */
+    final public function getLang($name, $app = 'admin')
+    {
+        $file = $this->getLangPath($name, $app);
+
+        if ($file) {
+            return include $file;
+        }
+
+        return [];
+    }
+
+    /**
+     * @param string $name
+     * @param string $app
+     * @param string $region
+     * @return string
+     */
+    final public function getLangPath($name, $app = 'admin', $region = '')
+    {
+        if (!$name) {
+            return '';
+        }
+
+        $lang = $region ?: App::getDefaultLang();
+
+        $file = App::getRootPath() . implode(DIRECTORY_SEPARATOR, ['app', $app, 'lang', $lang, $this->assetsDirName(), $name . '.php']);
+
+        if (!is_file($file)) {
+            $file = $this->getRoot() . implode(DIRECTORY_SEPARATOR, ['src', $app, 'lang', $lang, $name . '.php']);
+        }
+
+        if (!$region && !is_file($file)) {
+            return $this->getLangPath($name, $app, 'en');
+        }
+
+        return is_file($file) ? $file : '';
     }
 
     /**
@@ -612,6 +667,16 @@ abstract class Extension
         return $this;
     }
 
+    public function i18n()
+    {
+        $lang = static::getLang('extinfo');
+        if ($lang) {
+            $this->title = $lang['title'] ?? $this->title;
+            $this->tags = $lang['tags'] ?? $this->tags;
+            $this->description = $lang['description'] ?? $this->description;
+        }
+    }
+
     /**
      * 实例安装并启用，查找到之后调用
      *
@@ -637,4 +702,9 @@ abstract class Extension
      * @return boolean
      */
     abstract public function extInit($info = []);
+
+    public static function __callStatic($method, $params)
+    {
+        return call_user_func_array([static::getInstance(), $method], $params);
+    }
 }
