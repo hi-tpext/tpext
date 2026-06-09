@@ -2,9 +2,6 @@
 
 namespace tpext\common;
 
-use think\facade\Lang;
-use tpext\think\App;
-
 class Module extends Extension
 {
     public static $current = '';
@@ -21,6 +18,13 @@ class Module extends Extension
      * @var array
      */
     protected $menus = [];
+
+    /**
+     * 数据库表保护，禁止代码生成以及修改表结构
+     *
+     * @var array 
+     */
+    protected static $protectedTables = [];
 
     /**
      * Undocumented function
@@ -42,54 +46,27 @@ class Module extends Extension
         return $this->menus;
     }
 
-    /**
-     * @param string $name
-     * @param string $app
-     * @return void
-     */
-    final public function loadLang($name, $app = 'admin')
-    {
-        $file = $this->getLangPath($name, $app);
-
-        if ($file) {
-            Lang::load($file);
-        }
-    }
-
-    /**
-     * @param string $name
-     * @param string $app
+    /** 
+     * Undocumented function
+     *
      * @return array
      */
-    final public function getLang($name, $app = 'admin')
+    public function getProtectedTables()
     {
-        $file = $this->getLangPath($name, $app);
+        $class = get_called_class();
 
-        if ($file) {
-            return include $file;
+        if (empty(self::$protectedTables[$class])) {
+            $sqlFile = $this->getRoot() . 'data' . DIRECTORY_SEPARATOR . 'install.sql';
+            if (is_file($sqlFile)) {
+                $content = file_get_contents($sqlFile);
+                preg_match_all('/CREATE\s+TABLE(?:\s+IF\s+NOT\s+EXISTS)?\s*`(\w+)`/is', $content, $matches);
+                self::$protectedTables[$class] = isset($matches[1]) && count($matches[1]) > 0 ? $matches[1] : ['_empty_'];
+            } else {
+                self::$protectedTables[$class] = ['_empty_'];
+            }
         }
 
-        return [];
-    }
-
-    /**
-     * @param string $name
-     * @param string $app
-     * @return string
-     */
-    final public function getLangPath($name, $app = 'admin')
-    {
-        if (!$name) {
-            return '';
-        }
-
-        $file = App::getRootPath() . implode(DIRECTORY_SEPARATOR, ['app', $app, 'lang', App::getDefaultLang(), $this->assetsDirName(), $name . '.php']);
-
-        if (!is_file($file)) {
-            $file = $this->getRoot() . implode(DIRECTORY_SEPARATOR, ['src', $app, 'lang', App::getDefaultLang(), $name . '.php']);
-        }
-
-        return is_file($file) ? $file : '';
+        return self::$protectedTables[$class];
     }
 
     /**

@@ -17,7 +17,7 @@ class Tool
         }
 
         if (!is_dir($src)) {
-            trace('传入的不是一个目录:' . $src);
+            trace('Not a dir :' . $src);
             return false;
         }
 
