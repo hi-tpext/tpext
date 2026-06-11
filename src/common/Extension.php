@@ -647,4 +647,9 @@ abstract class Extension
      * @return boolean
      */
     abstract public function extInit($info = []);
+
+    public static function __callStatic($method, $params)
+    {
+        return call_user_func_array([static::getInstance(), $method], $params);
+    }
 }
