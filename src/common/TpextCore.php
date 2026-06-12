@@ -13,4 +13,10 @@ class TpextCore extends Module
     protected $description = '扩展核心支持';
 
     protected $root = __DIR__ . '/../../';
+
+    public function loaded()
+    {
+        $this->loadLang('common');
+        return $this;
+    }
 }
