@@ -92,8 +92,9 @@ abstract class Extension
     protected $namespaceMap = [];
 
     /**
-     * 版本列表，列出所有存在过的版本，即使没有升级脚本也要列出
-     * 版本号 => 升级脚本
+     * 版本列表，版本号 => 升级脚本
+     * 没有数据库改动的版本可以留空，未列出的版本不影响升级脚本的执行
+     * 升级时会自动按版本号升序执行所有大于已安装版本、且不超过当前版本的脚本
      *
      * @var array
      */
@@ -545,19 +546,17 @@ abstract class Extension
             return true;
         }
 
+        //按版本号升序排列，保证升级脚本按版本顺序执行
+        uksort($versions, 'version_compare');
+
         $success = 1;
         $sqlPath = $this->getRoot() . 'data' . DIRECTORY_SEPARATOR;
         $sqlFile = '';
-        $findOldVer = 0;
         $errors = [];
 
         foreach ($versions as $key => $sql) {
-            if ($key == $oldVer) {
-                $findOldVer = 1;
-                continue;
-            }
-
-            if (!$findOldVer && $key != $newVer) {
+            //只执行大于旧版本、且不超过目标版本的脚本，即使旧版本未在列表中列出
+            if (version_compare($key, $oldVer) <= 0 || version_compare($key, $newVer) > 0) {
                 continue;
             }
 
